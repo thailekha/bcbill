@@ -11,7 +11,7 @@ const path = require('path');
 
 exports.buildCCPOrg1 = () => {
 	// load the common connection configuration file
-	const ccpPath = '/home/ic/thesis/fablo-dev/fablo-target/fabric-config/connection-profiles/connection-profile-org1.json';
+	const ccpPath = '../fablo-target/fabric-config/connection-profiles/connection-profile-org1.json';
 	const fileExists = fs.existsSync(ccpPath);
 	if (!fileExists) {
 		throw new Error(`no such file or directory: ${ccpPath}`);
@@ -41,6 +41,8 @@ exports.buildCCPOrg2 = () => {
 	console.log(`Loaded the network configuration located at ${ccpPath}`);
 	return ccp;
 };
+
+exports.adminAndUserCreated = () => fs.existsSync('./wallet/admin.id') && fs.existsSync('./wallet/appUser.id');
 
 exports.buildWallet = async (Wallets, walletPath) => {
 	// Create a new  wallet : Note that wallet is for managing identities.
