@@ -13,4 +13,10 @@ test_client() {
 	cd -
 }
 
-test_client
+full_test() {
+	./fablo recreate
+	sleep 5
+	test_client
+}
+
+full_test

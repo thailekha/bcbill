@@ -27,7 +27,33 @@
         "domain": "org1.example.com"
       },
       "peer": {
-        "instances": 2,
+        "instances": 1,
+        "db": "LevelDb"
+      },
+      "tools": {
+        "fabloRest": true
+      }
+    },
+    {
+      "organization": {
+        "name": "Org2",
+        "domain": "org2.example.com"
+      },
+      "peer": {
+        "instances": 1,
+        "db": "LevelDb"
+      },
+      "tools": {
+        "fabloRest": true
+      }
+    },
+    {
+      "organization": {
+        "name": "Org3",
+        "domain": "org3.example.com"
+      },
+      "peer": {
+        "instances": 1,
         "db": "LevelDb"
       },
       "tools": {
@@ -43,7 +69,18 @@
           "name": "Org1",
           "peers": [
             "peer0",
-            "peer1"
+          ]
+        },
+        {
+          "name": "Org2",
+          "peers": [
+            "peer0",
+          ]
+        },
+        {
+          "name": "Org3",
+          "peers": [
+            "peer0",
           ]
         }
       ]
