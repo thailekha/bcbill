@@ -7,7 +7,7 @@
         "npm": ">=5"
     },
     "scripts": {
-        "lint": "eslint *.js",
+        "lint": "./node_modules/.bin/eslint . --fix --ext .js",
         "pretest": "npm run lint"
     },
     "engineStrict": true,

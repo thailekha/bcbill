@@ -7,3 +7,9 @@
 ## Fix
 - fablo-target/fabric-docker/docker-compose.yaml
 - CORE_PEER_GOSSIP_BOOTSTRAP
+
+# React-nodegui setup
+# Install
+- GCC
+- cmake
+- qt5

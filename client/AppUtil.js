@@ -65,4 +65,4 @@ exports.prettyJSONString = (inputString) => {
 	else {
 		 return inputString;
 	}
-}
+};
