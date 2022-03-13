@@ -9,7 +9,7 @@ test_client() {
 	cd client
 	npm i
 	rm -rf wallet || true
-	node app.js
+	node app.js customer1@gmail.com customer2@gmail.com
 	cd -
 }
 
