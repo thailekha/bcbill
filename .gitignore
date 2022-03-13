@@ -9,5 +9,8 @@
 fablo
 fablo-target
 
-client/wallet
-!client/wallet/.gitkeep
+admin/wallet
+!admin/wallet/.gitkeep
+
+backend/wallet
+!backend/wallet/.gitkeep

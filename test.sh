@@ -6,7 +6,7 @@ trap cleanup EXIT
 
 
 test_client() {
-	cd client
+	cd admin
 	npm i
 	rm -rf wallet || true
 	node app.js customer1@gmail.com customer2@gmail.com
