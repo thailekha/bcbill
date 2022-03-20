@@ -10,5 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "fabric-ca-client": "^2.2.11"
+  },
+  "devDependencies": {
+    "eslint": "^8.11.0"
   }
 }
