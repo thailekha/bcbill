@@ -95,11 +95,11 @@ async function main() {
 			// No need to rerun at subsequent chaincode updates
 			await contract.submitTransaction('InitLedger');
 
-			// result = await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', '5', 'Tom', '1300');
-			// console.log('*** Result: committed');
-			// if (`${result}` !== '') {
-			// 	console.log(`*** Result: ${prettyJSONString(result.toString())}`);
-			// }
+			result = await contract.submitTransaction('CreateAsset', 'asset13', 'yellow', '5', 'Tom', '1300');
+			console.log('*** Result: committed');
+			if (`${result}` !== '') {
+				console.log(`*** Result: ${prettyJSONString(result.toString())}`);
+			}
 		} finally {
 			gateway.disconnect();
 		}
