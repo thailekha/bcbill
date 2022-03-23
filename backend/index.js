@@ -14,4 +14,4 @@ const user = require('./user');
 
 // app.listen(4000);
 
-user.enroll('customer1@gmail.com', 'VpxqIfWECXcW');
+user.enroll('customer1@gmail.com', 'FnRjhfjVIGpg');

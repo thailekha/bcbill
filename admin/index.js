@@ -1,7 +1,7 @@
 'use strict';
 
 const fs = require('fs');
-const jsonfile = require('jsonfile')
+const jsonfile = require('jsonfile');
 const { Gateway, Wallets } = require('fabric-network');
 const { connectionProfileOrg1, caClient } = require('../utils');
 const userWalletCreated = user => fs.existsSync(`./wallet/${user}.id`);
@@ -72,7 +72,6 @@ async function admin() {
 }
 
 async function registerEmail(email) {
-  debugger;
   const adminIdentity = await wallet.get(ADMIN_ID);
   if ((await wallet.get(email)) || !adminIdentity) return;
   const adminUser = await wallet

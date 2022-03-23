@@ -9,6 +9,7 @@
 fablo
 fablo-target
 
+admin/secrets.json
 admin/wallet
 !admin/wallet/.gitkeep
 

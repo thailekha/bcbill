@@ -8,7 +8,7 @@ const userWalletCreated = user => fs.existsSync(`./wallet/${user}.id`);
 const MSP = 'Org1MSP';
 const WALLET_PATH = require('path').join(__dirname, 'wallet');
 const CA_HOST = 'ca.org1.example.com';
-const AFFILIATION = 'org1.department1';
+// const AFFILIATION = 'org1.department1';
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
 
