@@ -27,5 +27,8 @@ export default {
     } catch (e) {
       axiosError(e);
     }
+  },
+  login: async() => {
+    return;
   }
 };

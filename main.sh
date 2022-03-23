@@ -7,7 +7,7 @@ cleanup() {
 trap cleanup EXIT
 
 
-test_client() {
+admin() {
     cd admin
     npm i
     rm -rf wallet || true
@@ -15,10 +15,17 @@ test_client() {
     cd -
 }
 
-full_test() {
+backend() {
+    cd backend
+    rm -rf wallet || true
+    node index.js
+    cd -
+}
+
+e2e() {
     ./fablo recreate
     sleep 5
-    test_client
+    admin
 }
 
 lint() {

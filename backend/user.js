@@ -35,6 +35,7 @@ exports.enroll = async (email, secret) => {
 };
 
 async function enrollCa(email, secret) {
+  debugger;
   if (userWalletCreated(email) || (await wallet.get(email))) { return; }
   const enrollment = await ca.enroll({
     enrollmentID: email,
