@@ -73,7 +73,9 @@ class LoginPage extends React.Component {
           {/*<LoginForm routerHistory={this.props.history} />*/}
           <br/>
           <h6> Doesn't have an account? </h6>
-          <LinkContainer to="/register"></LinkContainer>
+          <LinkContainer to="/register">
+            <a> Sign Up</a>
+          </LinkContainer>
         </Container>
       </div>
     );
