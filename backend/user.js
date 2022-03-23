@@ -2,6 +2,7 @@
 
 const { Gateway, Wallets } = require('fabric-network');
 const { connectionProfileOrg1, caClient, prettyJSONString } = require('../utils');
+const fs = require('fs');
 const userWalletCreated = user => fs.existsSync(`./wallet/${user}.id`);
 
 const MSP = 'Org1MSP';
@@ -24,7 +25,7 @@ async function init() {
   ca = caClient(peer, CA_HOST);
 }
 
-exports.enroll = (email, secret) => {
+exports.enroll = async (email, secret) => {
   if (secret !== secrets[email]) {
     throw new Error('invalid secret');
   }
