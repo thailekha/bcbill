@@ -1,16 +1,15 @@
 export default {
-  getToken() {
-    return localStorage.getItem('token');
+  getWallet() {
+    return JSON.parse(localStorage.getItem('wallet'));
   },
-  setToken(token) {
-    localStorage.setItem('token', typeof token === 'string' ? token : JSON.stringify(token));
+  setWallet(wallet) {
+    localStorage.setItem('wallet', typeof wallet === 'string' ? wallet : JSON.stringify(wallet));
   },
   loggedIn() {
-    // const token = localStorage.getItem('token');
-    // return token && token.trim();
-    return true;
+    const wallet = localStorage.getItem('wallet');
+    return wallet && wallet.trim();
   },
   logout() {
-    localStorage.removeItem('token');
+    localStorage.removeItem('wallet');
   },
 };

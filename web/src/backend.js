@@ -21,14 +21,16 @@ function axiosError(e, defaultMessage) {
 }
 
 export default {
-  register: async(email) => {
+  enroll: async(email, secret) => {
     try {
-      await axios.post(`${API}/`, { email });
+      const res = await axios.post(`${API}/enroll`, { email, secret });
+      const { walletContent } = res.data;
+      return walletContent;
     } catch (e) {
       axiosError(e);
     }
   },
-  login: async() => {
-    return;
+  login: async(email, wallet) => {
+    return wallet;
   }
 };

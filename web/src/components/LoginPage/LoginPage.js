@@ -10,13 +10,13 @@ class LoginForm extends React.Component {
   constructor(props) {
     super(props);
 
-    // if (Auth.loggedIn()) {
-    //   this.props.routerHistory.replace("/");
-    // }
+    if (Auth.loggedIn()) {
+      this.props.routerHistory.replace("/");
+    }
 
     this.state = {
       email: "",
-      password: ""
+      wallet: ""
     };
 
     this.handleChange = event => {
@@ -29,8 +29,8 @@ class LoginForm extends React.Component {
     this.handleLogin = async event => {
       try {
         this.setState({loading: 'Logging in'});
-        await backend.login(this.state.email, this.state.password);
-        Auth.setToken(this.state.email);
+        await backend.login(this.state.email, this.state.wallet);
+        Auth.setToken(this.state.wallet);
         this.props.routerHistory.replace("/");
       } catch (error) {
         alert(error.message);
@@ -58,8 +58,8 @@ class LoginForm extends React.Component {
             <InputGroup.Text>@usask.ca</InputGroup.Text>
           </InputGroup.Append>
         </InputGroup>
-        <FormRow name="password" placeholder="Password" type="password" onChange={this.handleChange} />
-        <Button className="cdFore" variant="light" size='sm' onClick={this.handleLogin} block></Button>
+        <FormRow name="wallet" placeholder="Password" type="password" onChange={this.handleChange} />
+        <Button className="cdFore" variant="light" size='sm' onClick={this.handleLogin} block>Login</Button>
       </AsyncAwareContainer>
     )
   }
@@ -70,9 +70,8 @@ class LoginPage extends React.Component {
     return (
       <div>
         <Container className="text-center">
-          {/*<LoginForm routerHistory={this.props.history} />*/}
+          <LoginForm routerHistory={this.props.history} />
           <br/>
-          <h6> Doesn't have an account? </h6>
           <LinkContainer to="/register">
             <a> Sign Up</a>
           </LinkContainer>

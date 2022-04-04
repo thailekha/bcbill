@@ -30,25 +30,27 @@ exports.enroll = async (email, secret) => {
     throw new Error('invalid secret');
   }
   await init();
-  await enrollCa(email, secret);
+  const walletContent = await enrollCa(email, secret);
   await enrollContract(email);
+  return walletContent;
 };
 
 async function enrollCa(email, secret) {
-  debugger;
   if (userWalletCreated(email) || (await wallet.get(email))) { return; }
   const enrollment = await ca.enroll({
     enrollmentID: email,
     enrollmentSecret: secret
   });
-  await wallet.put(email, {
+  const walletContent = {
     credentials: {
       certificate: enrollment.certificate,
       privateKey: enrollment.key.toBytes(),
     },
     mspId: MSP,
     type: 'X.509',
-  });
+  };
+  await wallet.put(email, walletContent);
+  return walletContent;
 }
 
 async function enrollContract(email) {
@@ -61,7 +63,7 @@ async function enrollContract(email) {
     });
     const network = await gateway.getNetwork(CHANNEL);
     const contract = network.getContract(CHAINCODE);
-    const result = await contract.submitTransaction('CreateUser', email, email);
+    const result = await contract.submitTransaction('CreateUser', email);
     console.log(`*** Result: ${prettyJSONString(result.toString())}`);
   }
   finally {

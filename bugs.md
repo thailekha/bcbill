@@ -13,3 +13,16 @@
 - GCC
 - cmake
 - qt5
+
+# Prog
+- public / private key | password | email and profile
+
+- provider is the admin
+- customers sign contract with admin to register with their emails
+- admin generate bunch of enrolment secrets
+- cusomers register page:
+	- email, secret, password
+	- save identity
+
+if there's email in localstoragfe--> logged in
+- use the wallet as the login token?

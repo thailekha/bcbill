@@ -14,22 +14,20 @@ async function assetExists(ctx, id) {
 class UsersManagementContract extends Contract {
   /**
    * Schema:
-   * id: hash of cert and email?
-   * email: email
+   * id: email ?hash of cert and id?
    */
 
   async InitLedger(ctx) {
     await ctx.stub.putState('admin', '');
   }
 
-  async CreateUser(ctx, id, email) {
+  async CreateUser(ctx, id) {
     const exists = await assetExists(ctx, id);
     if (exists) {
-      throw new Error(`The user ${email} already exists`);
+      throw new Error(`The user ${id} already exists`);
     }
     const user = {
-      id,
-      email,
+      id
     };
     await ctx.stub.putState(id, ledgerVal(user));
     return jstr(user);

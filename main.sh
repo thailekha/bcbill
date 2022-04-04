@@ -6,26 +6,30 @@ cleanup() {
 }
 trap cleanup EXIT
 
+e2e() {
+    lint
+    ./fablo recreate
+    sleep 5
+    clear_wallets
+    admin
+}
+
+clear_wallets() {
+    rm -rf admin/wallet || true
+    rm -rf backend/wallet || true
+}
 
 admin() {
     cd admin
     npm i
-    rm -rf wallet || true
     node index.js customer1@gmail.com customer2@gmail.com
     cd -
 }
 
 backend() {
     cd backend
-    rm -rf wallet || true
     node index.js
     cd -
-}
-
-e2e() {
-    ./fablo recreate
-    sleep 5
-    admin
 }
 
 lint() {

@@ -15,3 +15,5 @@ admin/wallet
 
 backend/wallet
 !backend/wallet/.gitkeep
+
+web/.vscode
