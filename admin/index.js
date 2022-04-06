@@ -25,7 +25,7 @@ async function main() {
     await init();
     await admin();
     await emails();
-    await initLedger();
+    // await initLedger();
   } catch (e) {
     console.error(e);
   }
@@ -38,22 +38,22 @@ async function init() {
   ca = caClient(peer, CA_HOST);
 }
 
-async function initLedger() {
-  const gateway = new Gateway();
-  try {
-    await gateway.connect(peer, {
-      wallet,
-      identity: ADMIN_ID,
-      discovery: { enabled: true, asLocalhost: true }
-    });
-    const network = await gateway.getNetwork(CHANNEL);
-    const contract = network.getContract(CHAINCODE);
-    await contract.submitTransaction('InitLedger');
-  }
-  finally {
-    gateway.disconnect();
-  }
-}
+// async function initLedger() {
+//   const gateway = new Gateway();
+//   try {
+//     await gateway.connect(peer, {
+//       wallet,
+//       identity: ADMIN_ID,
+//       discovery: { enabled: true, asLocalhost: true }
+//     });
+//     const network = await gateway.getNetwork(CHANNEL);
+//     const contract = network.getContract(CHAINCODE);
+//     await contract.submitTransaction('InitLedger');
+//   }
+//   finally {
+//     gateway.disconnect();
+//   }
+// }
 
 async function admin() {
   if (userWalletCreated(ADMIN_ID) || (await wallet.get(ADMIN_ID))) { return; }

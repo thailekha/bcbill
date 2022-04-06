@@ -17,9 +17,9 @@ class UsersManagementContract extends Contract {
    * id: email ?hash of cert and id?
    */
 
-  async InitLedger(ctx) {
-    await ctx.stub.putState('admin', '');
-  }
+  // async InitLedger(ctx) {
+  //   await ctx.stub.putState('admin', '');
+  // }
 
   async CreateUser(ctx, id) {
     const exists = await assetExists(ctx, id);
