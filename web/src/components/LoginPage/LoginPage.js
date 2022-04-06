@@ -15,7 +15,7 @@ class LoginForm extends React.Component {
     }
 
     this.state = {
-      email: "",
+      email: "customer1@gmail.com",
       wallet: ""
     };
 
@@ -29,8 +29,8 @@ class LoginForm extends React.Component {
     this.handleLogin = async event => {
       try {
         this.setState({loading: 'Logging in'});
-        await backend.login(this.state.email, this.state.wallet);
-        Auth.setToken(this.state.wallet);
+        // await backend.login(this.state.email, this.state.wallet);
+        Auth.setWallet(this.state.wallet);
         this.props.routerHistory.replace("/");
       } catch (error) {
         alert(error.message);
@@ -53,6 +53,7 @@ class LoginForm extends React.Component {
             name="email"
             placeholder="User ID"
             onChange={this.handleChange}
+            value={this.state.email}
           />
           <InputGroup.Append>
             <InputGroup.Text>@usask.ca</InputGroup.Text>
@@ -72,7 +73,7 @@ class LoginPage extends React.Component {
         <Container className="text-center">
           <LoginForm routerHistory={this.props.history} />
           <br/>
-          <LinkContainer to="/register">
+          <LinkContainer to="/enroll">
             <a> Sign Up</a>
           </LinkContainer>
         </Container>
