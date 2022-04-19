@@ -63,7 +63,7 @@ async function enrollContract(email) {
     });
     const network = await gateway.getNetwork(CHANNEL);
     const contract = network.getContract(CHAINCODE);
-    const result = await contract.submitTransaction('CreateUser', email);
+    const result = await contract.submitTransaction('AddUser', email);
     console.log(`*** Result: ${prettyJSONString(result.toString())}`);
   }
   finally {

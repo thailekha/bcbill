@@ -11,7 +11,7 @@ async function assetExists(ctx, id) {
   return assetJSON && assetJSON.length > 0;
 }
 
-class UsersManagementContract extends Contract {
+class EBillContract extends Contract {
   /**
    * Schema:
    * id: email ?hash of cert and id?
@@ -21,7 +21,7 @@ class UsersManagementContract extends Contract {
   //   await ctx.stub.putState('admin', '');
   // }
 
-  async CreateUser(ctx, id) {
+  async AddUser(ctx, id) {
     const exists = await assetExists(ctx, id);
     if (exists) {
       throw new Error(`The user ${id} already exists`);
@@ -33,12 +33,25 @@ class UsersManagementContract extends Contract {
     return jstr(user);
   }
 
-  async ReadUser(ctx, id) {
+  async __getUser(ctx, id) {
+    const user = await ctx.stub.getState(id); // get the asset from chaincode state
+    if (!user || user.length === 0) {
+      throw new Error(`The user ${id} does not exist`);
+    }
+    return user;
+  }
+
+  async GetUser(ctx, id) {
     const user = await ctx.stub.getState(id); // get the asset from chaincode state
     if (!user || user.length === 0) {
       throw new Error(`The user ${id} does not exist`);
     }
     return user.toString();
+  }
+
+  async AddRead(ctx, userId, val) {
+    const user = __getUser(ctx, userId);
+    const read = {};
   }
 }
 
@@ -48,4 +61,4 @@ class UsersManagementContract extends Contract {
 //     return { success: messageString };
 //   }
 
-exports.contracts = [UsersManagementContract];
+exports.contracts = [EBillContract];
