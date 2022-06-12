@@ -1,3 +1,6 @@
+# Node version
+- 14 LTS
+
 # Discovery access denied
 ## Recreate
 - more than 1 peer
@@ -13,6 +16,9 @@
 - GCC
 - cmake
 - qt5
+
+# New machine
+- jq, docker, docker-compose v1
 
 # Prog
 - public / private key | password | email and profile

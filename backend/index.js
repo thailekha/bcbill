@@ -11,11 +11,20 @@ app.use(cors());
 
 app.post('/enroll', async (req, res) => {
   try {
-    // debugger;
     const walletContent = await user.enroll(req.body.email, req.body.secret);
     res.json({ walletContent });
   } catch (err) {
     // next(err);
+    console.log(err);
+    res.error(500);
+  }
+});
+
+app.post('/getuser', async (req, res) => {
+  try {
+    const user = await user.getUser(req.body.email, req.body.wallet);
+    res.json(user);
+  } catch (err) {
     console.log(err);
     res.error(500);
   }

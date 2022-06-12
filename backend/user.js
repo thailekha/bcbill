@@ -1,6 +1,7 @@
 'use strict';
 
 const { Gateway, Wallets } = require('fabric-network');
+const ACTIONS =  require('./actions.json');
 const { connectionProfileOrg1, caClient, prettyJSONString } = require('../utils');
 const fs = require('fs');
 const userWalletCreated = user => fs.existsSync(`./wallet/${user}.id`);
@@ -14,29 +15,48 @@ const CHAINCODE = 'chaincode1';
 
 const secrets = require('../admin/secrets.json');
 
-let wallet;
-let peer;
-let ca;
-
-async function init() {
-  // Note: wallet can be built in memory as well
-  wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
-  peer = connectionProfileOrg1();
-  ca = caClient(peer, CA_HOST);
-}
-
 exports.enroll = async (email, secret) => {
   if (secret !== secrets[email]) {
     throw new Error('invalid secret');
   }
-  await init();
-  const walletContent = await enrollCa(email, secret);
-  await enrollContract(email);
+  const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
+  const walletContent = await enrollCa(email, wallet, secret);
+  await executeContract(email, wallet, ACTIONS.ADD_USER);
   return walletContent;
 };
 
-async function enrollCa(email, secret) {
+exports.getUser = async (email, walletContent) => {
+  const wallet = await Wallets.newInMemoryWallet();
+  wallet.put(email, walletContent);
+  return JSON.parse(await executeContract(email, wallet, ACTIONS.GET_USER));
+};
+
+async function executeContract(identity, wallet, action, ...args) {
+  const peer = connectionProfileOrg1();
+  const gateway = new Gateway();
+  try {
+    await gateway.connect(peer, {
+      wallet,
+      identity,
+      discovery: { enabled: true, asLocalhost: true }
+    });
+    const network = await gateway.getNetwork(CHANNEL);
+    const contract = network.getContract(CHAINCODE);
+    debugger;
+    const result = args.length === 0 ? 
+      await contract.submitTransaction(action, identity)
+      : await contract.submitTransaction(action, identity, args);
+    return prettyJSONString(result.toString());
+  }
+  finally {
+    gateway.disconnect();
+  }
+}
+
+async function enrollCa(email, wallet, secret) {
   if (userWalletCreated(email) || (await wallet.get(email))) { return; }
+  const peer = connectionProfileOrg1();
+  const ca = caClient(peer, CA_HOST);
   const enrollment = await ca.enroll({
     enrollmentID: email,
     enrollmentSecret: secret
@@ -51,22 +71,4 @@ async function enrollCa(email, secret) {
   };
   await wallet.put(email, walletContent);
   return walletContent;
-}
-
-async function enrollContract(email) {
-  const gateway = new Gateway();
-  try {
-    await gateway.connect(peer, {
-      wallet,
-      identity: email,
-      discovery: { enabled: true, asLocalhost: true }
-    });
-    const network = await gateway.getNetwork(CHANNEL);
-    const contract = network.getContract(CHAINCODE);
-    const result = await contract.submitTransaction('AddUser', email);
-    console.log(`*** Result: ${prettyJSONString(result.toString())}`);
-  }
-  finally {
-    gateway.disconnect();
-  }
 }

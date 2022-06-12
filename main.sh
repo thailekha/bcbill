@@ -1,4 +1,4 @@
-set -eoux pipefail
+set -eou pipefail
 
 DIR=$(pwd)
 cleanup() {
@@ -7,11 +7,26 @@ cleanup() {
 trap cleanup EXIT
 
 e2e() {
-    lint
+    # npm_install
+    # lint
     ./fablo recreate
     sleep 5
     clear_wallets
     admin
+    dev
+}
+
+dev() {
+    cleanup
+    gnome-terminal \
+        --tab -e "bash -c ' cd backend && node inspect index.js ; bash'" \
+        --tab -e "bash -c ' cd web && npm start ; bash'"
+}
+
+dev_web() {
+    cleanup
+    gnome-terminal \
+        --tab -e "bash -c ' cd web && npm start ; bash'"
 }
 
 clear_wallets() {
@@ -26,6 +41,19 @@ admin() {
     cd -
 }
 
+npm_install() {
+    cd utils && npm i
+    cd -
+    cd chaincodes/chaincode-kv-node && npm i
+    cd -
+    cd admin && npm i
+    cd -
+    cd web && npm i
+    cd -
+    cd backend && npm i
+    cd -
+}
+
 backend() {
     cd backend
     node index.js
@@ -33,6 +61,7 @@ backend() {
 }
 
 lint() {
+    which eslint || npm i -g eslint
     eslint admin backend chaincodes utils --fix --ext .js --config eslintrc.json
 }
 

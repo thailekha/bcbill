@@ -1,5 +1,5 @@
 import axios from 'axios';
-// import Auth from '../stores/auth';
+import Auth from './stores/auth';
 
 const API = 'http://localhost:4000';
 
@@ -25,7 +25,16 @@ export default {
     try {
       const res = await axios.post(`${API}/enroll`, { email, secret });
       const { walletContent } = res.data;
+      alert(walletContent);
       return walletContent;
+    } catch (e) {
+      axiosError(e);
+    }
+  },
+  getUser: async(email) => {
+    try {
+      const res = await axios.post(`${API}/getuser`, { email, wallet: Auth.getWallet() });
+      console.log(res.data);
     } catch (e) {
       axiosError(e);
     }

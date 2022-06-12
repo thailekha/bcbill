@@ -1,5 +1,7 @@
 export default {
   getWallet() {
+    const content = localStorage.getItem('wallet');
+    console.log(typeof content, content);
     return JSON.parse(localStorage.getItem('wallet'));
   },
   setWallet(wallet) {
