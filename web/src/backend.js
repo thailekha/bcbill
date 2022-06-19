@@ -39,9 +39,17 @@ export default {
       axiosError(e);
     }
   },
-  addRead: async(email, readVal) => {
+  addRead: async(email, timestamp, readVal) => {
     try {
-      const res = await axios.post(`${API}/addread`, { email, wallet: Auth.getWallet(), readVal });
+      const res = await axios.post(`${API}/addread`, { email, wallet: Auth.getWallet(), timestamp, readVal });
+      console.log(res.data);
+    } catch (e) {
+      axiosError(e);
+    }
+  },
+  getReads: async(email) => {
+    try {
+      const res = await axios.post(`${API}/getreads`, { email, wallet: Auth.getWallet() });
       console.log(res.data);
     } catch (e) {
       axiosError(e);

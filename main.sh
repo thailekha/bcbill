@@ -21,6 +21,7 @@ dev() {
     gnome-terminal \
         --tab -e "bash -c ' cd backend && npm run dev ; bash'" \
         --tab -e "bash -c ' cd web && npm start ; bash'"
+        # --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
 }
 
 dev_web() {
@@ -32,6 +33,10 @@ dev_web() {
 clear_wallets() {
     rm -rf admin/wallet || true
     rm -rf backend/wallet || true
+}
+
+newcontr() {
+    ./fablo chaincode upgrade chaincode1 0.0.2
 }
 
 admin() {

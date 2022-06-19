@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
-const user = require('./user');
+const contract = require('./contract');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -11,12 +11,12 @@ app.use(cors());
 
 app.post('/enroll', async (req, res) => {
   try {
-    const walletContent = await user.enroll(req.body.email, req.body.secret);
+    const walletContent = await contract.enroll(req.body.email, req.body.secret);
     res.json({ walletContent });
   } catch (err) {
     // next(err);
     console.log(err);
-    res.error(500);
+    res.status(500).send(err)
   }
 });
 
@@ -26,17 +26,29 @@ app.post('/getuser', async (req, res) => {
     res.json(user);
   } catch (err) {
     console.log(err);
-    res.error(500);
+    res.status(500).send(err)
   }
 });
 
 app.post('/addread', async (req, res) => {
   try {
-    const read = await user.addRead(req.body.email, req.body.wallet, req.body.readVal);
+    console.log(req.body.email, req.body.wallet, req.body.timestamp, req.body.readVal);
+    const read = await contract.addRead(req.body.email, req.body.wallet, req.body.timestamp, req.body.readVal);
     res.json(read);
   } catch (err) {
     console.log(err);
-    res.error(500);
+    res.status(500).send(err)
+  }
+});
+
+app.post('/getreads', async (req, res) => {
+  try {
+    const reads = await contract.getReads(req.body.email, req.body.wallet);
+    console.log(reads);
+    res.json(reads);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err)
   }
 });
 

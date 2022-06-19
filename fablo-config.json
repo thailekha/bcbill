@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/softwaremill/fablo/releases/download/1.0.2/schema.json",
   "global": {
-    "fabricVersion": "2.4.0",
+    "fabricVersion": "2.3.0",
     "tls": false
   },
   "orgs": [
@@ -28,7 +28,7 @@
       },
       "peer": {
         "instances": 1,
-        "db": "LevelDb"
+        "db": "CouchDb"
       },
       "tools": {
         "fabloRest": true
@@ -41,7 +41,7 @@
       },
       "peer": {
         "instances": 1,
-        "db": "LevelDb"
+        "db": "CouchDb"
       },
       "tools": {
         "fabloRest": true
@@ -54,7 +54,7 @@
       },
       "peer": {
         "instances": 1,
-        "db": "LevelDb"
+        "db": "CouchDb"
       },
       "tools": {
         "fabloRest": true
@@ -89,6 +89,7 @@
   "chaincodes": [
     {
       "name": "chaincode1",
+      "endorsement": "AND('Org1MSP.member', 'Org2MSP.member', 'Org3MSP.member')",
       "version": "0.0.1",
       "lang": "node",
       "channel": "mychannel",

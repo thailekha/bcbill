@@ -12,6 +12,11 @@ const CA_HOST = 'ca.org1.example.com';
 // const AFFILIATION = 'org1.department1';
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
+const PEERS = [
+  'peer0.org1.example.com',
+  'peer0.org2.example.com',
+  'peer0.org3.example.com',
+];
 
 const secrets = require('../admin/secrets.json');
 
@@ -21,15 +26,18 @@ exports.enroll = async (email, secret) => {
   }
   const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
   const walletContent = await enrollCa(email, wallet, secret);
-  await executeContract(wallet, ACTIONS.ADD_USER, email);
+  await executeContract([], wallet, ACTIONS.ADD_USER, email);
   return walletContent;
 };
 
-exports.getUser = async (email, walletContent) => JSON.parse(await executeContract(await inMemWallet(email, walletContent),
+exports.getUser = async (email, walletContent) => JSON.parse(await executeContract(PEERS, await inMemWallet(email, walletContent),
   ACTIONS.GET_USER, email));
 
-exports.addRead = async (email, walletContent, readVal) => JSON.parse(await executeContract(await inMemWallet(email, walletContent),
-  ACTIONS.ADD_READ, email, readVal));
+exports.addRead = async (email, walletContent, timestamp, readVal) => JSON.parse(await executeContract(PEERS, await inMemWallet(email, walletContent),
+  ACTIONS.ADD_READ, email, timestamp, readVal));
+
+exports.getReads = async (email, walletContent) => JSON.parse(await executeContract(PEERS, await inMemWallet(email, walletContent),
+  ACTIONS.GET_READS, email));
 
 async function inMemWallet(email, walletContent) {
   const wallet = await Wallets.newInMemoryWallet();
@@ -37,7 +45,7 @@ async function inMemWallet(email, walletContent) {
   return wallet;
 }
 
-async function executeContract(wallet, action, identity, ...args) {
+async function executeContract(endorsingPeers, wallet, action, identity, ...args) {
   const peer = connectionProfileOrg1();
   const gateway = new Gateway();
   try {
@@ -45,13 +53,14 @@ async function executeContract(wallet, action, identity, ...args) {
       wallet,
       identity,
       discovery: { enabled: true, asLocalhost: true }
-    });
+    });    
     const network = await gateway.getNetwork(CHANNEL);
     const contract = network.getContract(CHAINCODE);
-    debugger;
-    const result = args.length === 0 ? 
-      await contract.submitTransaction(action, identity)
-      : await contract.submitTransaction(action, identity, args);
+    // debugger;
+    const result = await contract
+      .createTransaction(action)
+      // .setEndorsingPeers(endorsingPeers)
+      .submit(...(args.length === 0 ? [identity] : [identity, ...args]));
     return prettyJSONString(result.toString());
   }
   finally {

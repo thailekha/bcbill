@@ -35,7 +35,10 @@ class EBillContract extends Contract {
 
   async AddUser(ctx, email) {
     await forceUniqueAsset(ctx, email);
-    const user = { email };
+    const user = {
+      docType: 'user',
+      email
+    };
     await ctx.stub.putState(email, ledgerVal(user));
     return jstr(user);
   }
@@ -48,15 +51,51 @@ class EBillContract extends Contract {
     return user;
   }
 
-  async GetUser(ctx, id) {
-    const user = await ctx.stub.getState(id); // get the asset from chaincode state
+  async GetUser(ctx, email) {
+    const user = await ctx.stub.getState(email); // get the asset from chaincode state
     if (!user || user.length === 0) {
-      throw new Error(`The user ${id} does not exist`);
+      throw new Error(`The user ${email} does not exist`);
     }
     return user.toString();
   }
 
-  async AddRead(ctx, email, val) {
+  async GetReads(ctx, email) {
+    let queryString = {};
+    queryString.selector = { 'docType': 'read' };
+    let iterator = await ctx.stub.getQueryResult(JSON.stringify(queryString));
+    let result = await this.getIteratorData(iterator);
+    return JSON.stringify(result);
+  }
+
+  async getIteratorData (iterator){
+    let resultArray = [];
+
+    while(true) {
+      let res = await iterator.next();
+
+      //res.value -- contains other metadata
+      //res.value.value -- contains the actual value
+      //res.value.key -- contains the key
+
+      let resJson ={};
+      if(res.value && res.value.value.toString()){
+        resJson.key = res.value.key;
+        resJson.value = JSON.parse(res.value.value.toString());
+        resultArray.push(resJson);
+      }
+
+      if(res.done){
+        iterator.close();
+        return resultArray;
+      }
+    }
+  }
+
+  /**
+   * Using timestamp here: remember each peer has to execute this,
+   * since each peer would get a different timestamp, the endorsement policy will break
+   */
+  async AddRead(ctx, email, timestamp, val) {
     await assetExists(ctx, email);
 
     // dataAssets.push({
@@ -74,10 +113,11 @@ class EBillContract extends Contract {
     // });
 
     const read = {
+      docType: 'read',
       val,
       owner: email,
       authorizedUsers: [],
-      time: (new Date()).getTime(),
+      time: timestamp,
       active: true
     };
     const id = hash(read);

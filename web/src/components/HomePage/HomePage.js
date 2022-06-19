@@ -11,10 +11,21 @@ class HomePage extends React.Component {
       email: "customer1@gmail.com"
     };
 
-    this.handleEnroll = async event => {
+    this.handleSubmitRead = async event => {
       try {
         this.setState({loading: 'Testing ...'});
-        await backend.addRead(this.state.email, this.state.secret);
+        await backend.addRead(this.state.email, (new Date()).getTime(), 100);
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        if (!this.componentUnmounted)
+          this.setState({loading: undefined});
+      }
+    }
+    this.handleGetReads = async event => {
+      try {
+        this.setState({loading: 'Testing ...'});
+        await backend.getReads(this.state.email);
       } catch (error) {
         alert(error.message);
       } finally {
@@ -38,10 +49,11 @@ class HomePage extends React.Component {
       <div>
         <Button className="cdFore" variant="light" onClick={this.handleReset}>Reset</Button>
         <Container>
-          <h1>Enroll</h1>
+          <h1>Home</h1>
           <AsyncAwareContainer loading={this.state.loading}>
             <br />
-            <Button className="cdFore" variant="light" onClick={this.handleEnroll}>Test</Button>
+            <Button className="cdFore" variant="light" onClick={this.handleSubmitRead}>Submit read</Button>
+            <Button className="cdFore" variant="light" onClick={this.handleGetReads}>Get reads</Button>
           </AsyncAwareContainer>
         </Container>
       </div>
