@@ -19,7 +19,7 @@ e2e() {
 dev() {
     cleanup
     gnome-terminal \
-        --tab -e "bash -c ' cd backend && node inspect index.js ; bash'" \
+        --tab -e "bash -c ' cd backend && npm run dev ; bash'" \
         --tab -e "bash -c ' cd web && npm start ; bash'"
 }
 

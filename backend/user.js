@@ -21,17 +21,23 @@ exports.enroll = async (email, secret) => {
   }
   const wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
   const walletContent = await enrollCa(email, wallet, secret);
-  await executeContract(email, wallet, ACTIONS.ADD_USER);
+  await executeContract(wallet, ACTIONS.ADD_USER, email);
   return walletContent;
 };
 
-exports.getUser = async (email, walletContent) => {
+exports.getUser = async (email, walletContent) => JSON.parse(await executeContract(await inMemWallet(email, walletContent),
+  ACTIONS.GET_USER, email));
+
+exports.addRead = async (email, walletContent, readVal) => JSON.parse(await executeContract(await inMemWallet(email, walletContent),
+  ACTIONS.ADD_READ, email, readVal));
+
+async function inMemWallet(email, walletContent) {
   const wallet = await Wallets.newInMemoryWallet();
   wallet.put(email, walletContent);
-  return JSON.parse(await executeContract(email, wallet, ACTIONS.GET_USER));
-};
+  return wallet;
+}
 
-async function executeContract(identity, wallet, action, ...args) {
+async function executeContract(wallet, action, identity, ...args) {
   const peer = connectionProfileOrg1();
   const gateway = new Gateway();
   try {

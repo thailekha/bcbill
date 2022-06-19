@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Auth from './stores/auth';
 
-const API = 'http://localhost:4000';
+const API = 'http://localhost:9999';
 
 // function authHeader() {
 //   return { headers: { Authorization: `Bearer ${Auth.getToken()}` } };
@@ -34,6 +34,14 @@ export default {
   getUser: async(email) => {
     try {
       const res = await axios.post(`${API}/getuser`, { email, wallet: Auth.getWallet() });
+      console.log(res.data);
+    } catch (e) {
+      axiosError(e);
+    }
+  },
+  addRead: async(email, readVal) => {
+    try {
+      const res = await axios.post(`${API}/addread`, { email, wallet: Auth.getWallet(), readVal });
       console.log(res.data);
     } catch (e) {
       axiosError(e);

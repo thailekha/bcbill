@@ -1,4 +1,5 @@
 {
     "ADD_USER": "AddUser",
-    "GET_USER": "GetUser"
+    "GET_USER": "GetUser",
+    "ADD_READ": "AddRead"
 }

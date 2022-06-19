@@ -30,7 +30,17 @@ app.post('/getuser', async (req, res) => {
   }
 });
 
-app.listen(4000);
+app.post('/addread', async (req, res) => {
+  try {
+    const read = await user.addRead(req.body.email, req.body.wallet, req.body.readVal);
+    res.json(read);
+  } catch (err) {
+    console.log(err);
+    res.error(500);
+  }
+});
+
+app.listen(9999);
 console.log('started');
 
 // async function test() {

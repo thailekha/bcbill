@@ -14,13 +14,18 @@ class HomePage extends React.Component {
     this.handleEnroll = async event => {
       try {
         this.setState({loading: 'Testing ...'});
-        await backend.getUser(this.state.email, this.state.secret);
+        await backend.addRead(this.state.email, this.state.secret);
       } catch (error) {
         alert(error.message);
       } finally {
         if (!this.componentUnmounted)
           this.setState({loading: undefined});
       }
+    }
+
+    this.handleReset = async () => {
+      localStorage.clear();
+      this.props.history.replace("/");
     }
   }
 
@@ -31,6 +36,7 @@ class HomePage extends React.Component {
   render() {
     return (
       <div>
+        <Button className="cdFore" variant="light" onClick={this.handleReset}>Reset</Button>
         <Container>
           <h1>Enroll</h1>
           <AsyncAwareContainer loading={this.state.loading}>
