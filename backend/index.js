@@ -16,7 +16,7 @@ app.post('/enroll', async (req, res) => {
   } catch (err) {
     // next(err);
     console.log(err);
-    res.status(500).send(err)
+    res.status(500).send(err);
   }
 });
 
@@ -26,7 +26,7 @@ app.post('/getuser', async (req, res) => {
     res.json(user);
   } catch (err) {
     console.log(err);
-    res.status(500).send(err)
+    res.status(500).send(err);
   }
 });
 
@@ -37,7 +37,7 @@ app.post('/addread', async (req, res) => {
     res.json(read);
   } catch (err) {
     console.log(err);
-    res.status(500).send(err)
+    res.status(500).send(err);
   }
 });
 
@@ -48,7 +48,18 @@ app.post('/getreads', async (req, res) => {
     res.json(reads);
   } catch (err) {
     console.log(err);
-    res.status(500).send(err)
+    res.status(500).send(err);
+  }
+});
+
+app.post('/history', async (req, res) => {
+  try {
+    const result = await contract.traverseHistory(req.body.email, req.body.wallet, req.body.assetKey);
+    console.log(result);
+    res.json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).send(err);
   }
 });
 

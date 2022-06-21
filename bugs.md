@@ -1,6 +1,11 @@
 # Node version
 - 14 LTS
 
+# Blockchain explorer
+- the explorer uses systemchaincode plugin under the hood, specifically QSCC to query the blocks and traverse them
+- For now, query its rest api at http://localhost:7010/api-docs/
+
+
 # Discovery access denied
 ## Recreate
 - more than 1 peer

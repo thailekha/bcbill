@@ -2,7 +2,10 @@
   "$schema": "https://github.com/softwaremill/fablo/releases/download/1.0.2/schema.json",
   "global": {
     "fabricVersion": "2.3.0",
-    "tls": false
+    "tls": false,
+    "tools": {
+      "explorer": true
+    }
   },
   "orgs": [
     {

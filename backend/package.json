@@ -15,6 +15,7 @@
     "express": "^4.17.3",
     "fabric-ca-client": "^2.2.11",
     "fabric-network": "^2.2.11",
+    "fabric-protos": "^2.2.13",
     "jsonfile": "^6.1.0"
   },
   "devDependencies": {

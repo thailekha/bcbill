@@ -2,5 +2,6 @@
     "ADD_USER": "AddUser",
     "GET_USER": "GetUser",
     "ADD_READ": "AddRead",
-    "GET_READS": "GetReads"
+    "GET_READS": "GetReads",
+    "TRAVERSE_HISTORY": "TraverseHistory"
 }

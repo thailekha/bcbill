@@ -125,6 +125,23 @@ class EBillContract extends Contract {
     await ctx.stub.putState(id, ledgerVal(read));
     return jstr(read);
   }
+
+  async TraverseHistory(ctx, key) {
+    let iterator = await ctx.stub.getHistoryForKey(key);
+    let result = [];
+    let res = await iterator.next();
+    while (!res.done) {
+      if (res.value) {
+        console.info(`found state update with value: ${res.value.value.toString('utf8')}`);
+        res.value.value = JSON.parse(res.value.value.toString('utf8'));
+        // result.push(res);
+      }
+      result.push(res);
+      res = await iterator.next();
+    }
+    await iterator.close();
+    return result;
+  }
 }
 
 //   async getPrivateMessage(ctx, collection) {

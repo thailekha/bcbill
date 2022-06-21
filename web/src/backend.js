@@ -55,6 +55,14 @@ export default {
       axiosError(e);
     }
   },
+  getHistory: async(email, assetKey) => {
+    try {
+      const res = await axios.post(`${API}/history`, { email, wallet: Auth.getWallet(), assetKey });
+      console.log(res.data);
+    } catch (e) {
+      axiosError(e);
+    }
+  },
   login: async(email, wallet) => {
     return wallet;
   }
