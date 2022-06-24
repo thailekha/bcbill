@@ -4,8 +4,7 @@
     "fabricVersion": "2.3.0",
     "tls": false,
     "tools": {
-      "explorer": true,
-      "fabloRest": true
+      "explorer": true
     }
   },
   "orgs": [
@@ -20,7 +19,10 @@
           "type": "solo",
           "instances": 1
         }
-      ]
+      ],
+      "tools": {
+        "fabloRest": true
+      }
     },
     {
       "organization": {
@@ -30,6 +32,9 @@
       "peer": {
         "instances": 1,
         "db": "CouchDb"
+      },
+      "tools": {
+        "fabloRest": true
       }
     },
     {
@@ -40,6 +45,22 @@
       "peer": {
         "instances": 1,
         "db": "CouchDb"
+      },
+      "tools": {
+        "fabloRest": true
+      }
+    },
+    {
+      "organization": {
+        "name": "Org3",
+        "domain": "org3.example.com"
+      },
+      "peer": {
+        "instances": 1,
+        "db": "CouchDb"
+      },
+      "tools": {
+        "fabloRest": true
       }
     }
   ],
@@ -58,6 +79,12 @@
           "peers": [
             "peer0",
           ]
+        },
+        {
+          "name": "Org3",
+          "peers": [
+            "peer0",
+          ]
         }
       ]
     }
@@ -65,7 +92,7 @@
   "chaincodes": [
     {
       "name": "chaincode1",
-      "endorsement": "AND('Org1MSP.member', 'Org2MSP.member')",
+      "endorsement": "AND('Org1MSP.member', 'Org2MSP.member', 'Org3MSP.member')",
       "version": "0.0.1",
       "lang": "node",
       "channel": "mychannel",

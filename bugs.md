@@ -1,3 +1,20 @@
+# TODO:
+- use customer1@org1, org2. parse the email to figure out connection profile
+- debug connectionProfileOrg1, go back to user org 1 and figure where the org is nested
+- turn enroll wallet to in mem
+- enroll customer 1 to org 1, customer 2 to org 2
+- figure out creator
+- hash the cert as part of the user
+- stringify the read set and search for asset id
+
+- how to know if it's a read
+```
+> JSON.stringify(readSet[1])
+'{"chaincode":"chaincode1","set":[{"key":"171e107845f64d27905cae6543d75dad6d8fdf9d","version":{"block_num":{"low":8,"high":0,"unsigned":true},"tx_num":{"low":0,"high":0,"unsigned":true}}}]}'
+```
+
+- hash creator.id_bytes.toString(), use it to look for user --> email
+
 # Node version
 - 14 LTS
 

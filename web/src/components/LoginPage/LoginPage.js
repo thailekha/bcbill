@@ -15,7 +15,7 @@ class LoginForm extends React.Component {
     }
 
     this.state = {
-      email: "customer1@gmail.com",
+      email: "customer1@org1.com",
       wallet: ""
     };
 

@@ -14,8 +14,9 @@ class EnrollPage extends React.Component {
     }
 
     this.state = {
-      email: "customer1@gmail.com",
+      email: "customer1@org1.com",
       secret: "trNBUtXMuSji",
+      orgNo: "1"
     };
 
     this.handleChange = event => {
@@ -58,14 +59,20 @@ class EnrollPage extends React.Component {
                 onChange={this.handleChange}
                 value={this.state.email}
               />
+              <FormControl
+                name="orgNo"
+                placeholder="orgNo"
+                onChange={this.handleChange}
+                value={this.state.orgNo}
+              />            
+              <FormRow
+                name="secret"
+                placeholder="secret"
+                type="password"
+                onChange={this.handleChange}
+                value={this.state.secret}
+              />
             </InputGroup>
-            <FormRow
-              name="secret"
-              placeholder="secret"
-              type="password"
-              onChange={this.handleChange}
-              value={this.state.secret}
-            />
             <br />
             <Button className="cdFore" variant="light" onClick={this.handleEnroll}>Enroll</Button>
           </AsyncAwareContainer>

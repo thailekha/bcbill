@@ -9,11 +9,11 @@
 fablo
 fablo-target
 
-admin/secrets.json
-admin/wallet
-!admin/wallet/.gitkeep
+admin/secret*.json
+admin/wallet*
+!admin/wallet*/.gitkeep
 
-backend/wallet
-!backend/wallet/.gitkeep
+backend/wallet*
+!backend/wallet*/.gitkeep
 
 web/.vscode

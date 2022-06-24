@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const { prettyJSONString } = require('../utils');
 
 const contract = require('./contract');
 
@@ -11,11 +12,12 @@ app.use(cors());
 
 app.post('/enroll', async (req, res) => {
   try {
+    debugger
     const walletContent = await contract.enroll(req.body.email, req.body.secret);
     res.json({ walletContent });
   } catch (err) {
     // next(err);
-    console.log(err);
+    console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
   }
 });
@@ -25,7 +27,7 @@ app.post('/getuser', async (req, res) => {
     const user = await user.getUser(req.body.email, req.body.wallet);
     res.json(user);
   } catch (err) {
-    console.log(err);
+    console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
   }
 });
@@ -36,7 +38,7 @@ app.post('/addread', async (req, res) => {
     const read = await contract.addRead(req.body.email, req.body.wallet, req.body.timestamp, req.body.readVal);
     res.json(read);
   } catch (err) {
-    console.log(err);
+    console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
   }
 });
@@ -47,7 +49,7 @@ app.post('/getreads', async (req, res) => {
     console.log(reads);
     res.json(reads);
   } catch (err) {
-    console.log(err);
+    console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
   }
 });
@@ -58,7 +60,7 @@ app.post('/history', async (req, res) => {
     console.log(result);
     res.json(result);
   } catch (err) {
-    console.log(err);
+    console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
   }
 });
@@ -70,7 +72,7 @@ console.log('started');
 //   try {
 //     await user.enroll('customer1@gmail.com', 'dEvrDyiyCHia');
 //   } catch (err) {
-//     console.log(err);
+//     console.log(prettyJSONString(JSON.stringify(err)));
 //   }
 // }
 

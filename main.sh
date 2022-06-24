@@ -13,13 +13,21 @@ e2e() {
     sleep 5
     clear_wallets
     admin
-    dev
+    debug
 }
 
 dev() {
     cleanup
     gnome-terminal \
         --tab -e "bash -c ' cd backend && npm run dev ; bash'" \
+        --tab -e "bash -c ' cd web && npm start ; bash'"
+        # --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
+}
+
+debug() {
+    cleanup
+    gnome-terminal \
+        --tab -e "bash -c ' cd backend && node inspect index.js ; bash'" \
         --tab -e "bash -c ' cd web && npm start ; bash'"
         # --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
 }
@@ -32,7 +40,11 @@ dev_web() {
 
 clear_wallets() {
     rm -rf admin/wallet || true
+    rm -rf admin/wallet1 || true
+    rm -rf admin/wallet2 || true
     rm -rf backend/wallet || true
+    rm -rf backend/wallet1 || true
+    rm -rf backend/wallet2 || true
 }
 
 newcontr() {
@@ -42,7 +54,10 @@ newcontr() {
 admin() {
     cd admin
     npm i
-    node index.js customer1@gmail.com customer2@gmail.com
+    # node admin.js customer1@gmail.com customer2@gmail.com
+    node admin1.js customer1@org1.com
+    node admin2.js customer2@org2.com
+    jq -s '.[0] * .[1]' secret1.json secret2.json > secrets.json
     cd -
 }
 
