@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_PATH=~/work/bcbill/backend/node_modules node ~/work/bcbill/backend/node_modules/mocha/bin/mocha --trace-warnings ./tests/data.test.js --timeout 60000 --exit",
     "dev": "node_modules/nodemon/bin/nodemon.js index.js"
   },
   "author": "",
@@ -20,10 +19,6 @@
     "jsonfile": "^6.1.0"
   },
   "devDependencies": {
-    "assert": "^2.0.0",
-    "chai": "^4.3.6",
-    "mocha": "^10.0.0",
-    "nodemon": "^2.0.15",
-    "supertest": "^6.2.3"
+    "nodemon": "^2.0.15"
   }
 }

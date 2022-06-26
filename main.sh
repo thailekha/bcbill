@@ -6,14 +6,26 @@ cleanup() {
 }
 trap cleanup EXIT
 
+clean() {
+    clear_wallets
+    ./fablo recreate
+    sleep 5
+}
+
 e2e() {
     # npm_install
     # lint
-    ./fablo recreate
-    sleep 5
-    clear_wallets
-    # admin
+    clean
+    admin
     # debug
+}
+
+test() {
+    clean
+    admin
+    cd tests
+    npm run test
+    cd -
 }
 
 dev() {
@@ -53,11 +65,10 @@ newcontr() {
 
 admin() {
     cd admin
-    npm i
-    node admin.js customer1@org1.com customer2@org2.com
-    # node admin1.js customer1@org1.com
-    # node admin2.js customer2@org2.com
-    # jq -s '.[0] * .[1]' secret1.json secret2.json > secrets.json
+    # node admin.js customer1@org1.com customer2@org2.com
+    node admin1.js customer1@org1.com
+    node admin2.js customer2@org2.com
+    jq -s '.[0] * .[1]' secret1.json secret2.json > secrets.json
     cd -
 }
 

@@ -4,7 +4,7 @@ const fs = require('fs');
 const jsonfile = require('jsonfile');
 const { Wallets } = require('fabric-network');
 const { caClient, getPeer, clone, parseOrgFromEmail } = require('../utils');
-const userWalletCreated = (user, orgNo) => fs.existsSync(`./wallet${orgNo}/${user}.id`);
+const userWalletCreated = (user, orgNo) => fs.existsSync(`${__dirname}/wallet${orgNo}/${user}.id`);
 
 const ADMIN_ID = 'admin';
 const ADMIN_PWD = 'adminpw';
@@ -25,7 +25,7 @@ async function main() {
     const secrets = {};
     for (const email of parseEmailArgs()) {
       const orgNo = parseOrgFromEmail(email);
-      const wallet = await Wallets.newFileSystemWallet(`./wallet${orgNo}`);
+      const wallet = await Wallets.newFileSystemWallet(`${__dirname}/wallet${orgNo}`);
       const peer = getPeer(email);
       const ca = caClient(peer, CA_HOST(orgNo));
 

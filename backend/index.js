@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const { prettyJSONString } = require('../utils');
 
-const contract = require('./contract');
+const contract = require(`${__dirname}/contract`);
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -20,7 +20,6 @@ app.get('/ping', async (req, res) => {
 
 app.post('/enroll', async (req, res) => {
   try {
-    debugger
     const walletContent = await contract.enroll(req.body.email, req.body.secret);
     res.json({ walletContent });
   } catch (err) {

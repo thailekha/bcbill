@@ -1,0 +1,18 @@
+{
+  "name": "tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "data.test.js",
+  "scripts": {
+    "test": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --timeout 60000 --exit"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "assert": "^2.0.0",
+    "chai": "^4.3.6",
+    "http-status-codes": "^2.2.0",
+    "mocha": "^10.0.0",
+    "supertest": "^6.2.3"
+  }
+}

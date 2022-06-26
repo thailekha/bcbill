@@ -3,14 +3,14 @@
 const { Gateway, Wallets } = require('fabric-network');
 const fabprotos = require('fabric-protos');
 const { BlockDecoder } = require('fabric-common');
-const ACTIONS =  require('./actions.json');
+const ACTIONS =  require(`${__dirname}/actions.json`);
 const { caClient, prettyJSONString, parseOrgFromEmail, getConnectionProfile } = require('../utils');
 const fs = require('fs');
-const userWalletCreated = user => fs.existsSync(`./wallet/${user}.id`);
+const userWalletCreated = user => fs.existsSync(`${__dirname}/wallet/${user}.id`);
 
 const MSP = orgNo => `Org${orgNo}MSP`;
 const CA_HOST = orgNo => `ca.org${orgNo}.example.com`;
-const WALLET_PATH = orgNo => `./wallet${orgNo}` ;
+const WALLET_PATH = orgNo => `${__dirname}/wallet${orgNo}` ;
 // const AFFILIATION = 'org1.department1';
 
 const CHANNEL = 'mychannel';
@@ -21,7 +21,7 @@ const PEERS = [
   'peer0.org3.example.com',
 ];
 
-const secrets = require('../admin/secrets.json');
+const secrets = require(`${__dirname}/../admin/secrets.json`);
 
 exports.enroll = async (email, secret) => {
   if (secret !== secrets[email]) {
