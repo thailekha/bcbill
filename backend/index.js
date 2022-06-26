@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
-app.post('/ping', async (req, res) => {
+app.get('/ping', async (req, res) => {
   try {
     res.sendStatus(200)
   } catch (err) {
@@ -73,15 +73,4 @@ app.post('/history', async (req, res) => {
   }
 });
 
-app.listen(9999);
-console.log('started');
-
-// async function test() {
-//   try {
-//     await user.enroll('customer1@gmail.com', 'dEvrDyiyCHia');
-//   } catch (err) {
-//     console.log(prettyJSONString(JSON.stringify(err)));
-//   }
-// }
-
-// test();
+module.exports = app;
