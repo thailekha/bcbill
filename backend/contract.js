@@ -4,7 +4,7 @@ const { Gateway, Wallets } = require('fabric-network');
 const fabprotos = require('fabric-protos');
 const { BlockDecoder } = require('fabric-common');
 const ACTIONS =  require('./actions.json');
-const { caClient, prettyJSONString } = require('../utils');
+const { caClient, prettyJSONString, parseOrgFromEmail, getConnectionProfile } = require('../utils');
 const fs = require('fs');
 const userWalletCreated = user => fs.existsSync(`./wallet/${user}.id`);
 
@@ -12,7 +12,6 @@ const MSP = orgNo => `Org${orgNo}MSP`;
 const CA_HOST = orgNo => `ca.org${orgNo}.example.com`;
 const WALLET_PATH = orgNo => `./wallet${orgNo}` ;
 // const AFFILIATION = 'org1.department1';
-const CONNECTION_PROFILE = orgNo => require(`../fablo-target/fabric-config/connection-profiles/connection-profile-org${orgNo}.json`);
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
@@ -23,8 +22,6 @@ const PEERS = [
 ];
 
 const secrets = require('../admin/secrets.json');
-
-const parseOrgFromEmail = email => email.includes("@org1.com") ? "1" : "2";
 
 exports.enroll = async (email, secret) => {
   if (secret !== secrets[email]) {
@@ -56,7 +53,7 @@ async function inMemWallet(email, walletContent) {
 }
 
 async function getHistory(endorsingPeers, wallet, action, identity, ...args) {
-  const peer = CONNECTION_PROFILE(parseOrgFromEmail(identity));
+  const peer = getConnectionProfile(parseOrgFromEmail(identity));
   const gateway = new Gateway();
   try {
     debugger;
@@ -105,6 +102,9 @@ async function getHistory(endorsingPeers, wallet, action, identity, ...args) {
   }
 }
 
+// based on 
+// - https://github.com/renjithpta/demo-3org-fabric/blob/2f8eb71593d7455aa70e9afb88ca4e6b75f12216/apiserver/app/cscc.js
+// - hyperledger explorer:  async processBlockEvent(client, block, noDiscovery) 
 function processBlock(block) {
   const txLen = block.data.data.length;
   const res = [];
@@ -139,7 +139,7 @@ function processBlock(block) {
 }
 
 async function executeContract(endorsingPeers, wallet, action, identity, ...args) {
-  const peer = CONNECTION_PROFILE(parseOrgFromEmail(identity));
+  const peer = getConnectionProfile(parseOrgFromEmail(identity));
   const gateway = new Gateway();
   try {
     await gateway.connect(peer, {
@@ -163,7 +163,7 @@ async function executeContract(endorsingPeers, wallet, action, identity, ...args
 async function enrollCa(email, wallet, secret) {
   if (userWalletCreated(email) || (await wallet.get(email))) { return; }
   const orgNo = parseOrgFromEmail(email);
-  const peer = CONNECTION_PROFILE(orgNo);
+  const peer = getConnectionProfile(orgNo);
   const ca = caClient(peer, CA_HOST(orgNo));
   const enrollment = await ca.enroll({
     enrollmentID: email,

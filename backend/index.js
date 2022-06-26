@@ -10,6 +10,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
+app.post('/ping', async (req, res) => {
+  try {
+    res.sendStatus(200)
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
 app.post('/enroll', async (req, res) => {
   try {
     debugger

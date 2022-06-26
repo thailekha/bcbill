@@ -2,61 +2,44 @@
 
 const fs = require('fs');
 const jsonfile = require('jsonfile');
-const { Gateway, Wallets } = require('fabric-network');
-const { connectionProfileOrg1, caClient } = require('../utils');
-const userWalletCreated = user => fs.existsSync(`./wallet/${user}.id`);
+const { Wallets } = require('fabric-network');
+const { caClient, getPeer, clone, parseOrgFromEmail } = require('../utils');
+const userWalletCreated = (user, orgNo) => fs.existsSync(`./wallet${orgNo}/${user}.id`);
 
 const ADMIN_ID = 'admin';
 const ADMIN_PWD = 'adminpw';
 
-const MSP = 'Org1MSP';
-const WALLET_PATH = require('path').join(__dirname, 'wallet');
-const CA_HOST = 'ca.org1.example.com';
-const AFFILIATION = 'org1.department1';
-const CHANNEL = 'mychannel';
-const CHAINCODE = 'chaincode1';
+const MSP = orgNo => `Org${orgNo}MSP`;
+const CA_HOST = orgNo => `ca.org${orgNo}.example.com`;
+const AFFILIATION = orgNo => `org${orgNo}.department1`;
 
-let wallet;
-let peer;
-let ca;
+function parseEmailArgs() {
+  const emails = clone(process.argv);
+  emails.shift();
+  emails.shift();
+  return emails;
+}
 
 async function main() {
   try {
-    await init();
-    await admin();
-    await emails();
-    // await initLedger();
+    const secrets = {};
+    for (const email of parseEmailArgs()) {
+      const orgNo = parseOrgFromEmail(email);
+      const wallet = await Wallets.newFileSystemWallet(`./wallet${orgNo}`);
+      const peer = getPeer(email);
+      const ca = caClient(peer, CA_HOST(orgNo));
+
+      await setupAdminWallet(wallet, ca, orgNo);
+      secrets[email] = await registerEmail(wallet, ca, orgNo, email);
+    }
+    jsonfile.writeFile('secrets.json', secrets);
   } catch (e) {
     console.error(e);
   }
 }
 
-async function init() {
-  // Note: wallet can be built in memory as well
-  wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
-  peer = connectionProfileOrg1();
-  ca = caClient(peer, CA_HOST);
-}
-
-// async function initLedger() {
-//   const gateway = new Gateway();
-//   try {
-//     await gateway.connect(peer, {
-//       wallet,
-//       identity: ADMIN_ID,
-//       discovery: { enabled: true, asLocalhost: true }
-//     });
-//     const network = await gateway.getNetwork(CHANNEL);
-//     const contract = network.getContract(CHAINCODE);
-//     await contract.submitTransaction('InitLedger');
-//   }
-//   finally {
-//     gateway.disconnect();
-//   }
-// }
-
-async function admin() {
-  if (userWalletCreated(ADMIN_ID) || (await wallet.get(ADMIN_ID))) { return; }
+async function setupAdminWallet(wallet, ca, orgNo) {
+  if (userWalletCreated(ADMIN_ID, orgNo) || (await wallet.get(ADMIN_ID))) { return; }
   const enrollment = await ca.enroll({
     enrollmentID: ADMIN_ID,
     enrollmentSecret: ADMIN_PWD
@@ -66,12 +49,12 @@ async function admin() {
       certificate: enrollment.certificate,
       privateKey: enrollment.key.toBytes(),
     },
-    mspId: MSP,
+    mspId: MSP(orgNo),
     type: 'X.509',
   });
 }
 
-async function registerEmail(email) {
+async function registerEmail(wallet, ca, orgNo, email) {
   const adminIdentity = await wallet.get(ADMIN_ID);
   if ((await wallet.get(email)) || !adminIdentity) return;
   const adminUser = await wallet
@@ -79,20 +62,10 @@ async function registerEmail(email) {
     .getProvider(adminIdentity.type)
     .getUserContext(adminIdentity, ADMIN_ID);
   return await ca.register({
-    affiliation: AFFILIATION,
+    affiliation: AFFILIATION(orgNo),
     enrollmentID: email,
     role: 'client'
   }, adminUser);
-}
-
-async function emails() {
-  process.argv.shift();
-  process.argv.shift();
-  const secrets = {};
-  for (const email of process.argv) {
-    secrets[email] = await registerEmail(email);
-  }
-  jsonfile.writeFile('secrets.json', secrets);
 }
 
 main();

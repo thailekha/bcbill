@@ -1,9 +1,5 @@
 # TODO:
-- use customer1@org1, org2. parse the email to figure out connection profile
-- debug connectionProfileOrg1, go back to user org 1 and figure where the org is nested
-- turn enroll wallet to in mem
-- enroll customer 1 to org 1, customer 2 to org 2
-- figure out creator
+- bdd testing
 - hash the cert as part of the user
 - stringify the read set and search for asset id
 

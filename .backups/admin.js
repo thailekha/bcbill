@@ -2,17 +2,19 @@
 
 const fs = require('fs');
 const jsonfile = require('jsonfile');
-const { Wallets } = require('fabric-network');
-const { connectionProfileOrg2, caClient } = require('../utils');
-const userWalletCreated = user => fs.existsSync(`./wallet2/${user}.id`);
+const { Gateway, Wallets } = require('fabric-network');
+const { connectionProfileOrg1, caClient } = require('../utils');
+const userWalletCreated = user => fs.existsSync(`./wallet/${user}.id`);
 
 const ADMIN_ID = 'admin';
 const ADMIN_PWD = 'adminpw';
 
-const MSP = 'Org2MSP';
-const WALLET_PATH = require('path').join(__dirname, 'wallet2');
-const CA_HOST = 'ca.org2.example.com';
-const AFFILIATION = 'org2.department1';
+const MSP = 'Org1MSP';
+const WALLET_PATH = require('path').join(__dirname, 'wallet');
+const CA_HOST = 'ca.org1.example.com';
+const AFFILIATION = 'org1.department1';
+const CHANNEL = 'mychannel';
+const CHAINCODE = 'chaincode1';
 
 let wallet;
 let peer;
@@ -32,9 +34,26 @@ async function main() {
 async function init() {
   // Note: wallet can be built in memory as well
   wallet = await Wallets.newFileSystemWallet(WALLET_PATH);
-  peer = connectionProfileOrg2();
+  peer = connectionProfileOrg1();
   ca = caClient(peer, CA_HOST);
 }
+
+// async function initLedger() {
+//   const gateway = new Gateway();
+//   try {
+//     await gateway.connect(peer, {
+//       wallet,
+//       identity: ADMIN_ID,
+//       discovery: { enabled: true, asLocalhost: true }
+//     });
+//     const network = await gateway.getNetwork(CHANNEL);
+//     const contract = network.getContract(CHAINCODE);
+//     await contract.submitTransaction('InitLedger');
+//   }
+//   finally {
+//     gateway.disconnect();
+//   }
+// }
 
 async function admin() {
   if (userWalletCreated(ADMIN_ID) || (await wallet.get(ADMIN_ID))) { return; }
@@ -73,7 +92,7 @@ async function emails() {
   for (const email of process.argv) {
     secrets[email] = await registerEmail(email);
   }
-  jsonfile.writeFile('secret2.json', secrets);
+  jsonfile.writeFile('secrets.json', secrets);
 }
 
 main();
