@@ -75,7 +75,7 @@ async function emails() {
   for (const email of process.argv) {
     secrets[email] = await registerEmail(email);
   }
-  jsonfile.writeFile('secret1.json', secrets);
+  await jsonfile.writeFile('secret1.json', secrets);
 }
 
 main();

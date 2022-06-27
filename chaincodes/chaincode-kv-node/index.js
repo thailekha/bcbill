@@ -40,7 +40,7 @@ class EBillContract extends Contract {
       email
     };
     await ctx.stub.putState(email, ledgerVal(user));
-    return jstr(user);
+    return user;
   }
 
   async __getUser(ctx, email) {
@@ -61,11 +61,22 @@ class EBillContract extends Contract {
 
   async GetReads(ctx, email) {
     let queryString = {};
-    queryString.selector = { 'docType': 'read' };
+    queryString.selector = {
+      'docType': 'read',
+      'owner': email
+    };
     let iterator = await ctx.stub.getQueryResult(JSON.stringify(queryString));
     let result = await this.getIteratorData(iterator);
-    return JSON.stringify(result);
+    return result;
   }
+
+  // async GetRead(ctx, email, readId) {
+  //   let queryString = {};
+  //   queryString.selector = { 'docType': 'read' };
+  //   let iterator = await ctx.stub.getQueryResult(JSON.stringify(queryString));
+  //   let result = await this.getIteratorData(iterator);
+  //   return JSON.stringify(result);
+  // }
 
   async getIteratorData (iterator){
     let resultArray = [];
@@ -123,7 +134,10 @@ class EBillContract extends Contract {
     const id = hash(read);
     await forceUniqueAsset(ctx, id);
     await ctx.stub.putState(id, ledgerVal(read));
-    return jstr(read);
+    return ({
+      id,
+      read
+    });
   }
 
   async TraverseHistory(ctx, key) {

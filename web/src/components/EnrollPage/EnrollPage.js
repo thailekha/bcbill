@@ -31,7 +31,7 @@ class EnrollPage extends React.Component {
         this.setState({loading: 'Enrolling'});
         const wallet = await backend.enroll(this.state.email, this.state.secret);
         this.setState({loading: 'Logging in'});
-        Auth.setWallet(wallet);
+        Auth.setWallet(wallet, this.state.email);
         this.props.history.replace("/");
       } catch (error) {
         alert(error.message);

@@ -32,7 +32,7 @@ async function main() {
       await setupAdminWallet(wallet, ca, orgNo);
       secrets[email] = await registerEmail(wallet, ca, orgNo, email);
     }
-    jsonfile.writeFile('secrets.json', secrets);
+    await jsonfile.writeFile('secrets.json', secrets);
   } catch (e) {
     console.error(e);
   }

@@ -25,7 +25,7 @@ exports.connectionProfileOrg2 = () => {
 
 const getConnectionProfile = orgNo => require(`../fablo-target/fabric-config/connection-profiles/connection-profile-org${orgNo}.json`);
 
-const parseOrgFromEmail = email => email.includes("@org1.com") ? "1" : "2";
+const parseOrgFromEmail = email => email.includes('@org1.com') ? '1' : '2';
 
 exports.getConnectionProfile = getConnectionProfile;
 

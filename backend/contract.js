@@ -34,17 +34,17 @@ exports.enroll = async (email, secret) => {
   return walletContent;
 };
 
-exports.getUser = async (email, walletContent) => JSON.parse(await executeContract(PEERS, await inMemWallet(email, walletContent),
-  ACTIONS.GET_USER, email, email));
+exports.getUser = async (email, walletContent) => await executeContract(PEERS, await inMemWallet(email, walletContent),
+  ACTIONS.GET_USER, email, email);
 
-exports.addRead = async (email, walletContent, timestamp, readVal) => JSON.parse(await executeContract(PEERS, await inMemWallet(email, walletContent),
-  ACTIONS.ADD_READ, email, email, timestamp, readVal));
+exports.addRead = async (email, walletContent, timestamp, readVal) => await executeContract(PEERS, await inMemWallet(email, walletContent),
+  ACTIONS.ADD_READ, email, email, timestamp, readVal);
 
-exports.getReads = async (email, walletContent) => JSON.parse(await executeContract(PEERS, await inMemWallet(email, walletContent),
-  ACTIONS.GET_READS, email, email));
+exports.getReads = async (email, walletContent) => await executeContract(PEERS, await inMemWallet(email, walletContent),
+  ACTIONS.GET_READS, email, email);
 
-exports.traverseHistory = async (email, walletContent, assetKey) => JSON.parse(await getHistory(PEERS, await inMemWallet(email, walletContent),
-  ACTIONS.TRAVERSE_HISTORY, email, assetKey));
+exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(PEERS, await inMemWallet(email, walletContent),
+  ACTIONS.TRAVERSE_HISTORY, email, assetKey);
 
 async function inMemWallet(email, walletContent) {
   const wallet = await Wallets.newInMemoryWallet();
@@ -153,7 +153,9 @@ async function executeContract(endorsingPeers, wallet, action, identity, ...args
       .createTransaction(action)
       // .setEndorsingPeers(endorsingPeers)
       .submit(...args);
-    return prettyJSONString(result.toString());
+
+    // result is a buffer, gotta call toString then parse
+    return JSON.parse((result.toString()));
   }
   finally {
     gateway.disconnect();

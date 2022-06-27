@@ -2,13 +2,14 @@ import React from "react";
 import backend from "../../backend";
 import AsyncAwareContainer from '../AsyncAwareContainer';
 import { Button, Container, Form, InputGroup, FormControl } from "react-bootstrap";
+import Auth from "../../stores/auth";
 
 class HomePage extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      email: "customer1@org1.com",
+      email: Auth.getEmail(),
       assetKey: ""
     };
 

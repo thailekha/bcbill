@@ -12,7 +12,7 @@ app.use(cors());
 
 app.get('/ping', async (req, res) => {
   try {
-    res.sendStatus(200)
+    res.sendStatus(200);
   } catch (err) {
     res.status(500).send(err);
   }
@@ -41,7 +41,6 @@ app.post('/getuser', async (req, res) => {
 
 app.post('/addread', async (req, res) => {
   try {
-    console.log(req.body.email, req.body.wallet, req.body.timestamp, req.body.readVal);
     const read = await contract.addRead(req.body.email, req.body.wallet, req.body.timestamp, req.body.readVal);
     res.json(read);
   } catch (err) {

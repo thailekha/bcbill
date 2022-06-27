@@ -17,6 +17,7 @@ e2e() {
     # lint
     clean
     admin
+    dev
     # debug
 }
 
@@ -44,6 +45,11 @@ debug() {
         # --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
 }
 
+dockerlog() {
+    gnome-terminal \
+        --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
+}
+
 dev_web() {
     cleanup
     gnome-terminal \
@@ -51,12 +57,14 @@ dev_web() {
 }
 
 clear_wallets() {
+    rm -rf admin/secret*.json || true
     rm -rf admin/wallet || true
     rm -rf admin/wallet1 || true
     rm -rf admin/wallet2 || true
     rm -rf backend/wallet || true
     rm -rf backend/wallet1 || true
     rm -rf backend/wallet2 || true
+    rm -rf tests/wallets.json || true
 }
 
 newcontr() {
@@ -93,7 +101,7 @@ backend() {
 
 lint() {
     which eslint || npm i -g eslint
-    eslint admin backend chaincodes utils --fix --ext .js --config eslintrc.json
+    eslint admin backend chaincodes utils tests --fix --ext .js --config eslintrc.json
 }
 
 "$@"

@@ -30,7 +30,7 @@ class LoginForm extends React.Component {
       try {
         this.setState({loading: 'Logging in'});
         // await backend.login(this.state.email, this.state.wallet);
-        Auth.setWallet(this.state.wallet);
+        Auth.setWallet(this.state.wallet, this.state.email);
         this.props.routerHistory.replace("/");
       } catch (error) {
         alert(error.message);
