@@ -16,4 +16,7 @@ admin/wallet*
 backend/wallet*
 !backend/wallet*/.gitkeep
 
+tests/wallet*
+tests/runNo.json
+
 web/.vscode

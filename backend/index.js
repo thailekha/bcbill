@@ -31,7 +31,7 @@ app.post('/enroll', async (req, res) => {
 
 app.post('/getuser', async (req, res) => {
   try {
-    const user = await user.getUser(req.body.email, req.body.wallet);
+    const user = await contract.getUser(req.body.email, req.body.wallet, req.body.certHash);
     res.json(user);
   } catch (err) {
     console.log(prettyJSONString(JSON.stringify(err)));
@@ -52,8 +52,8 @@ app.post('/addread', async (req, res) => {
 app.post('/getreads', async (req, res) => {
   try {
     const reads = await contract.getReads(req.body.email, req.body.wallet);
-    console.log(reads);
-    res.json(reads);
+    reads.sort((a,b) => a.value.time - b.value.time);
+    res.json({ reads });
   } catch (err) {
     console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
@@ -62,9 +62,8 @@ app.post('/getreads', async (req, res) => {
 
 app.post('/history', async (req, res) => {
   try {
-    const result = await contract.traverseHistory(req.body.email, req.body.wallet, req.body.assetKey);
-    console.log(result);
-    res.json(result);
+    const accessors = await contract.traverseHistory(req.body.email, req.body.wallet, req.body.assetKey);
+    res.json(accessors);
   } catch (err) {
     console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);

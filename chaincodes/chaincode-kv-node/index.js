@@ -33,13 +33,13 @@ class EBillContract extends Contract {
   //   await ctx.stub.putState('admin', '');
   // }
 
-  async AddUser(ctx, email) {
-    await forceUniqueAsset(ctx, email);
+  async AddUser(ctx, email, certHash) {
+    await forceUniqueAsset(ctx, certHash);
     const user = {
       docType: 'user',
       email
     };
-    await ctx.stub.putState(email, ledgerVal(user));
+    await ctx.stub.putState(certHash, ledgerVal(user));
     return user;
   }
 
@@ -51,21 +51,28 @@ class EBillContract extends Contract {
     return user;
   }
 
-  async GetUser(ctx, email) {
-    const user = await ctx.stub.getState(email); // get the asset from chaincode state
+  async GetUser(ctx, certHash) {
+    const user = await ctx.stub.getState(certHash); // get the asset from chaincode state
     if (!user || user.length === 0) {
-      throw new Error(`The user ${email} does not exist`);
+      throw new Error(`The user ${certHash} does not exist`);
     }
     return user.toString();
   }
 
-  async GetReads(ctx, email) {
-    let queryString = {};
-    queryString.selector = {
-      'docType': 'read',
-      'owner': email
-    };
-    let iterator = await ctx.stub.getQueryResult(JSON.stringify(queryString));
+  // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
+  async GetReads(ctx, certHash) {
+    // queryString.selector = {
+    //   'docType': 'read',
+    //   'owner': email
+    // };
+    let iterator = await ctx.stub.getQueryResult(JSON.stringify(
+      {
+        selector:  {
+          docType: 'read'
+        }
+        // sort: [{ time: 'asc' }]
+      }
+    ));
     let result = await this.getIteratorData(iterator);
     return result;
   }
@@ -106,8 +113,8 @@ class EBillContract extends Contract {
    * Using timestamp here: remember each peer has to execute this,
    * since each peer would get a different timestamp, the endorsement policy will break
    */
-  async AddRead(ctx, email, timestamp, val) {
-    await assetExists(ctx, email);
+  async AddRead(ctx, certHash, timestamp, val) {
+    await assetExists(ctx, certHash);
 
     // dataAssets.push({
     //   guid,
@@ -126,9 +133,9 @@ class EBillContract extends Contract {
     const read = {
       docType: 'read',
       val,
-      owner: email,
+      owner: certHash,
       authorizedUsers: [],
-      time: timestamp,
+      time: parseInt(timestamp),
       active: true
     };
     const id = hash(read);

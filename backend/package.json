@@ -16,7 +16,8 @@
     "fabric-network": "^2.2.11",
     "fabric-protos": "^2.2.13",
     "http-status-codes": "^2.2.0",
-    "jsonfile": "^6.1.0"
+    "jsonfile": "^6.1.0",
+    "object-hash": "^3.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"

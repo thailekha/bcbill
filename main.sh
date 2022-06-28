@@ -21,6 +21,11 @@ e2e() {
     # debug
 }
 
+pretest() {
+    clean
+    admin
+}
+
 test() {
     clean
     admin
@@ -65,6 +70,8 @@ clear_wallets() {
     rm -rf backend/wallet1 || true
     rm -rf backend/wallet2 || true
     rm -rf tests/wallets.json || true
+
+    rm -rf tests/runNo.json || true
 }
 
 newcontr() {
