@@ -41,8 +41,8 @@ exports.getUser = async (requestorEmail, walletContent, certHash) => await execu
 exports.addRead = async (email, walletContent, timestamp, readVal) => await executeContract(
   email, walletContent, ACTIONS.ADD_READ, hash(walletContent.credentials.certificate), timestamp, readVal);
 
-exports.getReads = async (email, walletContent) => await executeContract(
-  email, walletContent, ACTIONS.GET_READS, email);
+exports.getReads = async (email, walletContent, certHash) => await executeContract(
+  email, walletContent, ACTIONS.GET_READS, certHash);
 
 exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
   email, walletContent, hash(walletContent.credentials.certificate), assetKey);

@@ -51,7 +51,7 @@ app.post('/addread', async (req, res) => {
 
 app.post('/getreads', async (req, res) => {
   try {
-    const reads = await contract.getReads(req.body.email, req.body.wallet);
+    const reads = await contract.getReads(req.body.email, req.body.wallet, req.body.certHash);
     reads.sort((a,b) => a.value.time - b.value.time);
     res.json({ reads });
   } catch (err) {

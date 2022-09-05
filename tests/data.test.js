@@ -17,9 +17,10 @@ describe('ping', function() {
   });
 });
 
-const email1 = 'customer1@org1.com';
-const email2 = 'customer2@org2.com';
-let wallet1, wallet2;
+const customer1 = 'customer1@org1.com';
+const customer2 = 'customer2@org1.com';
+const provider = 'provider@org2.com';
+let wallet1, wallet2, wallet3;
 
 describe('full-suite', function() {
   // enroll, get wallet
@@ -27,44 +28,66 @@ describe('full-suite', function() {
   before(async() => {
     if (fs.existsSync(`${__dirname}/wallets.json`)) {
       const wallets = require(`${__dirname}/wallets.json`);
-      wallet1 = wallets[email1];
-      wallet2 = wallets[email2];
+      wallet1 = wallets[customer1];
+      wallet2 = wallets[customer2];
+      wallet3 = wallets[provider];
       return;
     }
-    wallet1 = await enroll(email1);
-    wallet2 = await enroll(email2);
+    wallet1 = await enroll(customer1);
+    wallet2 = await enroll(customer2);
+    wallet3 = await enroll(provider);
     const wallets = {};
-    wallets[email1] = wallet1;
-    wallets[email2] = wallet2;
+    wallets[customer1] = wallet1;
+    wallets[customer2] = wallet2;
+    wallets[provider] = wallet3;
     await jsonfile.writeFile('wallets.json', wallets);
   });
   it('should get user', async() => {
-    const u1 = await getUser(email2, wallet2, hash(wallet1.credentials.certificate));
-    const u2 = await getUser(email1, wallet1, hash(wallet2.credentials.certificate));
+    const u1 = await getUser(customer1, wallet1, hash(wallet1.credentials.certificate));
+    const u2 = await getUser(customer2, wallet2, hash(wallet2.credentials.certificate));
+    const u3 = await getUser(provider, wallet3, hash(wallet3.credentials.certificate));
   });
-  it('should add a read for each org user', async() => {
-    await addRead(email1, wallet1);
-    await addRead(email2, wallet2);
+  it('should add a read for customers', async() => {
+    await addRead(customer1, wallet1);
+    await addRead(customer2, wallet2);
   });
-  it('should get history', async() => {
-    const reads = await getReads(email1, wallet1);
-    expect(reads).to.have.lengthOf.above(0);
-    const assetKey = reads[0].key;
-    await getReads(email2, wallet2);
+  it('customer1 can access his reads', async() => {
+    expect(await getReads(customer1, wallet1, hash(wallet1.credentials.certificate))).to.have.lengthOf(1);
+  });
+  it('customer2 can access his reads', async() => {
+    expect(await getReads(customer2, wallet2, hash(wallet2.credentials.certificate))).to.have.lengthOf(1);
+  });
+  it('provider can access all reads', async() => {
+    expect(await getReads(provider, wallet3, hash(wallet3.credentials.certificate))).to.have.lengthOf(2);
+  });
+  // it('should get history', async() => {
+  //   const reads = await getReads(customer1, wallet1);
+  //   expect(reads).to.have.lengthOf.above(0);
+  //   const assetKey = reads[0].key;
+  //   await getReads(customer2, wallet2);
 
-    var runNo = 0;
-    if (fs.existsSync(`${__dirname}/runNo.json`)) {
-      runNo = require(`${__dirname}/runNo.json`).runNo + 1;
-      await jsonfile.writeFile('runNo.json', { runNo });
-    } else {
-      await jsonfile.writeFile('runNo.json', { runNo: 0 });
-    }
+  //   var runNo = 0;
+  //   if (fs.existsSync(`${__dirname}/runNo.json`)) {
+  //     runNo = require(`${__dirname}/runNo.json`).runNo + 1;
+  //     await jsonfile.writeFile('runNo.json', { runNo });
+  //   } else {
+  //     await jsonfile.writeFile('runNo.json', { runNo: 0 });
+  //   }
 
-    const history = await getHistory(email1, wallet1, assetKey);
-    // when running the tests multiple times, there are more than 1 reads that are not sorted when queried
-    expect(history[email2]).to.have.lengthOf(runNo + 1);
-  });
-  // throw in "provider" user --> verify who is requesting the reads  
+  //   const history = await getHistory(customer1, wallet1, assetKey);
+  //   // when running the tests multiple times, there are more than 1 reads that are not sorted when queried
+  //   expect(history[customer2]).to.have.lengthOf(runNo + 1);
+  // });
+  // it('should get history', async() => {
+  // provider can access user1 but not the other way around
+  // then user1 can query history of the read
+  // });
+
+  // how to add location?
+  // store a squence of logins (time + geolocation) --> how to query with the time though?
+
+  // piston js
+  
   // user 1 submit read, provider retrieves it, user 1 should be notified that the read has been accessed
 });
 
@@ -119,12 +142,12 @@ async function addRead(email, wallet) {
   }  
 }
 
-async function getReads(email, wallet) {
+async function getReads(email, wallet, certHash) {
   try {
     const {body: {reads}} = await request(backend)
       .post('/getreads')
       .set(...CONTENT_JSON)
-      .send({ email, wallet })
+      .send({ email, wallet, certHash })
       .expect(200);
     return reads;
   } catch (err) {

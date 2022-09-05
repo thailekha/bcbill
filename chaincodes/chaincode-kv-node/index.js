@@ -43,12 +43,8 @@ class EBillContract extends Contract {
     return user;
   }
 
-  async __getUser(ctx, email) {
-    const user = await ctx.stub.getState(email); // get the asset from chaincode state
-    if (!user || user.length === 0) {
-      throw new Error(`The user ${email} does not exist`);
-    }
-    return user;
+  async __getUser(ctx, certHash) {
+    return JSON.parse(await this.GetUser(ctx, certHash));
   }
 
   async GetUser(ctx, certHash) {
@@ -61,18 +57,23 @@ class EBillContract extends Contract {
 
   // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
   async GetReads(ctx, certHash) {
-    // queryString.selector = {
-    //   'docType': 'read',
-    //   'owner': email
-    // };
-    let iterator = await ctx.stub.getQueryResult(JSON.stringify(
-      {
+    const user = await this.__getUser(ctx, certHash);
+    // sort: [{ time: 'asc' }]
+    const query = user.email.includes('@org2.com') ? 
+      // org2 aka provider can access all reads
+      ({
         selector:  {
           docType: 'read'
         }
-        // sort: [{ time: 'asc' }]
-      }
-    ));
+      })
+      :
+      ({
+        selector:  {
+          docType: 'read',
+          owner: certHash
+        }
+      });
+    let iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
     let result = await this.getIteratorData(iterator);
     return result;
   }
