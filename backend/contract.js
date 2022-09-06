@@ -35,14 +35,14 @@ exports.enroll = async (email, secret) => {
   return walletContent;
 };
 
-exports.getUser = async (requestorEmail, walletContent, certHash) => await executeContract(
-  requestorEmail, walletContent, ACTIONS.GET_USER, certHash);
+exports.getUser = async (requestorEmail, walletContent) => await executeContract(
+  requestorEmail, walletContent, ACTIONS.GET_USER, hash(walletContent.credentials.certificate));
 
 exports.addRead = async (email, walletContent, timestamp, readVal) => await executeContract(
   email, walletContent, ACTIONS.ADD_READ, hash(walletContent.credentials.certificate), timestamp, readVal);
 
-exports.getReads = async (email, walletContent, certHash) => await executeContract(
-  email, walletContent, ACTIONS.GET_READS, certHash);
+exports.getReads = async (email, walletContent) => await executeContract(
+  email, walletContent, ACTIONS.GET_READS, hash(walletContent.credentials.certificate));
 
 exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
   email, walletContent, hash(walletContent.credentials.certificate), assetKey);

@@ -7,7 +7,6 @@ const statusCodes = require('http-status-codes');
 const secrets = require('../admin/secrets.json');
 const fs = require('fs');
 const jsonfile = require('jsonfile');
-const hash = require('object-hash');
 
 describe('ping', function() {
   it('should ping', async() => {
@@ -43,45 +42,42 @@ describe('full-suite', function() {
     await jsonfile.writeFile('wallets.json', wallets);
   });
   it('should get user', async() => {
-    const u1 = await getUser(customer1, wallet1, hash(wallet1.credentials.certificate));
-    const u2 = await getUser(customer2, wallet2, hash(wallet2.credentials.certificate));
-    const u3 = await getUser(provider, wallet3, hash(wallet3.credentials.certificate));
+    const u1 = await getUser(customer1, wallet1);
+    const u2 = await getUser(customer2, wallet2);
+    const u3 = await getUser(provider, wallet3);
   });
   it('should add a read for customers', async() => {
     await addRead(customer1, wallet1);
     await addRead(customer2, wallet2);
   });
   it('customer1 can access his reads', async() => {
-    expect(await getReads(customer1, wallet1, hash(wallet1.credentials.certificate))).to.have.lengthOf(1);
+    expect(await getReads(customer1, wallet1)).to.have.lengthOf(1);
   });
   it('customer2 can access his reads', async() => {
-    expect(await getReads(customer2, wallet2, hash(wallet2.credentials.certificate))).to.have.lengthOf(1);
+    expect(await getReads(customer2, wallet2)).to.have.lengthOf(1);
   });
   it('provider can access all reads', async() => {
-    expect(await getReads(provider, wallet3, hash(wallet3.credentials.certificate))).to.have.lengthOf(2);
+    expect(await getReads(provider, wallet3)).to.have.lengthOf(2);
   });
-  // it('should get history', async() => {
-  //   const reads = await getReads(customer1, wallet1);
-  //   expect(reads).to.have.lengthOf.above(0);
-  //   const assetKey = reads[0].key;
-  //   await getReads(customer2, wallet2);
+  it('should get history of an asset', async() => {
+    const reads = await getReads(customer1, wallet1);
+    expect(reads).to.have.lengthOf.above(0);
+    const assetKey = reads[0].key;
 
-  //   var runNo = 0;
-  //   if (fs.existsSync(`${__dirname}/runNo.json`)) {
-  //     runNo = require(`${__dirname}/runNo.json`).runNo + 1;
-  //     await jsonfile.writeFile('runNo.json', { runNo });
-  //   } else {
-  //     await jsonfile.writeFile('runNo.json', { runNo: 0 });
-  //   }
+    var runNo = 0;
+    if (fs.existsSync(`${__dirname}/runNo.json`)) {
+      runNo = require(`${__dirname}/runNo.json`).runNo + 1;
+      await jsonfile.writeFile('runNo.json', { runNo });
+    } else {
+      await jsonfile.writeFile('runNo.json', { runNo: 0 });
+    }
 
-  //   const history = await getHistory(customer1, wallet1, assetKey);
-  //   // when running the tests multiple times, there are more than 1 reads that are not sorted when queried
-  //   expect(history[customer2]).to.have.lengthOf(runNo + 1);
-  // });
-  // it('should get history', async() => {
-  // provider can access user1 but not the other way around
-  // then user1 can query history of the read
-  // });
+    // when running the tests multiple times, there are more than 1 reads that are not sorted when queried
+    const history = await getHistory(customer1, wallet1, assetKey);
+
+    // this means the provider has accessed the asset of customer 1
+    expect(history[provider]).to.have.lengthOf(1 + runNo);
+  });
 
   // how to add location?
   // store a squence of logins (time + geolocation) --> how to query with the time though?
@@ -110,12 +106,12 @@ async function enroll(email) {
   }  
 }
 
-async function getUser(email, wallet, certHash) {
+async function getUser(email, wallet) {
   try {
     const {body: user} = await request(backend)
       .post('/getuser')
       .set(...CONTENT_JSON)
-      .send({ email, wallet, certHash })
+      .send({ email, wallet })
       .expect(200);
     return user;
   } catch (err) {
@@ -142,12 +138,12 @@ async function addRead(email, wallet) {
   }  
 }
 
-async function getReads(email, wallet, certHash) {
+async function getReads(email, wallet) {
   try {
     const {body: {reads}} = await request(backend)
       .post('/getreads')
       .set(...CONTENT_JSON)
-      .send({ email, wallet, certHash })
+      .send({ email, wallet })
       .expect(200);
     return reads;
   } catch (err) {

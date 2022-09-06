@@ -31,7 +31,7 @@ app.post('/enroll', async (req, res) => {
 
 app.post('/getuser', async (req, res) => {
   try {
-    const user = await contract.getUser(req.body.email, req.body.wallet, req.body.certHash);
+    const user = await contract.getUser(req.body.email, req.body.wallet);
     res.json(user);
   } catch (err) {
     console.log(prettyJSONString(JSON.stringify(err)));
@@ -51,7 +51,7 @@ app.post('/addread', async (req, res) => {
 
 app.post('/getreads', async (req, res) => {
   try {
-    const reads = await contract.getReads(req.body.email, req.body.wallet, req.body.certHash);
+    const reads = await contract.getReads(req.body.email, req.body.wallet);
     reads.sort((a,b) => a.value.time - b.value.time);
     res.json({ reads });
   } catch (err) {
