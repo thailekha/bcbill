@@ -34,3 +34,9 @@ exports.parseOrgFromEmail = parseOrgFromEmail;
 exports.getPeer = email => getConnectionProfile(parseOrgFromEmail(email));
 
 exports.clone = obj => JSON.parse(JSON.stringify(obj));
+
+exports.LOCATIONS = {
+  SASKATOON: [52.146973, -106.647034],
+  RUSSIA: [55.75, 37.6],
+  GERMANY:	[52.51666667, 13.4]
+}

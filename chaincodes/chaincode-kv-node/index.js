@@ -37,7 +37,8 @@ class EBillContract extends Contract {
     await forceUniqueAsset(ctx, certHash);
     const user = {
       docType: 'user',
-      email
+      email,
+      logins: []
     };
     await ctx.stub.putState(certHash, ledgerVal(user));
     return user;
@@ -45,6 +46,15 @@ class EBillContract extends Contract {
 
   async __getUser(ctx, certHash) {
     return JSON.parse(await this.GetUser(ctx, certHash));
+  }
+
+  async Login(ctx, certHash, timestamp, location) {
+    const user = await this.__getUser(ctx, certHash);
+    user.logins.push({
+      timestamp, location
+    });
+    await ctx.stub.putState(certHash, ledgerVal(user));
+    return user;
   }
 
   async GetUser(ctx, certHash) {

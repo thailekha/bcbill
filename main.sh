@@ -81,7 +81,7 @@ newcontr() {
 admin() {
     cd admin
     node admin1.js customer1@org1.com customer2@org1.com
-    node admin2.js provider@org2.com
+    node admin2.js staff1@org2.com staff2@org2.com
     jq -s '.[0] * .[1]' secret1.json secret2.json > secrets.json
     cd -
 }

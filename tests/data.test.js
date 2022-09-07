@@ -7,6 +7,7 @@ const statusCodes = require('http-status-codes');
 const secrets = require('../admin/secrets.json');
 const fs = require('fs');
 const jsonfile = require('jsonfile');
+const LOCATIONS = require('../utils/index').LOCATIONS;
 
 describe('ping', function() {
   it('should ping', async() => {
@@ -18,49 +19,53 @@ describe('ping', function() {
 
 const customer1 = 'customer1@org1.com';
 const customer2 = 'customer2@org1.com';
-const provider = 'provider@org2.com';
-let wallet1, wallet2, wallet3;
+const staff1 = 'staff1@org2.com';
+const staff2 = 'staff2@org2.com';
+let customer1_wallet, customer2_wallet, staff1_wallet, staff2_wallet;
 
 describe('full-suite', function() {
-  // enroll, get wallet
-  // test all endpoints
   before(async() => {
     if (fs.existsSync(`${__dirname}/wallets.json`)) {
       const wallets = require(`${__dirname}/wallets.json`);
-      wallet1 = wallets[customer1];
-      wallet2 = wallets[customer2];
-      wallet3 = wallets[provider];
+      customer1_wallet = wallets[customer1];
+      customer2_wallet = wallets[customer2];
+      staff1_wallet = wallets[staff1];
+      staff2_wallet = wallets[staff2];
       return;
     }
-    wallet1 = await enroll(customer1);
-    wallet2 = await enroll(customer2);
-    wallet3 = await enroll(provider);
+    customer1_wallet = await enroll(customer1);
+    customer2_wallet = await enroll(customer2);
+    staff1_wallet = await enroll(staff1);
+    staff2_wallet = await enroll(staff2);
+
+    console.log(JSON.stringify(customer1_wallet));
+
     const wallets = {};
-    wallets[customer1] = wallet1;
-    wallets[customer2] = wallet2;
-    wallets[provider] = wallet3;
+    wallets[customer1] = customer1_wallet;
+    wallets[customer2] = customer2_wallet;
+    wallets[staff1] = staff1_wallet;
+    wallets[staff2] = staff2_wallet;
     await jsonfile.writeFile('wallets.json', wallets);
   });
-  it('should get user', async() => {
-    const u1 = await getUser(customer1, wallet1);
-    const u2 = await getUser(customer2, wallet2);
-    const u3 = await getUser(provider, wallet3);
-  });
   it('should add a read for customers', async() => {
-    await addRead(customer1, wallet1);
-    await addRead(customer2, wallet2);
+    await addRead(customer1, customer1_wallet);
+    await addRead(customer2, customer2_wallet);
   });
   it('customer1 can access his reads', async() => {
-    expect(await getReads(customer1, wallet1)).to.have.lengthOf(1);
+    expect(await getReads(customer1, customer1_wallet)).to.have.lengthOf(1);
   });
   it('customer2 can access his reads', async() => {
-    expect(await getReads(customer2, wallet2)).to.have.lengthOf(1);
+    expect(await getReads(customer2, customer2_wallet)).to.have.lengthOf(1);
   });
-  it('provider can access all reads', async() => {
-    expect(await getReads(provider, wallet3)).to.have.lengthOf(2);
+  it('providers can access all reads', async() => {
+    expect(await getReads(staff1, staff1_wallet)).to.have.lengthOf(2);
+    expect(await getReads(staff2, staff2_wallet)).to.have.lengthOf(2);
+  });
+  it('should login', async() => {
+    await login(staff1, staff1_wallet, LOCATIONS.SASKATOON);
   });
   it('should get history of an asset', async() => {
-    const reads = await getReads(customer1, wallet1);
+    const reads = await getReads(customer1, customer1_wallet);
     expect(reads).to.have.lengthOf.above(0);
     const assetKey = reads[0].key;
 
@@ -73,14 +78,27 @@ describe('full-suite', function() {
     }
 
     // when running the tests multiple times, there are more than 1 reads that are not sorted when queried
-    const history = await getHistory(customer1, wallet1, assetKey);
+    const history = await getHistory(customer1, customer1_wallet, assetKey);
 
     // this means the provider has accessed the asset of customer 1
-    expect(history[provider]).to.have.lengthOf(1 + runNo);
+    console.log(history);
+    expect(history[staff1]).to.have.lengthOf(1 + runNo);
+    expect(history[staff2]).to.have.lengthOf(1 + runNo);
   });
 
+  // history cases:
+  // - 1 login at sask -> each asset show sask in history
+  // - 1 login at sask then 1 login at russia -> each asset show sask and moscow
+  
+  // TODO: generate multiple suites for load testing?
+
+  // login UI: just ask user to drag n drop the wallet file
+
   // how to add location?
+  // when provider access the reads, the customers can know the time and location of those accesses
   // store a squence of logins (time + geolocation) --> how to query with the time though?
+  // make a "login" endpoint that takes timestamp and geolocation, store all logins in user object
+  // when querying the history,
 
   // piston js
   
@@ -97,6 +115,25 @@ async function enroll(email) {
       .send({ 
         email,
         secret: secrets[email]
+      })
+      .expect(200);
+    return walletContent;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }  
+}
+
+async function login(email, wallet, location) {
+  try {
+    const {body: {walletContent}} = await request(backend)
+      .post('/login')
+      .set(...CONTENT_JSON)
+      .send({ 
+        email,
+        wallet,
+        timestamp: (new Date()).getTime(),
+        location
       })
       .expect(200);
     return walletContent;

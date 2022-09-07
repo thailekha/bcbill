@@ -29,6 +29,17 @@ app.post('/enroll', async (req, res) => {
   }
 });
 
+app.post('/login', async (req, res) => {
+  try {
+    const walletContent = await contract.login(req.body.email, req.body.wallet, req.body.timestamp, req.body.location);
+    res.json({ walletContent });
+  } catch (err) {
+    // next(err);
+    console.log(prettyJSONString(JSON.stringify(err)));
+    res.status(500).send(err);
+  }
+});
+
 app.post('/getuser', async (req, res) => {
   try {
     const user = await contract.getUser(req.body.email, req.body.wallet);
