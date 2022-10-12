@@ -3,6 +3,7 @@ import backend from "../../backend";
 import AsyncAwareContainer from '../AsyncAwareContainer';
 import { Button, Container, Form, InputGroup, FormControl } from "react-bootstrap";
 import Auth from "../../stores/auth";
+import { Map, Marker } from "pigeon-maps"
 
 class HomePage extends React.Component {
   constructor(props) {
@@ -34,7 +35,7 @@ class HomePage extends React.Component {
     this.handleGetReads = async event => {
       try {
         this.setState({loading: 'Testing ...'});
-        await backend.getReads(this.state.email);
+        this.setState({reads: (await backend.getReads(this.state.email)).reads});
       } catch (error) {
         alert(error.message);
       } finally {
@@ -81,6 +82,15 @@ class HomePage extends React.Component {
             <Button className="cdFore" variant="light" onClick={this.handleSubmitRead}>Submit read</Button>
             <Button className="cdFore" variant="light" onClick={this.handleGetReads}>Get reads</Button>
             <Button className="cdFore" variant="light" onClick={this.handleHistory}>Get history</Button>
+            <ul>
+              {
+                this.state.reads && this.state.reads.map(r => <li>ID: {r.key}, VAL: {r.value.val}</li>)
+              }
+            </ul>
+
+            <Map height={300} defaultCenter={[50.879, 4.6997]}>
+              <Marker width={50} anchor={[50.879, 4.6997]} />
+            </Map>
           </AsyncAwareContainer>
         </Container>
       </div>

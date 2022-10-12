@@ -51,6 +51,7 @@ export default {
     try {
       const res = await axios.post(`${API}/getreads`, { email, wallet: Auth.getWallet() });
       console.log(res.data);
+      return res.data;
     } catch (e) {
       axiosError(e);
     }
@@ -64,6 +65,19 @@ export default {
     }
   },
   login: async(email, wallet) => {
-    return wallet;
+    try {
+      const { latitude, longitude } = (await axios.get('https://ipapi.co/json/')).data;
+      console.log(latitude, longitude);
+      const res = await axios.post(`${API}/login`,
+        { 
+          email, 
+          wallet: JSON.parse(wallet),
+          timestamp: (new Date()).getTime(),
+          location: [ latitude, longitude ] 
+        });
+      console.log(res.data);
+    } catch (e) {
+      axiosError(e);
+    }
   }
 };

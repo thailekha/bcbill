@@ -14,15 +14,6 @@
         //     "program": "${workspaceFolder}/admin/admin.js",
         //     "args": ["customer1@org1.com", "customer2@org2.com"]
         // },
-        // {
-        //     "type": "pwa-node",
-        //     "request": "launch",
-        //     "name": "Launch Program",
-        //     "skipFiles": [
-        //         "<node_internals>/**"
-        //     ],
-        //     "program": "${workspaceFolder}/backend/index.js"
-        // },
         {
             "cwd": "${workspaceFolder}/tests",
             "args": [
@@ -34,13 +25,31 @@
                 "--exit"
             ],
             "internalConsoleOptions": "openOnSessionStart",
-            "name": "Mocha Tests",
+            "name": "Debug data.tests.js",
             "program": "./node_modules/mocha/bin/mocha",
             "request": "launch",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "type": "node"
+        },
+        {
+            "cwd": "${workspaceFolder}/backend",
+            "args": [
+                "--timeout",
+                "999999",
+                "--colors",
+                "--trace-warnings",
+                "--exit"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "name": "Debug backend",
+            "program": "${workspaceFolder}/backend/bin/www",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
         }
     ]
 }
