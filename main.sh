@@ -34,6 +34,12 @@ test() {
     cd -
 }
 
+expose() {
+    gnome-terminal \
+        --tab -e "lt --subdomain thefrontend --port 3000"
+        --tab -e "lt --subdomain thebackend --port 9999"
+}
+
 dev() {
     cleanup
     gnome-terminal \

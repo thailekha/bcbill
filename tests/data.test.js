@@ -47,6 +47,13 @@ describe('full-suite', function() {
     wallets[staff2] = staff2_wallet;
     await jsonfile.writeFile('wallets.json', wallets);
   });
+  it('should login', async() => {
+    await login(staff1, staff1_wallet, LOCATIONS.SASKATOON);
+    await login(staff2, staff2_wallet, LOCATIONS.GERMANY);
+    // notice that getReads can work without even logging in --> staff2 used to have empty logins records but still has access records
+  });
+  // for some reasons staff2 had 3 login records. Add a test to retrieve use object to double check this
+  // it's because running the tests multiple times
   it('should add a read for customers', async() => {
     await addRead(customer1, customer1_wallet);
     await addRead(customer2, customer2_wallet);
@@ -60,9 +67,9 @@ describe('full-suite', function() {
   it('providers can access all reads', async() => {
     expect(await getReads(staff1, staff1_wallet)).to.have.lengthOf(2);
     expect(await getReads(staff2, staff2_wallet)).to.have.lengthOf(2);
-  });
-  it('should login', async() => {
-    await login(staff1, staff1_wallet, LOCATIONS.SASKATOON);
+
+
+    expect(await getReads(staff2, staff2_wallet)).to.have.lengthOf(2);
   });
   it('should get history of an asset', async() => {
     const reads = await getReads(customer1, customer1_wallet);
@@ -82,9 +89,34 @@ describe('full-suite', function() {
 
     // this means the provider has accessed the asset of customer 1
     console.log(history);
-    expect(history[staff1]).to.have.lengthOf(1 + runNo);
-    expect(history[staff2]).to.have.lengthOf(1 + runNo);
+    // expect(history[staff1]).to.have.lengthOf(1 + runNo);
+    // expect(history[staff2]).to.have.lengthOf(1 + runNo);
+
+    expect(history[staff1]).to.have.lengthOf(1);
+    expect(history[staff2]).to.have.lengthOf(2);
   });
+
+  /*
+  a history record looks like this
+  {
+    'staff1@org2.com': [ '2022-11-14T07:58:27.630Z' ],
+    'staff2@org2.com': [ '2022-11-14T07:58:29.762Z' ]
+  }
+  
+  for each timestamp, run it against the user's logins record
+  user.logins.push({
+      timestamp, location
+    });
+
+  history record becomes
+  {
+    'staff1@org2.com': [ {timestamp: '2022-11-14T07:58:27.630Z', location: ...} ],
+    ...
+  }
+  
+  aggragate history records of all assets to make a full report and render on map
+  */
+  
 
   // history cases:
   // - 1 login at sask -> each asset show sask in history
@@ -99,8 +131,6 @@ describe('full-suite', function() {
   // store a squence of logins (time + geolocation) --> how to query with the time though?
   // make a "login" endpoint that takes timestamp and geolocation, store all logins in user object
   // when querying the history,
-
-  // piston js
   
   // user 1 submit read, provider retrieves it, user 1 should be notified that the read has been accessed
 });

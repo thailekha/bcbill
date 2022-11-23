@@ -5,8 +5,9 @@ const fabprotos = require('fabric-protos');
 const { BlockDecoder } = require('fabric-common');
 const ACTIONS =  require(`${__dirname}/actions.json`);
 const { caClient, prettyJSONString, parseOrgFromEmail, getConnectionProfile } = require('../utils');
-const fs = require('fs');
 const hash = require('object-hash');
+const moment = require('moment');
+const fs = require('fs');
 const userWalletCreated = user => fs.existsSync(`${__dirname}/wallet/${user}.id`);
 
 const MSP = orgNo => `Org${orgNo}MSP`;
@@ -93,12 +94,52 @@ async function getHistory(identity, walletContent, certHash, assetToCheck) {
     const bcbillContract = network.getContract(CHAINCODE);
     for(let i = 0; i < hashes.length; i++) {
       const user = JSON.parse(((await bcbillContract.evaluateTransaction(ACTIONS.GET_USER, hashes[i])).toString()));
-      accessors[user.email] = accesses[hashes[i]];
+      const timestamps = accesses[hashes[i]];
+
+      for (const timestamp of timestamps) {
+        const location = retrieveLocationOfAccess(user.logins, timestamp);
+        //  does this override already existed entry?
+        if (!accessors[user.email]) {
+          accessors[user.email] = [{
+            timestamp,
+            location
+          }];
+        } else {
+          accessors[user.email].push({
+            timestamp,
+            location
+          });
+        }           
+      }
     }
     
     return accessors;
   } finally {
     gateway.disconnect();
+  }
+}
+
+function retrieveLocationOfAccess(logins, accessTimestamp) {
+  // user.logins.push({
+  //   timestamp, location
+  // });
+
+  // convert all timestamps to utc to compare
+
+  if(logins.length === 0) {
+    throw new Error('User has no login record');
+
+  }
+
+  if(logins.length === 1) return logins[0].location;
+
+  for(let i = 0; i < logins.length; i++) {
+    if (moment(accessTimestamp).isBefore(parseInt(logins[i].timestamp)) || i === logins.length - 1) {
+      if (i === 0) {
+        throw new Error('accessTimestamp is before than first login record\'s timestamp');
+      }
+      return logins[i - 1].location;
+    }
   }
 }
 
