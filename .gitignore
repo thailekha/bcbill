@@ -20,3 +20,4 @@ tests/wallet*
 tests/runNo.json
 
 web/.vscode
+web-second-instance

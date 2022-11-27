@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "axios": "^0.26.0",
+    "moment": "^2.29.4",
     "pigeon-maps": "^0.21.3",
     "react": "~16.14.0",
     "react-bootstrap": "~1.6.4",
@@ -15,6 +16,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "customer": "rm public/index.html || true; ./node_modules/.bin/pug -O '{\"PUG_FOR_STAFF\": false}' public/index.pug && BROWSER=none react-scripts start",
+    "staff": "rm public/index.html || true; ./node_modules/.bin/pug -O '{\"PUG_FOR_STAFF\": true}' public/index.pug && BROWSER=none react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -36,5 +39,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "pug-cli": "^1.0.0-alpha6"
   }
 }
