@@ -71,6 +71,16 @@ app.post('/getreads', async (req, res) => {
   }
 });
 
+app.post('/getread', async (req, res) => {
+  try {
+    const read = await contract.getRead(req.body.email, req.body.wallet, req.body.assetKey);
+    res.json({ read });
+  } catch (err) {
+    console.log(prettyJSONString(JSON.stringify(err)));
+    res.status(500).send(err);
+  }
+});
+
 app.post('/history', async (req, res) => {
   try {
     const accessors = await contract.traverseHistory(req.body.email, req.body.wallet, req.body.assetKey);

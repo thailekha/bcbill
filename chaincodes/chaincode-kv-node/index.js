@@ -65,6 +65,14 @@ class EBillContract extends Contract {
     return user.toString();
   }
 
+  async GetRead(ctx, readId) {
+    const read = await ctx.stub.getState(readId); // get the asset from chaincode state
+    if (!read || read.length === 0) {
+      throw new Error(`The read ${readId} does not exist`);
+    }
+    return read.toString();
+  }
+
   // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
   async GetReads(ctx, certHash) {
     const user = await this.__getUser(ctx, certHash);

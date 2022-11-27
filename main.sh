@@ -36,16 +36,35 @@ test() {
 
 expose() {
     gnome-terminal \
-        --tab -e "lt --subdomain thefrontend --port 3000"
+        --tab -e "lt --subdomain customer --port 3000" \
+        --tab -e "lt --subdomain staff --port 3001" \
         --tab -e "lt --subdomain thebackend --port 9999"
+}
+
+web() {
+    rm -rf web-second-instance || true
+    cp -rf web web-second-instance
+    # gnome-terminal \
+    #     --tab -e "bash -c ' cd web && PORT=3000 npm run customer ; bash'" \
+    #     --tab -e "bash -c ' cd web-second-instance && PORT=3001 npm run staff ; bash'"
+
+    # the one that run inside web is for dev
+    gnome-terminal \
+        --tab -e "bash -c ' cd web && PORT=3000 npm run customer ; bash'" \
+        --tab -e "bash -c ' cd web-second-instance && PORT=3001 npm run staff ; bash'"
+
+    # sleep 8
+    # firefox "localhost:3000" &
+    # google-chrome "localhost:3001" &
 }
 
 dev() {
     cleanup
     gnome-terminal \
-        --tab -e "bash -c ' cd backend && npm run dev ; bash'" \
-        --tab -e "bash -c ' cd web && npm start ; bash'"
+        --tab -e "bash -c ' cd backend && npm run dev ; bash'"
         # --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
+    web
+    expose
 }
 
 debug() {
@@ -59,12 +78,6 @@ debug() {
 dockerlog() {
     gnome-terminal \
         --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
-}
-
-dev_web() {
-    cleanup
-    gnome-terminal \
-        --tab -e "bash -c ' cd web && npm start ; bash'"
 }
 
 clear_wallets() {

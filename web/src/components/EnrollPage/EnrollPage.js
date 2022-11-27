@@ -14,9 +14,9 @@ class EnrollPage extends React.Component {
     }
 
     this.state = {
-      email: "customer1@org1.com",
+      email: window.FOR_STAFF ? "staff1@org2.com" : "customer1@org1.com",
       secret: "trNBUtXMuSji",
-      orgNo: "1"
+      orgNo: window.FOR_STAFF ? "2" : "1"
     };
 
     this.handleChange = event => {
@@ -28,9 +28,10 @@ class EnrollPage extends React.Component {
 
     this.handleEnroll = async event => {
       try {
-        this.setState({loading: 'Enrolling'});
+        this.setState({loading: 'Enrolling ...'});
         const wallet = await backend.enroll(this.state.email, this.state.secret);
-        this.setState({loading: 'Logging in'});
+        this.setState({loading: 'Logging in ...'});
+        await backend.login(this.state.email, JSON.stringify(wallet));
         Auth.setWallet(wallet, this.state.email);
         this.props.history.replace("/");
       } catch (error) {

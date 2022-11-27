@@ -1,8 +1,8 @@
 import axios from 'axios';
 import Auth from './stores/auth';
 
-const API = 'http://localhost:9999';
-// const API = 'https://thebackend.loca.lt';
+// const API = 'http://localhost:9999';
+const API = 'https://thebackend.loca.lt';
 
 // function authHeader() {
 //   return { headers: { Authorization: `Bearer ${Auth.getToken()}` } };
@@ -40,7 +40,7 @@ export default {
   },
   getUser: async(email) => {
     try {
-      const res = await axios.post(`${API}/getuser`, { email, wallet: Auth.getWallet() });
+      const res = await axios.post(`${API}/getuser`, { email, wallet: Auth.getWallet() }, bypassTunnel);
       console.log(res.data);
     } catch (e) {
       axiosError(e);
@@ -48,7 +48,8 @@ export default {
   },
   addRead: async(email, timestamp, readVal) => {
     try {
-      const res = await axios.post(`${API}/addread`, { email, wallet: Auth.getWallet(), timestamp, readVal });
+      console.warn("ADding ", email, timestamp, readVal);
+      const res = await axios.post(`${API}/addread`, { email, wallet: Auth.getWallet(), timestamp, readVal }, bypassTunnel);
       console.log(res.data);
     } catch (e) {
       axiosError(e);
@@ -56,7 +57,7 @@ export default {
   },
   getReads: async(email) => {
     try {
-      const res = await axios.post(`${API}/getreads`, { email, wallet: Auth.getWallet() });
+      const res = await axios.post(`${API}/getreads`, { email, wallet: Auth.getWallet() }, bypassTunnel);
       console.log(res.data);
       return res.data;
     } catch (e) {
@@ -65,8 +66,16 @@ export default {
   },
   getHistory: async(email, assetKey) => {
     try {
-      const res = await axios.post(`${API}/history`, { email, wallet: Auth.getWallet(), assetKey });
-      console.log(res.data);
+      const res = await axios.post(`${API}/history`, { email, wallet: Auth.getWallet(), assetKey }, bypassTunnel);
+      return res.data;
+    } catch (e) {
+      axiosError(e);
+    }
+  },
+  getRead: async(email, assetKey) => {
+    try {
+      const res = await axios.post(`${API}/getread`, { email, wallet: Auth.getWallet(), assetKey }, bypassTunnel);
+      return res.data;
     } catch (e) {
       axiosError(e);
     }
@@ -77,11 +86,11 @@ export default {
       console.log(latitude, longitude);
       const res = await axios.post(`${API}/login`,
         { 
-          email, 
+          email,
           wallet: JSON.parse(wallet),
           timestamp: (new Date()).getTime(),
           location: [ latitude, longitude ] 
-        });
+        }, bypassTunnel);
       console.log(res.data);
     } catch (e) {
       axiosError(e);

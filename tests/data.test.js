@@ -71,6 +71,11 @@ describe('full-suite', function() {
 
     expect(await getReads(staff2, staff2_wallet)).to.have.lengthOf(2);
   });
+  it('provider can access all a read item', async() => {
+    const reads = await getReads(staff1, staff1_wallet);
+    const read = await getRead(staff1, staff1_wallet, reads[0].key);
+    expect(reads[0].value).to.deep.equal(read);
+  });
   it('should get history of an asset', async() => {
     const reads = await getReads(customer1, customer1_wallet);
     expect(reads).to.have.lengthOf.above(0);
@@ -99,20 +104,24 @@ describe('full-suite', function() {
   /*
   a history record looks like this
   {
-    'staff1@org2.com': [ '2022-11-14T07:58:27.630Z' ],
-    'staff2@org2.com': [ '2022-11-14T07:58:29.762Z' ]
+    'staff1@org2.com': [
+      {
+        timestamp: '2022-11-23T07:50:30.954Z',
+        location: '52.146973,-106.647034'
+      }
+    ],
+    'staff2@org2.com': [
+      {
+        timestamp: '2022-11-23T07:50:33.121Z',
+        location: '52.51666667,13.4'
+      },
+      {
+        timestamp: '2022-11-23T07:50:35.260Z',
+        location: '52.51666667,13.4'
+      }
+    ]
   }
-  
-  for each timestamp, run it against the user's logins record
-  user.logins.push({
-      timestamp, location
-    });
 
-  history record becomes
-  {
-    'staff1@org2.com': [ {timestamp: '2022-11-14T07:58:27.630Z', location: ...} ],
-    ...
-  }
   
   aggragate history records of all assets to make a full report and render on map
   */
@@ -213,6 +222,20 @@ async function getReads(email, wallet) {
       .send({ email, wallet })
       .expect(200);
     return reads;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+async function getRead(email, wallet, assetKey) {
+  try {
+    const {body: {read}} = await request(backend)
+      .post('/getread')
+      .set(...CONTENT_JSON)
+      .send({ email, wallet, assetKey })
+      .expect(200);
+    return read;
   } catch (err) {
     console.error(err);
     throw err;
