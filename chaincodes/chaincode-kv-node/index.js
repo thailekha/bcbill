@@ -23,12 +23,11 @@ async function forceUniqueAsset(ctx, id) {
   }
 }
 
-class EBillContract extends Contract {
-  /**
-   * Schema:
-   * id: email ?hash of cert and id?
-   */
+const ASSET_USER = 'user';
+const ASSET_ENDPOINT = 'endpoint';
+const ASSET_MAPPING = 'mapping';
 
+class DatatrustAPIContract extends Contract {
   // async InitLedger(ctx) {
   //   await ctx.stub.putState('admin', '');
   // }
@@ -36,7 +35,7 @@ class EBillContract extends Contract {
   async AddUser(ctx, email, certHash) {
     await forceUniqueAsset(ctx, certHash);
     const user = {
-      docType: 'user',
+      docType: ASSET_USER,
       email,
       logins: []
     };
@@ -44,65 +43,123 @@ class EBillContract extends Contract {
     return user;
   }
 
-  async __getUser(ctx, certHash) {
-    return JSON.parse(await this.GetUser(ctx, certHash));
+  async AddEndpoint(ctx, path) {
+    await forceUniqueAsset(ctx, path);
+    const endpoint = {
+      docType: ASSET_ENDPOINT,
+      path
+    };
+    await ctx.stub.putState(path, ledgerVal(endpoint));
   }
 
-  async Login(ctx, certHash, timestamp, location) {
-    const user = await this.__getUser(ctx, certHash);
-    user.logins.push({
-      timestamp, location
-    });
-    await ctx.stub.putState(certHash, ledgerVal(user));
-    return user;
+  /**
+   * When using timestamp: remember each peer has to execute this,
+   * since each peer would get a different timestamp, the endorsement policy will break
+   */
+  async AddMapping(ctx, certHash, path) {
+    const mappingId = getMappingId(certHash, path);
+    await forceUniqueAsset(ctx, mappingId);
+    const mapping = {
+      docType: ASSET_MAPPING,
+      certHash,
+      path,
+      forward_timestamps: [],
+      // state: {},
+      authorized: true
+    };
+    await ctx.stub.putState(mappingId, ledgerVal(mapping));
   }
 
-  async GetUser(ctx, certHash) {
-    const user = await ctx.stub.getState(certHash); // get the asset from chaincode state
-    if (!user || user.length === 0) {
-      throw new Error(`The user ${certHash} does not exist`);
+  getMappingId(certHash, path) {
+    return hash({ certHash, path });
+  }
+
+  async GetAsset(ctx, id, type) {
+    const asset = await ctx.stub.getState(id);
+    if (!asset || asset.length === 0) {
+      throw new Error(`The mapping ${type} does not exist`);
     }
-    return user.toString();
+    return asset.toString();
   }
 
-  async GetRead(ctx, readId) {
-    const read = await ctx.stub.getState(readId); // get the asset from chaincode state
-    if (!read || read.length === 0) {
-      throw new Error(`The read ${readId} does not exist`);
-    }
-    return read.toString();
+  async __getAsset(ctx, id, type) {
+    return JSON.parse(await this.GetAsset(ctx, id, type));
   }
 
+  async Forward(ctx, certHash, path) {
+    // check path exists
+    // check mapping exists
+    // check that state allows
+    // make specific error objects
+    // generalize to get asset function 
+
+    await this.__getAsset(ctx, path, ASSET_ENDPOINT);
+    const mapping = await this.__getAsset(ctx,  getMappingId(certHash, path), ASSET_MAPPING);
+    return mapping.authorized;
+  }
+
+  /*
+    admin (org2): can access all users, endpoints, mappings
+    normal user org1: can access all endpoints and there own mapping
+
+    admin can revoke user's mapping
+    user can just grab a mapping after signing up
+  */
   // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
-  async GetReads(ctx, certHash) {
-    const user = await this.__getUser(ctx, certHash);
+  async FetchAll(ctx, certHash) {
+    const user = await this.__getAsset(ctx, certHash, ASSET_USER);
+    const isAdmin = user.email.includes('@org2.com');
+
     // sort: [{ time: 'asc' }]
-    const query = user.email.includes('@org2.com') ? 
-      // org2 aka provider can access all reads
-      ({
-        selector:  {
-          docType: 'read'
-        }
-      })
-      :
-      ({
-        selector:  {
-          docType: 'read',
-          owner: certHash
-        }
-      });
+
+    // if (isAdmin) {
+    //   return ({
+    //     users: await this.queryCouchDb({
+    //       selector:  {
+    //         docType: ASSET_USER
+    //       }
+    //     }),
+
+    //     endpoints: await this.queryCouchDb({
+    //       selector:  {
+    //         docType: ASSET_ENDPOINT
+    //       }
+    //     }),
+
+    //     mapping: await this.queryCouchDb({
+    //       selector:  {
+    //         docType: ASSET_MAPPING
+    //       }
+    //     })
+    //   });
+    // }
+
+    return await this.queryCouchDb({
+      '$or': [
+        {
+          selector:  {
+            docType: ASSET_USER
+          }
+        },
+        {
+          selector:  {
+            docType: ASSET_ENDPOINT
+          }
+        },
+        {
+          selector:  {
+            docType: ASSET_MAPPING
+          }
+        },
+      ]
+    });
+  }
+
+  async queryCouchDb(query) {
     let iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
     let result = await this.getIteratorData(iterator);
     return result;
   }
-
-  // async GetRead(ctx, email, readId) {
-  //   let queryString = {};
-  //   queryString.selector = { 'docType': 'read' };
-  //   let iterator = await ctx.stub.getQueryResult(JSON.stringify(queryString));
-  //   let result = await this.getIteratorData(iterator);
-  //   return JSON.stringify(result);
-  // }
 
   async getIteratorData (iterator){
     let resultArray = [];
@@ -127,61 +184,6 @@ class EBillContract extends Contract {
       }
     }
   }
-
-  /**
-   * Using timestamp here: remember each peer has to execute this,
-   * since each peer would get a different timestamp, the endorsement policy will break
-   */
-  async AddRead(ctx, certHash, timestamp, val) {
-    await assetExists(ctx, certHash);
-
-    // dataAssets.push({
-    //   guid,
-    //   originalName: '',
-    //   mimetype: 'application/json',
-    //   lastChangedAt: (new Date()).getTime(),
-    //   active: 1,
-    //   owner: username,
-    //   lastChangedBy: username,
-    //   authorizedUsers: [],
-    //   lastVersion: null,
-    //   firstVersion: guid,
-    //   sourceOfPublish: sourceOfPublish ? sourceOfPublish : guid
-    // });
-
-    const read = {
-      docType: 'read',
-      val,
-      owner: certHash,
-      authorizedUsers: [],
-      time: parseInt(timestamp),
-      active: true
-    };
-    const id = hash(read);
-    await forceUniqueAsset(ctx, id);
-    await ctx.stub.putState(id, ledgerVal(read));
-    return ({
-      id,
-      read
-    });
-  }
-
-  async TraverseHistory(ctx, key) {
-    let iterator = await ctx.stub.getHistoryForKey(key);
-    let result = [];
-    let res = await iterator.next();
-    while (!res.done) {
-      if (res.value) {
-        console.info(`found state update with value: ${res.value.value.toString('utf8')}`);
-        res.value.value = JSON.parse(res.value.value.toString('utf8'));
-        // result.push(res);
-      }
-      result.push(res);
-      res = await iterator.next();
-    }
-    await iterator.close();
-    return result;
-  }
 }
 
 //   async getPrivateMessage(ctx, collection) {
@@ -190,4 +192,4 @@ class EBillContract extends Contract {
 //     return { success: messageString };
 //   }
 
-exports.contracts = [EBillContract];
+exports.contracts = [DatatrustAPIContract];
