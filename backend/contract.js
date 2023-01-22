@@ -39,17 +39,17 @@ exports.enroll = async (email, secret) => {
 exports.login = async (email, walletContent, timestamp, location) => await executeContract(
   email, walletContent, ACTIONS.LOGIN, hash(walletContent.credentials.certificate), timestamp, location);
 
-exports.getUser = async (requestorEmail, walletContent) => await executeContract(
-  requestorEmail, walletContent, ACTIONS.GET_USER, hash(walletContent.credentials.certificate));
+exports.addEndpoint = async (email, walletContent, path) => await executeContract(
+  email, walletContent, ACTIONS.ADD_ENDPOINT, path);
 
-exports.addRead = async (email, walletContent, timestamp, readVal) => await executeContract(
-  email, walletContent, ACTIONS.ADD_READ, hash(walletContent.credentials.certificate), timestamp, readVal);
+exports.addMapping = async (email, walletContent, path) => await executeContract(
+  email, walletContent, ACTIONS.ADD_MAPPING, email, hash(walletContent.credentials.certificate), path);
 
-exports.getRead = async (email, walletContent, assetKey) => await executeContract(
-  email, walletContent, ACTIONS.GET_READ, assetKey);
+exports.forward = async (email, walletContent, path) => await executeContract(
+  email, walletContent, ACTIONS.FORWARD, hash(walletContent.credentials.certificate), path);
 
-exports.getReads = async (email, walletContent) => await executeContract(
-  email, walletContent, ACTIONS.GET_READS, hash(walletContent.credentials.certificate));
+exports.fetchall = async (email, walletContent) => await executeContract(
+  email, walletContent, ACTIONS.FETCH_ALL, hash(walletContent.credentials.certificate));
 
 exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
   email, walletContent, hash(walletContent.credentials.certificate), assetKey);

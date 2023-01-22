@@ -14,11 +14,11 @@
   },
   "author": "SoftwareMill",
   "dependencies": {
+    "cowsay": "^1.5.0",
     "fabric-contract-api": "^2.3.0",
     "fabric-shim": "^2.3.0",
     "json-stringify-deterministic": "^1.0.2",
     "object-hash": "^3.0.0",
-    "piston": "^0.2.1",
     "sort-keys-recursive": "^2.1.2"
   },
   "devDependencies": {

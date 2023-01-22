@@ -40,42 +40,45 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/getuser', async (req, res) => {
+app.post('/addendpoint', async (req, res) => {
   try {
-    const user = await contract.getUser(req.body.email, req.body.wallet);
-    res.json(user);
+    await contract.addEndpoint(req.body.email, req.body.wallet, req.body.path);
+    res.sendStatus(200);
   } catch (err) {
+    // next(err);
     console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
   }
 });
 
-app.post('/addread', async (req, res) => {
+app.post('/addmapping', async (req, res) => {
   try {
-    const read = await contract.addRead(req.body.email, req.body.wallet, req.body.timestamp, req.body.readVal);
-    res.json(read);
+    await contract.addMapping(req.body.email, req.body.wallet, req.body.path);
+    res.status(200).send();
   } catch (err) {
+    // next(err);
     console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
   }
 });
 
-app.post('/getreads', async (req, res) => {
+app.post('/forward', async (req, res) => {
   try {
-    const reads = await contract.getReads(req.body.email, req.body.wallet);
-    reads.sort((a,b) => a.value.time - b.value.time);
-    res.json({ reads });
+    const authorized = await contract.forward(req.body.email, req.body.wallet, req.body.path);
+    res.json({ authorized });
   } catch (err) {
+    // next(err);
     console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
   }
 });
 
-app.post('/getread', async (req, res) => {
+app.post('/fetchall', async (req, res) => {
   try {
-    const read = await contract.getRead(req.body.email, req.body.wallet, req.body.assetKey);
-    res.json({ read });
+    const assets = await contract.fetchall(req.body.email, req.body.wallet);
+    res.json({ assets });
   } catch (err) {
+    // next(err);
     console.log(prettyJSONString(JSON.stringify(err)));
     res.status(500).send(err);
   }

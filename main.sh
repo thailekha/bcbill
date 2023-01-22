@@ -8,8 +8,10 @@ trap cleanup EXIT
 
 clean() {
     clear_wallets
+    rm deployed-contract-version.json || true
     ./fablo recreate
     sleep 5
+    echo '{"version":1}' > deployed-contract-version.json
 }
 
 e2e() {
@@ -29,6 +31,14 @@ pretest() {
 test() {
     clean
     admin
+    cd tests
+    gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com'"
+    npm run test
+    cd -
+}
+
+retest() {
+    newcontr
     cd tests
     npm run test
     cd -
@@ -77,7 +87,7 @@ debug() {
 
 dockerlog() {
     gnome-terminal \
-        --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
+        --tab -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f ; bash'"
 }
 
 clear_wallets() {
@@ -93,8 +103,13 @@ clear_wallets() {
     rm -rf tests/runNo.json || true
 }
 
+increment_version() {
+    jq '.version += 1' deployed-contract-version.json | sponge deployed-contract-version.json
+}
+
 newcontr() {
-    ./fablo chaincode upgrade chaincode1 0.0.2
+    increment_version
+    ./fablo chaincode upgrade chaincode1 0.0.$(cat deployed-contract-version.json | jq -r '.version')
 }
 
 admin() {
