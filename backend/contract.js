@@ -54,6 +54,12 @@ exports.forward = async (email, walletContent, path) => await executeContract(
 exports.fetchall = async (email, walletContent) => await executeContract(
   email, walletContent, ACTIONS.FETCH_ALL, hash(walletContent.credentials.certificate));
 
+exports.revoke = async (email, walletContent, clientCertHash, path) => await executeContract(
+  email, walletContent, ACTIONS.REVOKE_MAPPING, clientCertHash, path);
+
+exports.reenable = async (email, walletContent, clientCertHash, path) => await executeContract(
+  email, walletContent, ACTIONS.REENABLE_MAPPING, clientCertHash, path);
+
 exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
   email, walletContent, hash(walletContent.credentials.certificate), assetKey);
 

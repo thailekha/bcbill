@@ -26,14 +26,19 @@ e2e() {
 pretest() {
     clean
     admin
+    clean
+    admin
+    start_protected_server
+    gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com'"
 }
 
 test() {
     clean
     admin
     start_protected_server
-    cd tests
     gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com'"
+    # gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org2.example.com'"
+    cd tests
     npm run test
     cd -
 }

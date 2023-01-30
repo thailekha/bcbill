@@ -1,6 +1,8 @@
 const stringify = require('json-stringify-deterministic');
 const sortKeysRecursive = require('sort-keys-recursive');
 const {Contract} = require('fabric-contract-api');
+const status = require('http-status-codes').StatusCodes;
+const ClientIdentity = require('fabric-shim').ClientIdentity;
 
 // TODO: DO WE NEED ENCYPTION? MEANING 1 GLOBAL KEY?
 // const crypto = require('crypto');
@@ -22,6 +24,23 @@ function addItemToArrayInObject(obj, arrayName, item) {
     obj[arrayName] = [item];
   else
     obj[arrayName].push(item);
+}
+
+function parseCommonNameFromx509DistinguishedName(dn) {
+  //'x509::/OU=org2/OU=client/OU=department1/CN=staff1@org2.com::/C=US/ST=California/L=San Francisco/O=org2.example.com/CN=ca.org2.example.com'
+  const parseResult = dn.split('::')[1].split('/').filter(i => i.length > 0 && i.includes('CN=')).map(i => i.split('=')[1]);
+  return parseResult[0];
+}
+
+function fromAdmin(ctx, throwErr=true) {
+  const cid = new ClientIdentity(ctx.stub);
+  const email = parseCommonNameFromx509DistinguishedName(cid.getID());
+  const isAdmin = email.includes('@org2.com');
+  if (!isAdmin && throwErr) {
+    _l('Not admin: ', cid.getID(), email);
+    throw new CustomException(status.FORBIDDEN);
+  }
+  return isAdmin;
 }
 
 async function assetExists(ctx, id) {
@@ -54,7 +73,6 @@ class DatatrustAPIContract extends Contract {
 
   async AddUser(ctx, email, certHash) {
     _l('AddUser start');
-
     await forceUniqueAsset(ctx, certHash);
     const user = {
       docType: ASSET_USER,
@@ -69,8 +87,7 @@ class DatatrustAPIContract extends Contract {
 
   async AddEndpoint(ctx, path) {
     _l('AddEndpoint start');
-
-    // check for admin
+    fromAdmin(ctx);
     await forceUniqueAsset(ctx, path);
     const endpoint = {
       docType: ASSET_ENDPOINT,
@@ -87,7 +104,7 @@ class DatatrustAPIContract extends Contract {
    * since each peer would get a different timestamp, the endorsement policy will break
    */
   async AddMapping(ctx, email, certHash, path) {
-    _l('AddMapping start');
+    _l('AddMapping start', email, certHash, path);
 
     const mappingId = this.getMappingId(certHash, path);
     await forceUniqueAsset(ctx, mappingId);
@@ -106,15 +123,41 @@ class DatatrustAPIContract extends Contract {
     return mapping;
   }
 
+  async __setAuthorizedForMapping(ctx, certHash, path, authorized) {
+    _l('__setAuthorizedForMapping start', certHash, path, authorized);
+    fromAdmin(ctx);
+    const mappingId = this.getMappingId(certHash, path);
+    const mapping = await this.__getAsset(
+      ctx,
+      mappingId,
+      ASSET_MAPPING,
+      status.NOT_FOUND
+    );
+    mapping.authorized = authorized;
+    await ctx.stub.putState(mappingId, ledgerVal(mapping));
+    _l('__setAuthorizedForMapping finish', certHash, path, authorized);
+    return mapping;
+  }
+
+  async RevokeMapping(ctx, certHash, path) {
+    return await this.__setAuthorizedForMapping(ctx, certHash, path, false);
+  }
+
+  async ReenableMapping(ctx, certHash, path) {
+    return await this.__setAuthorizedForMapping(ctx, certHash, path, true);
+  }
+
   getMappingId(certHash, path) {
     return hash({ certHash, path });
   }
 
-  async GetAsset(ctx, id, type) {
-    _l('GetAsset start');
+  async GetAsset(ctx, id, type, customStatus=null) {
+    _l('GetAsset start', id, type);
 
     const asset = await ctx.stub.getState(id);
     if (!asset || asset.length === 0) {
+      if (customStatus)
+        throw new CustomException(customStatus);
       throw new Error(`The mapping ${type} does not exist`);
     }
 
@@ -122,20 +165,30 @@ class DatatrustAPIContract extends Contract {
     return asset.toString();
   }
 
-  async __getAsset(ctx, id, type) {
-    return JSON.parse(await this.GetAsset(ctx, id, type));
+  async __getAsset(ctx, id, type, customStatus=null) {
+    return JSON.parse(await this.GetAsset(ctx, id, type, customStatus));
   }
 
   async Forward(ctx, certHash, path) {
-    _l('Forward start');
+    _l('Forward start', certHash, path);
 
     // check path exists
     // check mapping exists
     // check that state allows
-    // make specific error objects?
 
-    await this.__getAsset(ctx, path, ASSET_ENDPOINT);
-    const mapping = await this.__getAsset(ctx, this.getMappingId(certHash, path), ASSET_MAPPING);
+    // await this.__getAsset(
+    //   ctx,
+    //   path,
+    //   ASSET_ENDPOINT,
+    //   status.NOT_FOUND
+    // );
+
+    const mapping = await this.__getAsset(
+      ctx,
+      this.getMappingId(certHash, path),
+      ASSET_MAPPING,
+      status.FORBIDDEN
+    );
 
     _l('Forward finish');
     return mapping.authorized;
@@ -229,10 +282,12 @@ class DatatrustAPIContract extends Contract {
   }
 }
 
-//   async getPrivateMessage(ctx, collection) {
-//     const message = await ctx.stub.getPrivateData(collection, "message");
-//     const messageString = message.toBuffer ? message.toBuffer().toString() : message.toString();
-//     return { success: messageString };
-//   }
+// if error instanceof CustomException
+class CustomException extends Error {
+  constructor(statusCode) {
+    super(statusCode);
+    this.statusCode = statusCode;
+  }
+}
 
 exports.contracts = [DatatrustAPIContract];

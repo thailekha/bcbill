@@ -3,5 +3,7 @@
     "ADD_ENDPOINT": "AddEndpoint",
     "ADD_MAPPING": "AddMapping",
     "FORWARD": "Forward",
-    "FETCH_ALL": "FetchAll"
+    "FETCH_ALL": "FetchAll",
+    "REVOKE_MAPPING": "RevokeMapping",
+    "REENABLE_MAPPING": "ReenableMapping"
 }

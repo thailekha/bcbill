@@ -23,10 +23,9 @@ app.use('/proxy', proxy('localhost:9998'));
 
 app.use('/protected', proxy('localhost:9998', {
   proxyReqOptDecorator: async function(proxyReqOpts, srcReq) {
-    console.log(srcReq.path);
-    // await contract.ping(srcReq.body.email, srcReq.body.wallet);
-    // return Promise.reject('An arbitrary rejection message.');
-    return proxyReqOpts;
+    const {email, wallet} = JSON.parse(srcReq.headers.auth);
+    const authorized = await contract.forward(email, wallet, srcReq.path);
+    return authorized ? proxyReqOpts : Promise.reject('Unauthorized');
   }
 }));
 
@@ -89,6 +88,28 @@ app.post('/fetchall', async (req, res) => {
   try {
     const assets = await contract.fetchall(req.body.email, req.body.wallet);
     res.json({ assets });
+  } catch (err) {
+    // next(err);
+    console.log(prettyJSONString(JSON.stringify(err)));
+    res.status(500).send(err);
+  }
+});
+
+app.post('/revoke', async (req, res) => {
+  try {
+    await contract.revoke(req.body.email, req.body.wallet, req.body.clientCertHash, req.body.path);
+    res.status(200).send();
+  } catch (err) {
+    // next(err);
+    console.log(prettyJSONString(JSON.stringify(err)));
+    res.status(500).send(err);
+  }
+});
+
+app.post('/reenable', async (req, res) => {
+  try {
+    await contract.reenable(req.body.email, req.body.wallet, req.body.clientCertHash, req.body.path);
+    res.status(200).send();
   } catch (err) {
     // next(err);
     console.log(prettyJSONString(JSON.stringify(err)));
