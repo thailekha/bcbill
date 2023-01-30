@@ -36,6 +36,9 @@ exports.enroll = async (email, secret) => {
   return walletContent;
 };
 
+exports.ping = async (email, walletContent) => await executeContract(
+  email, walletContent, 'Ping', '');
+
 exports.login = async (email, walletContent, timestamp, location) => await executeContract(
   email, walletContent, ACTIONS.LOGIN, hash(walletContent.credentials.certificate), timestamp, location);
 

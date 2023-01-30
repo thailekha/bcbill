@@ -31,6 +31,7 @@ pretest() {
 test() {
     clean
     admin
+    start_protected_server
     cd tests
     gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com'"
     npm run test
@@ -49,6 +50,10 @@ expose() {
         --tab -e "lt --subdomain customer --port 3000" \
         --tab -e "lt --subdomain staff --port 3001" \
         --tab -e "lt --subdomain thebackend --port 9999"
+}
+
+start_protected_server() {
+    gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/protected-server && node bin/www'"
 }
 
 web() {
@@ -141,7 +146,7 @@ backend() {
 
 lint() {
     which eslint || npm i -g eslint
-    eslint admin backend chaincodes utils tests --fix --ext .js --config eslintrc.json
+    eslint protected-server admin backend chaincodes utils tests --fix --ext .js --config eslintrc.json
 }
 
 "$@"

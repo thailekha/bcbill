@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const proxy = require('express-http-proxy');
 const { prettyJSONString } = require('../utils');
 
 const contract = require(`${__dirname}/contract`);
@@ -17,6 +18,17 @@ app.get('/ping', async (req, res) => {
     res.status(500).send(err);
   }
 });
+
+app.use('/proxy', proxy('localhost:9998'));
+
+app.use('/protected', proxy('localhost:9998', {
+  proxyReqOptDecorator: async function(proxyReqOpts, srcReq) {
+    console.log(srcReq.path);
+    // await contract.ping(srcReq.body.email, srcReq.body.wallet);
+    // return Promise.reject('An arbitrary rejection message.');
+    return proxyReqOpts;
+  }
+}));
 
 app.post('/enroll', async (req, res) => {
   try {

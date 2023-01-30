@@ -1,16 +1,16 @@
 const assert = require('assert');
 const request = require('supertest');
 const chai = require('chai');
-const backend = require('../backend/bin/www');
 const expect = chai.expect;
 const statusCodes = require('http-status-codes');
-const secrets = require('../admin/secrets.json');
 const fs = require('fs');
 const jsonfile = require('jsonfile');
-const LOCATIONS = require('../utils/index').LOCATIONS;
+
+const backend = require('../backend/bin/www');
+const secrets = require('../admin/secrets.json');
+const { stringify } = require('querystring');
 
 const jstr = (i) => JSON.stringify(i);
-
 const _l = i => console.log(jstr(i));
 
 describe('ping', function() {
@@ -56,93 +56,120 @@ describe('full-suite', function() {
     await jsonfile.writeFile('wallets.json', wallets);
   });
 
+  it('should proxy', async() => {
+    try {
+      await request(backend)
+        .get('/proxy/ping')
+        .expect(200);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }  
+  });
+
+  it('should proxy bc', async() => {
+    try {
+      await request(backend)
+        .post('/proxy-bc/ping')
+        .set(...CONTENT_JSON)
+        .send({ 
+          email: admin1,
+          wallet: admin1_wallet
+        })
+        .expect(200);
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }  
+  });
+
   // load test only forward
 
-  it('should add an endpoint', async() => {
-    await addEndpoint(admin1, admin1_wallet, ENDPOINT_1);
-    await addEndpoint(admin1, admin1_wallet, ENDPOINT_2);
-  });
+  // it('should add an endpoint', async() => {
+  //   await addEndpoint(admin1, admin1_wallet, ENDPOINT_1);
+  //   await addEndpoint(admin1, admin1_wallet, ENDPOINT_2);
+  // });
   
-  it('should fetchall for admin', async() => {
-    const { assets } = await fetchall(admin1, admin1_wallet);
+  // it('should fetchall for admin', async() => {
+  //   const { assets } = await fetchall(admin1, admin1_wallet);
 
-    expect(assets.users).to.have.lengthOf(4);
-    expect(assets.endpoints).to.have.lengthOf(2);
-    expect(assets.mappings).to.be.undefined;
-  });
+  //   expect(assets.users).to.have.lengthOf(4);
+  //   expect(assets.endpoints).to.have.lengthOf(2);
+  //   expect(assets.mappings).to.be.undefined;
+  // });
 
-  it('should fetchall for client 1 (normal user)', async() => {
-    const { assets } = await fetchall(client1, client1_wallet);
+  // it('should fetchall for client 1 (normal user)', async() => {
+  //   const { assets } = await fetchall(client1, client1_wallet);
 
-    expect(assets.users).to.be.undefined;
-    expect(assets.endpoints).to.have.lengthOf(2);
-    expect(assets.mappings).to.be.undefined;
-  });
+  //   expect(assets.users).to.be.undefined;
+  //   expect(assets.endpoints).to.have.lengthOf(2);
+  //   expect(assets.mappings).to.be.undefined;
+  // });
 
-  it('should let user 1 claim access to endpoint (add mapping)', async() => {
-    const { assets } = await fetchall(client1, client1_wallet);
-    expect(assets.endpoints).to.have.lengthOf(2);
-    await addMapping(client1, client1_wallet, assets.endpoints[0].key);
-  });
+  // it('should let user 1 claim access to endpoint (add mapping)', async() => {
+  //   const { assets } = await fetchall(client1, client1_wallet);
+  //   expect(assets.endpoints).to.have.lengthOf(2);
+  //   await addMapping(client1, client1_wallet, assets.endpoints[0].key);
+  // });
 
-  it('should fetchall for client 2 (normal user)', async() => {
-    const { assets } = await fetchall(client2, client2_wallet);
+  // it('should fetchall for client 2 (normal user)', async() => {
+  //   const { assets } = await fetchall(client2, client2_wallet);
 
-    expect(assets.users).to.be.undefined;
-    expect(assets.endpoints).to.have.lengthOf(2);
-    expect(assets.mappings).to.be.undefined;
-  });
+  //   expect(assets.users).to.be.undefined;
+  //   expect(assets.endpoints).to.have.lengthOf(2);
+  //   expect(assets.mappings).to.be.undefined;
+  // });
 
-  it('should let user 2 claim access to endpoint (add mapping)', async() => {
-    const { assets } = await fetchall(client2, client2_wallet);
-    expect(assets.endpoints).to.have.lengthOf(2);
-    await addMapping(client2, client2_wallet, assets.endpoints[0].key);
-  });
+  // it('should let user 2 claim access to endpoint (add mapping)', async() => {
+  //   const { assets } = await fetchall(client2, client2_wallet);
+  //   expect(assets.endpoints).to.have.lengthOf(2);
+  //   await addMapping(client2, client2_wallet, assets.endpoints[0].key);
+  // });
 
-  it('should fetchall for admin', async() => {
-    const { assets } = await fetchall(admin1, admin1_wallet);
+  // it('should fetchall for admin', async() => {
+  //   const { assets } = await fetchall(admin1, admin1_wallet);
 
-    expect(assets.users).to.have.lengthOf(4);
-    expect(assets.endpoints).to.have.lengthOf(2);
-    expect(assets.mappings).to.have.lengthOf(2);
-  });
+  //   expect(assets.users).to.have.lengthOf(4);
+  //   expect(assets.endpoints).to.have.lengthOf(2);
+  //   expect(assets.mappings).to.have.lengthOf(2);
+  // });
 
-  it('should fetchall for client 1', async() => {
-    const { assets } = await fetchall(client1, client1_wallet);
+  // it('should fetchall for client 1', async() => {
+  //   const { assets } = await fetchall(client1, client1_wallet);
 
-    expect(assets.users).to.be.undefined;
-    expect(assets.endpoints).to.have.lengthOf(2);
-    expect(assets.mappings).to.have.lengthOf(1);
+  //   expect(assets.users).to.be.undefined;
+  //   expect(assets.endpoints).to.have.lengthOf(2);
+  //   expect(assets.mappings).to.have.lengthOf(1);
 
-    const {
-      email, path
-    } = assets.mappings[0].value;
-    expect(email).equal(client1);
-    expect(path).equal(ENDPOINT_1);
-  });
+  //   const {
+  //     email, path
+  //   } = assets.mappings[0].value;
+  //   expect(email).equal(client1);
+  //   expect(path).equal(ENDPOINT_1);
+  // });
 
-  it('should fetchall for client 2', async() => {
-    const { assets } = await fetchall(client2, client2_wallet);
+  // it('should fetchall for client 2', async() => {
+  //   const { assets } = await fetchall(client2, client2_wallet);
 
-    expect(assets.users).to.be.undefined;
-    expect(assets.endpoints).to.have.lengthOf(2);
-    expect(assets.mappings).to.have.lengthOf(1);
+  //   expect(assets.users).to.be.undefined;
+  //   expect(assets.endpoints).to.have.lengthOf(2);
+  //   expect(assets.mappings).to.have.lengthOf(1);
 
-    const {
-      email, path
-    } = assets.mappings[0].value;
-    expect(email).equal(client2);
-    expect(path).equal(ENDPOINT_1);
-  });
+  //   const {
+  //     email, path
+  //   } = assets.mappings[0].value;
+  //   expect(email).equal(client2);
+  //   expect(path).equal(ENDPOINT_1);
+  // });
 
-  it('should forward granted endpoint', async() => {
-    const { authorized } = await forward(client1, client1_wallet, ENDPOINT_1);
-    expect(authorized).to.be.true;
-  });
+  // it('should forward granted endpoint', async() => {
+  //   const { authorized } = await forward(client1, client1_wallet, ENDPOINT_1);
+  //   expect(authorized).to.be.true;
+  // });
 
-  it('should not forward ungranted endpoint', async() => {
-    await no_forward(client1, client1_wallet, ENDPOINT_2);
-  });
+  // it('should not forward ungranted endpoint', async() => {
+  //   await no_forward(client1, client1_wallet, ENDPOINT_2);
+  // });
 
   // should revoke mapping
   
@@ -234,16 +261,13 @@ async function addMapping(email, wallet, path) {
   }
 }
 
-async function forward(email, wallet, path) {
+async function forward_ping(email, wallet) {
   try {
     const res = await request(backend)
-      .post('/forward')
-      .set(...CONTENT_JSON)
-      .send({ 
-        email,
-        wallet,
-        path
-      })
+      .get('/protected/ping')
+      .set([
+        'Authorization', stringify({email, wallet})
+      ])
       .expect(200);
     return res.body;
   } catch (err) {

@@ -47,6 +47,11 @@ class DatatrustAPIContract extends Contract {
   //   await ctx.stub.putState('admin', '');
   // }
 
+  async Ping(ctx, text) {
+    _l('Ping');
+    return {pong: text};
+  }
+
   async AddUser(ctx, email, certHash) {
     _l('AddUser start');
 

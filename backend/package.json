@@ -12,6 +12,7 @@
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",
     "express": "^4.17.3",
+    "express-http-proxy": "^1.6.3",
     "fabric-ca-client": "^2.2.11",
     "fabric-network": "^2.2.11",
     "fabric-protos": "^2.2.13",
