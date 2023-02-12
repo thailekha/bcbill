@@ -42,7 +42,7 @@ app.post('/enroll', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   try {
-    const walletContent = await contract.login(req.body.email, req.body.wallet, req.body.timestamp, req.body.location);
+    const walletContent = await contract.login(req.body.email, req.body.wallet, req.body.timestamp);
     res.json({ walletContent });
   } catch (err) {
     // next(err);

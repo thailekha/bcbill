@@ -4,47 +4,33 @@ import backend from "../../backend";
 import FormRow from '../FormRow';
 import AsyncAwareContainer from '../AsyncAwareContainer';
 import { Button, Container, Form, InputGroup, FormControl } from "react-bootstrap";
+import ExtendedComponent from "../ExtendedComponent";
 
-class EnrollPage extends React.Component {
+class EnrollPage extends ExtendedComponent {
   constructor(props) {
     super(props);
-
-    if (Auth.loggedIn()) {
-      this.props.history.replace("/");
-    }
 
     this.state = {
       email: window.FOR_STAFF ? "staff1@org2.com" : "customer1@org1.com",
       secret: "trNBUtXMuSji",
       orgNo: window.FOR_STAFF ? "2" : "1"
     };
-
-    this.handleChange = event => {
-      const { name, value } = event.target;
-      this.setState({
-        [name]: value
-      });
-    }
-
-    this.handleEnroll = async event => {
-      try {
-        this.setState({loading: 'Enrolling ...'});
-        const wallet = await backend.enroll(this.state.email, this.state.secret);
-        this.setState({loading: 'Logging in ...'});
-        await backend.login(this.state.email, JSON.stringify(wallet));
-        Auth.setWallet(wallet, this.state.email);
-        this.props.history.replace("/");
-      } catch (error) {
-        alert(error.message);
-      } finally {
-        if (!this.componentUnmounted)
-          this.setState({loading: undefined});
-      }
-    }
   }
 
-  componentWillUnmount() {
-    this.componentUnmounted = true;
+  handleEnroll = async () => {
+    try {
+      this.setState({loading: 'Enrolling ...'});
+      const wallet = await backend.enroll(this.state.email, this.state.secret);
+      this.setState({loading: 'Logging in ...'});
+      await this.sleep(2000);
+      Auth.setWallet(wallet, this.state.email);
+      this.props.history.replace("/");
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      if (!this.componentUnmounted)
+        this.setState({loading: undefined});
+    }
   }
 
   render() {

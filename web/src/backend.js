@@ -1,8 +1,8 @@
 import axios from 'axios';
 import Auth from './stores/auth';
 
-// const API = 'http://localhost:9999';
-const API = 'https://thebackend.loca.lt';
+const API = 'http://localhost:9999';
+// const API = 'https://thebackend.loca.lt';
 
 // function authHeader() {
 //   return { headers: { Authorization: `Bearer ${Auth.getToken()}` } };
@@ -46,20 +46,48 @@ export default {
       axiosError(e);
     }
   },
-  addRead: async(email, timestamp, readVal) => {
+  fetchall: async(email) => {
     try {
-      console.warn("ADding ", email, timestamp, readVal);
-      const res = await axios.post(`${API}/addread`, { email, wallet: Auth.getWallet(), timestamp, readVal }, bypassTunnel);
-      console.log(res.data);
+      const res = await axios.post(`${API}/fetchall`, { email, wallet: Auth.getWallet() }, bypassTunnel);
+      return res.data;
     } catch (e) {
       axiosError(e);
     }
   },
-  getReads: async(email) => {
+  claim: async(email, path) => {
     try {
-      const res = await axios.post(`${API}/getreads`, { email, wallet: Auth.getWallet() }, bypassTunnel);
-      console.log(res.data);
-      return res.data;
+      const res = await axios.post(`${API}/addmapping`, {
+        email,
+        wallet: Auth.getWallet() ,
+        path
+      }, bypassTunnel);
+      // return res.data;
+    } catch (e) {
+      axiosError(e);
+    }
+  },
+  revoke: async(email, clientCertHash, path) => {
+    try {
+      const res = await axios.post(`${API}/revoke`, {
+        email,
+        wallet: Auth.getWallet() ,
+        clientCertHash,
+        path
+      }, bypassTunnel);
+      // return res.data;
+    } catch (e) {
+      axiosError(e);
+    }
+  },
+  reenable: async(email, clientCertHash, path) => {
+    try {
+      const res = await axios.post(`${API}/reenable`, {
+        email,
+        wallet: Auth.getWallet() ,
+        clientCertHash,
+        path
+      }, bypassTunnel);
+      // return res.data;
     } catch (e) {
       axiosError(e);
     }
@@ -68,30 +96,6 @@ export default {
     try {
       const res = await axios.post(`${API}/history`, { email, wallet: Auth.getWallet(), assetKey }, bypassTunnel);
       return res.data;
-    } catch (e) {
-      axiosError(e);
-    }
-  },
-  getRead: async(email, assetKey) => {
-    try {
-      const res = await axios.post(`${API}/getread`, { email, wallet: Auth.getWallet(), assetKey }, bypassTunnel);
-      return res.data;
-    } catch (e) {
-      axiosError(e);
-    }
-  },
-  login: async(email, wallet) => {
-    try {
-      const { latitude, longitude } = (await axios.get('https://ipapi.co/json/')).data;
-      console.log(latitude, longitude);
-      const res = await axios.post(`${API}/login`,
-        { 
-          email,
-          wallet: JSON.parse(wallet),
-          timestamp: (new Date()).getTime(),
-          location: [ latitude, longitude ] 
-        }, bypassTunnel);
-      console.log(res.data);
     } catch (e) {
       axiosError(e);
     }

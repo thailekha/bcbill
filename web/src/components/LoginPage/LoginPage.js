@@ -1,48 +1,27 @@
 import React from "react";
-import backend from "../../backend";
 import { Button, Container, FormControl, InputGroup } from "react-bootstrap";
 import AsyncAwareContainer from '../AsyncAwareContainer';
 import Auth from "../../stores/auth";
 import FormRow from '../FormRow';
 import { LinkContainer } from 'react-router-bootstrap';
+import ExtendedComponent from "../ExtendedComponent";
+import backend from "../../backend";
+import unionBy from "lodash/unionBy";
 
-class LoginForm extends React.Component {
+class LoginForm extends ExtendedComponent {
   constructor(props) {
     super(props);
-
-    if (Auth.loggedIn()) {
-      this.props.routerHistory.replace("/");
-    }
-
     this.state = {
-      email: "customer1@org1.com",
+      email: window.FOR_STAFF ? "staff1@org2.com" : "customer1@org1.com",
       wallet: ""
     };
 
-    this.handleChange = event => {
-      const { name, value } = event.target;
-      this.setState({
-        [name]: value
-      });
+    this.handleLogin = async () => {
+      this.setState({loading: 'Logging in'});
+      await this.sleep(2000)
+      Auth.setWallet(this.state.wallet, this.state.email);
+      this.props.routerHistory.replace("/");
     }
-
-    this.handleLogin = async event => {
-      try {
-        this.setState({loading: 'Logging in'});
-        await backend.login(this.state.email, this.state.wallet);
-        Auth.setWallet(this.state.wallet, this.state.email);
-        this.props.routerHistory.replace("/");
-      } catch (error) {
-        alert(error.message);
-      } finally {
-        if (!this.componentUnmounted)
-          this.setState({loading: undefined});
-      }
-    }
-  }
-
-  componentWillUnmount() {
-    this.componentUnmounted = true;
   }
 
   render() {
@@ -66,7 +45,7 @@ class LoginForm extends React.Component {
   }
 }
 
-class LoginPage extends React.Component {
+class LoginPage extends ExtendedComponent {
   render() {
     return (
       <div>

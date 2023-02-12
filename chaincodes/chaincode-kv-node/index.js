@@ -237,12 +237,12 @@ class DatatrustAPIContract extends Contract {
         '$or': isAdmin ? adminQuery : normalUserQuery
       },
       fields: [
-        'docType', 'email', 'path', 'certHash'
+        'docType', 'email', 'path', 'certHash', 'authorized'
       ]
     });
 
     const res = query_result.reduce((result, item) => {
-      addItemToArrayInObject(result, item.value.docType + 's', item);
+      addItemToArrayInObject(result, item.value.docType + 's', item.value);
       return result;
     }, {});
 

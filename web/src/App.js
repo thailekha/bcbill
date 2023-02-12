@@ -4,7 +4,6 @@ import Auth from "./stores/auth";
 import HomePage from "./components/HomePage/HomePage"
 import LoginPage from "./components/LoginPage/LoginPage"
 import EnrollPage from "./components/EnrollPage/EnrollPage"
-import DetailsPage from "./components/DetailsPage/DetailsPage"
 
 import './style.css';
 
@@ -37,7 +36,7 @@ export default function App() {
           <Route exact path="/login" component={LoginPage} />
           <Route exact path="/enroll" component={EnrollPage} />
           <PrivateRoute exact path="/" component={HomePage} />
-          <PrivateRoute exact path="/asset/:id/details" component={DetailsPage} />
+          {/*<PrivateRoute exact path="/asset/:id/details" component={DetailsPage} />*/}
         </Switch>
       </HashRouter>
     </div>

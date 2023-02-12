@@ -1,107 +1,103 @@
-import React from "react";
+import React, {useRef, useState} from "react";
 import backend from "../../backend";
 import AsyncAwareContainer from '../AsyncAwareContainer';
-import { Button, Container, Form, InputGroup, FormControl } from "react-bootstrap";
-import { LinkContainer } from 'react-router-bootstrap';
+import { Button, Container, ListGroup, Form, Overlay } from "react-bootstrap";
 import Auth from "../../stores/auth";
-import FormRow from "../FormRow";
-import moment from "moment";
+import differenceBy from "lodash/differenceBy";
+import sortBy from "lodash/sortBy";
+import ExtendedComponent from "../ExtendedComponent";
+import {Tester_Overlay, API_Tester} from "./API_Tester";
 
-class HomePageCustomer extends React.Component {
+class HomePageCustomer extends ExtendedComponent {
   constructor(props) {
     super(props);
 
     this.state = {
       email: Auth.getEmail(),
-      read: ""
+      endpointsStatus: []
     };
-
-    this.handleChange = event => {
-      const { name, value } = event.target;
-      this.setState({
-        [name]: value
-      });
-    }
-
-    this.handleSubmitRead = async event => {
-      try {
-        this.setState({loading: 'Submitting ...'});
-        await backend.addRead(this.state.email, (new Date()).getTime(), this.state.read);
-        await this.getReads();
-      } catch (error) {
-        alert(error.message);
-      } finally {
-        if (!this.componentUnmounted)
-          this.setState({loading: undefined});
-      }
-    }
-    this.handleHistory = async event => {
-      try {
-        this.setState({loading: 'Testing ...'});
-        await backend.getHistory(this.state.email, this.state.assetKey);
-      } catch (error) {
-        alert(error.message);
-      } finally {
-        if (!this.componentUnmounted)
-          this.setState({loading: undefined});
-      }
-    }
-    this.getReads = async () => {
-      try {
-        this.setState({loading: 'Retrieving reads ...'});
-        this.setState({reads: (await backend.getReads(this.state.email)).reads});
-      } catch (error) {
-        alert(error.message);
-        localStorage.clear();
-        this.props.history.replace("/");
-      } finally {
-        if (!this.componentUnmounted)
-          this.setState({loading: undefined});
-      }
-    }
   }
 
-  componentWillUnmount() {
-    this.componentUnmounted = true;
+
+  async fetchAll() {
+    await this.tryAsync('Retrieving ...', async () => {
+      const { endpoints, mappings } = (await backend.fetchall(this.state.email)).assets;
+      const unclaimedEndpoints = differenceBy(endpoints, mappings, 'path');
+      this.setState({ endpointsStatus: sortBy(mappings ? unclaimedEndpoints.concat(mappings) : unclaimedEndpoints, 'path') });
+    })
   }
 
   async componentDidMount() {
-    await this.getReads();
+    await this.fetchAll();
+  }
+
+  getAction(endpoint) {
+    if (typeof endpoint.authorized === 'undefined') {
+      return <Form.Check
+          type="switch"
+          id={ endpoint.path }
+          label=""
+          onChange={async (e) => {
+            e.preventDefault();
+            await this.tryAsync('Claiming endpoint...', async () => {
+              await backend.claim(this.state.email, endpoint.path)
+            },false)
+            await this.fetchAll();
+          }}
+      />
+    } else if(!endpoint.authorized) {
+      return <Form.Check
+          type="switch"
+          isInvalid={true}
+          id={ endpoint.path }
+          label="Revoked by admin"
+          disabled
+      />
+    } else {
+      return <Form.Check
+          type="switch"
+          checked={true}
+          id={ endpoint.path }
+          label="Claimed"
+          disabled
+      />
+    }
   }
 
   render() {
     return (
       <div>
-        {/* <Button className="cdFore" variant="light" onClick={this.handleReset}>Reset</Button> */}
+        <Button className="cdFore" variant="light" onClick={this.handleReset}>Reset</Button>
         <Container>
           <h1>Home - {this.state.email}</h1>
           <AsyncAwareContainer loading={this.state.loading}>
             {
-              this.state.reads && this.state.reads.length > 0 &&
+              this.state.endpointsStatus && this.state.endpointsStatus.length > 0 &&
                 <div>
-                  <h2>Submitted reads</h2>
+                  <h2>Endpoints</h2>
+
+                  <ListGroup variant="flush">
                   {
-                    this.state.reads.map(r =>
-                      <div key={r.key}>
-                        <LinkContainer to={`/asset/${r.key}/details`} replace>
-                          <Button className="cdFore" size="lg" variant="light">{r.value.val} - {moment(r.value.time).format()}</Button>
-                        </LinkContainer>
-                      </div>
+                    this.state.endpointsStatus.map((e, i) =>
+                      <ListGroup.Item key={e.key}>
+
+                        { e.path }
+
+                        <div>
+                          { this.getAction(e) }
+                          <Tester_Overlay>
+                              <API_Tester endpoint={'http://localhost:9999/protected' + e.path} />
+                          </Tester_Overlay>
+                        </div>
+
+                      </ListGroup.Item>
                     )
                   }
+                  </ListGroup>
+
                 </div>
             }
           </AsyncAwareContainer>
-
-          <br /><br /><br />
-          <FormRow
-            name="read"
-            placeholder="read"
-            onChange={this.handleChange}
-            value={this.state.read}
-            type="text"
-          />
-          <Button className="cdFore" variant="light" onClick={this.handleSubmitRead}>Submit read</Button>
         </Container>
       </div>
     );

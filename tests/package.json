@@ -4,7 +4,8 @@
   "description": "",
   "main": "data.test.js",
   "scripts": {
-    "test": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --timeout 60000 --exit"
+    "test": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --timeout 60000 --exit",
+    "setup-for-dev": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --grep 'setup-for-dev' --timeout 60000 --exit"
   },
   "author": "",
   "license": "ISC",

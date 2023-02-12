@@ -6,98 +6,103 @@ cleanup() {
 }
 trap cleanup EXIT
 
-clean() {
-    clear_wallets
-    rm deployed-contract-version.json || true
-    ./fablo recreate
-    sleep 5
-    echo '{"version":1}' > deployed-contract-version.json
+############################
+# Demo tasks (start)
+############################
+
+dev() {
+    clean
+    admin
+    cd tests
+    npm run setup-for-dev
+    cd -
+    start_components
 }
 
-e2e() {
-    # npm_install
-    # lint
-    clean
-    admin
-    dev
-    # debug
+start_components() {
+    protected_server
+    backend
+    frontend_main "customer"
+    frontend_second "staff"
+    # expose
 }
 
-pretest() {
+############################
+# Demo tasks (end)
+############################
+
+############################
+# Automated test (start)
+############################
+
+pretest_setup() {
     clean
     admin
-    clean
-    admin
-    start_protected_server
+    protected_server
+    terminal_window
     gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com'"
 }
 
 test() {
     clean
     admin
-    start_protected_server
-    gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com'"
-    # gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org2.example.com'"
+    protected_server
+    org1_container_log
     cd tests
     npm run test
     cd -
 }
 
-retest() {
+rerun_test() {
     newcontr
     cd tests
     npm run test
     cd -
 }
 
-expose() {
-    gnome-terminal \
-        --tab -e "lt --subdomain customer --port 3000" \
-        --tab -e "lt --subdomain staff --port 3001" \
-        --tab -e "lt --subdomain thebackend --port 9999"
+############################
+# Automated test (end)
+############################
+
+############################
+# Servers (start)
+############################
+
+# the react instance created from the "web" folder can be used for breakpoint debugging
+frontend_main() {
+  ROLE=$1
+  terminal_tab "cd web && PORT=3000 npm run $ROLE"
 }
 
-start_protected_server() {
-    gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/protected-server && node bin/www'"
+frontend_second() {
+  ROLE=$1
+  rm -rf web-second-instance || true
+  cp -rf web web-second-instance
+  terminal_tab "cd web-second-instance && PORT=3001 npm run $ROLE"
 }
 
-web() {
-    rm -rf web-second-instance || true
-    cp -rf web web-second-instance
-    # gnome-terminal \
-    #     --tab -e "bash -c ' cd web && PORT=3000 npm run customer ; bash'" \
-    #     --tab -e "bash -c ' cd web-second-instance && PORT=3001 npm run staff ; bash'"
-
-    # the one that run inside web is for dev
-    gnome-terminal \
-        --tab -e "bash -c ' cd web && PORT=3000 npm run customer ; bash'" \
-        --tab -e "bash -c ' cd web-second-instance && PORT=3001 npm run staff ; bash'"
-
-    # sleep 8
-    # firefox "localhost:3000" &
-    # google-chrome "localhost:3001" &
+backend() {
+    terminal_tab "cd backend && npm run dev"
 }
 
-dev() {
-    cleanup
-    gnome-terminal \
-        --tab -e "bash -c ' cd backend && npm run dev ; bash'"
-        # --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
-    web
-    expose
+protected_server() {
+    terminal_tab "cd /home/vagrant/work/bcbill/protected-server && node bin/www"
 }
 
-debug() {
-    cleanup
-    gnome-terminal \
-        --tab -e "bash -c ' cd backend && node inspect index.js ; bash'" \
-        --tab -e "bash -c ' cd web && npm start ; bash'"
-        # --tab -e "bash -c ' cd fablo-target/fabric-docker && docker-compose logs -f ; bash'"
-}
+############################
+# Servers (end)
+############################
 
-dockerlog() {
-    gnome-terminal \
-        --tab -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f ; bash'"
+############################
+# Hyperledger stuff (start)
+############################
+
+clean() {
+    clear_wallets
+    rm deployed-contract-version.json || true
+    ./fablo recreate
+    sleep 5
+    echo '{"version":1}' > deployed-contract-version.json
 }
 
 clear_wallets() {
@@ -113,15 +118,6 @@ clear_wallets() {
     rm -rf tests/runNo.json || true
 }
 
-increment_version() {
-    jq '.version += 1' deployed-contract-version.json | sponge deployed-contract-version.json
-}
-
-newcontr() {
-    increment_version
-    ./fablo chaincode upgrade chaincode1 0.0.$(cat deployed-contract-version.json | jq -r '.version')
-}
-
 admin() {
     cd admin
     node admin1.js customer1@org1.com customer2@org1.com
@@ -129,6 +125,31 @@ admin() {
     jq -s '.[0] * .[1]' secret1.json secret2.json > secrets.json
     cd -
 }
+
+newcontr() {
+    increment_version
+    ./fablo chaincode upgrade chaincode1 0.0.$(cat deployed-contract-version.json | jq -r '.version')
+}
+
+increment_version() {
+    jq '.version += 1' deployed-contract-version.json | sponge deployed-contract-version.json
+}
+
+org1_container_log() {
+    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com"
+}
+
+org2_container_log() {
+    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org2.example.com"
+}
+
+############################
+# Hyperledger stuff (end)
+############################
+
+############################
+# NPM stuff (start)
+############################
 
 npm_install() {
     cd utils && npm i
@@ -143,15 +164,52 @@ npm_install() {
     cd -
 }
 
-backend() {
-    cd backend
-    node index.js
-    cd -
-}
-
 lint() {
     which eslint || npm i -g eslint
     eslint protected-server admin backend chaincodes utils tests --fix --ext .js --config eslintrc.json
 }
+
+############################
+# NPM stuff (end)
+############################
+
+############################
+# Cloud (start)
+############################
+
+expose() {
+    gnome-terminal \
+        --tab -e "lt --subdomain customer --port 3000" \
+        --tab -e "lt --subdomain staff --port 3001" \
+        --tab -e "lt --subdomain thebackend --port 9999"
+}
+
+############################
+# Cloud (end)
+############################
+
+############################
+# Utils (start)
+############################
+
+terminal_tab() {
+    command=$1
+    gnome-terminal --tab -e "bash -c ' ${command} ; bash'"
+}
+
+terminal_window() {
+    command=$1
+    gnome-terminal -e "bash -c ' ${command} ; bash'"
+}
+
+browser() {
+#    sleep 8
+    firefox "localhost:3000/#/login" &
+    firefox "localhost:3001/#/login" --private-window &
+}
+
+############################
+# Utils (end)
+############################
 
 "$@"
