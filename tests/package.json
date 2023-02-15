@@ -5,7 +5,8 @@
   "main": "data.test.js",
   "scripts": {
     "test": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --timeout 60000 --exit",
-    "setup-for-dev": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --grep 'setup-for-dev' --timeout 60000 --exit"
+    "setup-for-dev": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --grep 'setup-for-dev' --timeout 60000 --exit",
+    "load-test":  "./node_modules/.bin/k6 run load-test.js"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +15,7 @@
     "chai": "^4.3.6",
     "http-status-codes": "^2.2.0",
     "jsonfile": "^6.1.0",
+    "k6": "0.0.0",
     "mocha": "^10.0.0",
     "object-hash": "^3.0.0",
     "supertest": "^6.2.3"
