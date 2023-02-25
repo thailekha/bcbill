@@ -21,3 +21,5 @@ tests/runNo.json
 
 web/.vscode
 web-second-instance
+
+**/chaincode-kv-ts/index.js
