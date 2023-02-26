@@ -53,7 +53,7 @@ describe('full-suite', function() {
     admin1_wallet = await enroll(admin1);
     admin2_wallet = await enroll(admin2);
 
-    console.log(JSON.stringify(client1_wallet));
+    // console.log(JSON.stringify(client1_wallet));
 
     const wallets = {};
     wallets[client1] = client1_wallet;
@@ -112,7 +112,7 @@ describe('full-suite', function() {
   it('should not forward ungranted endpoint', async() => {
     await pingProtected(client1, client1_wallet, ENDPOINTS[1], 500);
   });
-  
+
   it('should revoke mapping', async() => {
     await revoke(admin1, admin1_wallet, hash(client1_wallet.credentials.certificate), ENDPOINTS[0]);
   });
@@ -145,7 +145,7 @@ describe('setup-for-dev', function() {
     admin1_wallet = await enroll(admin1);
     admin2_wallet = await enroll(admin2);
 
-    console.log(JSON.stringify(client1_wallet));
+    // console.log(JSON.stringify(client1_wallet));
 
     const wallets = {};
     wallets[client1] = client1_wallet;
@@ -166,7 +166,7 @@ describe('setup-for-dev', function() {
   it('should fetchall for admin', async() => {
     const { assets } = await fetchall(admin1, admin1_wallet);
 
-    // expect(assets.users).to.have.lengthOf(4);
+    expect(assets.users).to.have.lengthOf(4);
     expect(assets.endpoints).to.have.lengthOf(ENDPOINTS.length);
     expect(assets.mappings).to.be.undefined;
   });

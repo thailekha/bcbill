@@ -47,8 +47,7 @@ pretest_setup() {
     clean
     admin
     protected_server
-    terminal_window
-    gnome-terminal -e "bash -c 'cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com'"
+    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com"
 }
 
 test() {
@@ -108,7 +107,7 @@ protected_server() {
 clean() {
     clear_wallets
     rm deployed-contract-version.json || true
-    compile_contract
+#    compile_contract
     ./fablo recreate
     sleep 5
     echo '{"version":1}' > deployed-contract-version.json
