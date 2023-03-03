@@ -22,6 +22,51 @@ describe('ping', function() {
   });
 });
 
+// describe('API Sentry backend', () => {
+//   describe('/api/provider/wallet', () => {
+//     it('should create a new wallet and return it to the client', async () => {
+//       // Generate a random username and provider ID
+//       const username = Math.random().toString(36).substring(7);
+//       const providerId = Math.random().toString(36).substring(7);
+//
+//       // Send a POST request to the /api/provider/wallet endpoint to create a new wallet
+//       const response = await request(backend)
+//           .post('/api/provider/wallet')
+//           .send({
+//             username: username,
+//             providerId: providerId,
+//           })
+//           .expect(201);
+//
+//       // Check that the response data is not empty
+//       assert.ok(response.body);
+//
+//       // Check that the response data is a valid Fabric wallet JSON
+//       const wallet = response.body.wallet;
+//       assert.ok(wallet.credentials);
+//       assert.ok(wallet.credentials.certificate);
+//       assert.ok(wallet.credentials.privateKey);
+//       assert.ok(wallet.mspId);
+//       assert.ok(wallet.type);
+//       assert.strictEqual(wallet.type, 'X.509');
+//     });
+//
+//     // it('should return an error if the username or provider ID is invalid', async () => {
+//     //   // Send a POST request to the /api/provider/wallet endpoint with an invalid username and provider ID
+//     //   const response = await request(backend)
+//     //       .post('/api/provider/wallet')
+//     //       .send({
+//     //         username: 'invalid-username',
+//     //         providerId: 'invalid-provider-id',
+//     //       })
+//     //       .expect(500);
+//     //
+//     //   // Check that the response data is an error message
+//     //   assert.strictEqual(response.text, 'Error creating wallet.');
+//     // });
+//   });
+// });
+
 const client1 = 'customer1@org1.com';
 const client2 = 'customer2@org1.com';
 const admin1 = 'staff1@org2.com';

@@ -5,6 +5,8 @@ const proxy = require('express-http-proxy');
 const { prettyJSONString } = require('../utils');
 
 const contract = require(`${__dirname}/contract`);
+const {Wallets} = require("fabric-network");
+const FabricCAServices = require("fabric-ca-client");
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -16,6 +18,43 @@ app.get('/ping', async (req, res) => {
     res.sendStatus(200);
   } catch (err) {
     res.status(500).send(err);
+  }
+});
+
+// Create a new fabric wallet for the API provider
+app.post('/api/provider/wallet', async (req, res) => {
+  try {
+    const providerWallet = await Wallets.newInMemoryWallet();
+    const providerUsername = req.body.username;
+
+    const ca = new FabricCAServices('http://localhost:7040', { verify: false }, "ca.org1.example.com");
+
+    // Enroll the API provider as an affiliate and import their identity into the in-memory wallet
+    const enrollment = await ca.enroll({
+      enrollmentID: providerUsername,
+      enrollmentSecret: 'adminpw',
+      attrs: [
+        { name: 'affiliation', value: 'org1.department1' },
+      ],
+    });
+    const providerX509Identity = {
+      credentials: {
+        certificate: enrollment.certificate,
+        privateKey: enrollment.key.toBytes(),
+      },
+      mspId: 'Org1MSP',
+      type: 'X.509',
+    };
+    await providerWallet.put(providerUsername, providerX509Identity);
+
+    // Get the API provider's wallet content and return it to the client
+    // const providerWalletContent = await providerWallet.export(providerUsername);
+    res.status(201).send({
+      wallet: JSON.stringify(providerWallet)
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error creating wallet.');
   }
 });
 
