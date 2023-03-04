@@ -6,7 +6,7 @@ const _l = require('./logger');
 const fromAdmin = (ctx, throwErr = true) => {
   const cid = new ClientIdentity(ctx.stub);
   const email = parseCommonNameFromx509DistinguishedName(cid.getID());
-  const isAdmin = email.includes('@org2.com');
+  const isAdmin = email.includes('admin');
   if (!isAdmin && throwErr) {
     _l('Not admin: ', cid.getID(), email);
     throw new CustomException(status.FORBIDDEN);

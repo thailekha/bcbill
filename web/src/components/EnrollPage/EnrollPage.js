@@ -11,7 +11,7 @@ class EnrollPage extends ExtendedComponent {
     super(props);
 
     this.state = {
-      email: window.FOR_STAFF ? "staff1@org2.com" : "customer1@org1.com",
+      email: window.FOR_STAFF ? "admin1@org1.com" : "customer1@org1.com",
       secret: "trNBUtXMuSji",
       orgNo: window.FOR_STAFF ? "2" : "1"
     };

@@ -5,8 +5,8 @@ const proxy = require('express-http-proxy');
 const { prettyJSONString } = require('../utils');
 
 const contract = require(`${__dirname}/contract`);
-const {Wallets} = require("fabric-network");
-const FabricCAServices = require("fabric-ca-client");
+const {Wallets} = require('fabric-network');
+const FabricCAServices = require('fabric-ca-client');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -27,7 +27,7 @@ app.post('/api/provider/wallet', async (req, res) => {
     const providerWallet = await Wallets.newInMemoryWallet();
     const providerUsername = req.body.username;
 
-    const ca = new FabricCAServices('http://localhost:7040', { verify: false }, "ca.org1.example.com");
+    const ca = new FabricCAServices('http://localhost:7040', { verify: false }, 'ca.org1.example.com');
 
     // Enroll the API provider as an affiliate and import their identity into the in-memory wallet
     const enrollment = await ca.enroll({

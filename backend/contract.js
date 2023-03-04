@@ -19,8 +19,6 @@ const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
 const PEERS = [
   'peer0.org1.example.com',
-  'peer0.org2.example.com',
-  'peer0.org3.example.com',
 ];
 
 const secrets = require(`${__dirname}/../admin/secrets.json`);

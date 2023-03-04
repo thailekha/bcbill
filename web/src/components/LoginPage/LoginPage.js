@@ -12,7 +12,7 @@ class LoginForm extends ExtendedComponent {
   constructor(props) {
     super(props);
     this.state = {
-      email: window.FOR_STAFF ? "staff1@org2.com" : "customer1@org1.com",
+      email: window.FOR_STAFF ? "admin1@org1.com" : "customer1@org1.com",
       wallet: ""
     };
 

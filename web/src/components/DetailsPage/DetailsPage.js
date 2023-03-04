@@ -39,26 +39,6 @@ class DetailsPageCustomer extends React.Component {
   async componentDidMount() {
     try {
       this.setState({loading: true});
-    /*
-    {
-      'staff1@org2.com': [
-        {
-          timestamp: '2022-11-23T07:50:30.954Z',
-          location: '52.146973,-106.647034'
-        }
-      ],
-      'staff2@org2.com': [
-        {
-          timestamp: '2022-11-23T07:50:33.121Z',
-          location: '52.51666667,13.4'
-        },
-        {
-          timestamp: '2022-11-23T07:50:35.260Z',
-          location: '52.51666667,13.4'
-        }
-      ]
-    }
-    */
 
       const history = await backend.getHistory(this.state.email, this.props.assetKey);
       const locations = []

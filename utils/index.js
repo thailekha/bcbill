@@ -16,12 +16,12 @@ exports.connectionProfileOrg1 = () => {
   return JSON.parse(fs.readFileSync(profilePath, 'utf8'));
 };
 
-exports.connectionProfileOrg2 = () => {
-  const profilePath = path.join(__dirname, '../fablo-target/fabric-config/connection-profiles/connection-profile-org2.json');
-  if (!fs.existsSync(profilePath)) throw new Error(`no such file or directory: ${profilePath}`);
-  console.log(`Loaded the network configuration located at ${profilePath}`);
-  return JSON.parse(fs.readFileSync(profilePath, 'utf8'));
-};
+// exports.connectionProfileOrg2 = () => {
+//   const profilePath = path.join(__dirname, '../fablo-target/fabric-config/connection-profiles/connection-profile-org2.json');
+//   if (!fs.existsSync(profilePath)) throw new Error(`no such file or directory: ${profilePath}`);
+//   console.log(`Loaded the network configuration located at ${profilePath}`);
+//   return JSON.parse(fs.readFileSync(profilePath, 'utf8'));
+// };
 
 const getConnectionProfile = orgNo => require(`../fablo-target/fabric-config/connection-profiles/connection-profile-org${orgNo}.json`);
 

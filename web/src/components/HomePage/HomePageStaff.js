@@ -43,7 +43,7 @@ class HomePageStaff extends ExtendedComponent {
       // how to put this into a table?
       const sortedEndpoints = sortBy(endpoints, 'path');
       const sortedUsers = sortBy(users, 'email')
-          .filter(u => !u.email.includes('org2'));
+          .filter(u => !u.email.includes('admin'));
       const statusTable = [
           // first row
           [EMPTY_BOX].concat(sortedUsers.map(u => u.email))

@@ -69,8 +69,8 @@ describe('ping', function() {
 
 const client1 = 'customer1@org1.com';
 const client2 = 'customer2@org1.com';
-const admin1 = 'staff1@org2.com';
-const admin2 = 'staff2@org2.com';
+const admin1 = 'admin1@org1.com';
+const admin2 = 'admin2@org1.com';
 
 const ENDPOINTS = [
   '/ping',
