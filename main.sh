@@ -47,14 +47,14 @@ pretest_setup() {
     clean
     admin
     protected_server
-    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com"
+#    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com"
 }
 
 test() {
     clean
     admin
     protected_server
-    org1_container_log
+#    org1_container_log
     cd tests
     npm run test
     cd -
@@ -151,6 +151,7 @@ increment_version() {
 
 org1_container_log() {
     terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com"
+    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer1.org1.example.com"
 }
 
 ############################

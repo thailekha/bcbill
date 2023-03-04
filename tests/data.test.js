@@ -10,7 +10,7 @@ const hash = require('object-hash');
 const backend = require('../backend/bin/www');
 const secrets = require('../admin/secrets.json');
 const { stringify } = require('querystring');
-
+const randomstring = require('randomstring');
 const jstr = (i) => JSON.stringify(i);
 const _l = i => console.log(jstr(i));
 
@@ -83,8 +83,8 @@ const ENDPOINTS = [
 
 let client1_wallet, client2_wallet, admin1_wallet, admin2_wallet;
 
-describe('full-suite', function() {
-  before(async() => {
+function setupWallets() {
+  return async () => {
     if (fs.existsSync(`${__dirname}/wallets.json`)) {
       const wallets = require(`${__dirname}/wallets.json`);
       client1_wallet = wallets[client1];
@@ -106,7 +106,18 @@ describe('full-suite', function() {
     wallets[admin1] = admin1_wallet;
     wallets[admin2] = admin2_wallet;
     await jsonfile.writeFile('wallets.json', wallets);
+  };
+}
+
+describe('ping-contract', function() {
+  before(setupWallets());
+  it('should ping contract', async() => {
+    await pingcontract(admin1, admin1_wallet, randomstring.generate());
   });
+});
+
+describe('full-suite', function() {
+  before(setupWallets());
 
   // load test only forward
 
@@ -176,33 +187,7 @@ describe('full-suite', function() {
 });
 
 describe('setup-for-dev', function() {
-  before(async() => {
-    if (fs.existsSync(`${__dirname}/wallets.json`)) {
-      const wallets = require(`${__dirname}/wallets.json`);
-      client1_wallet = wallets[client1];
-      client2_wallet = wallets[client2];
-      admin1_wallet = wallets[admin1];
-      admin2_wallet = wallets[admin2];
-      return;
-    }
-    client1_wallet = await enroll(client1);
-    client2_wallet = await enroll(client2);
-    admin1_wallet = await enroll(admin1);
-    admin2_wallet = await enroll(admin2);
-
-    // console.log(JSON.stringify(client1_wallet));
-
-    const wallets = {};
-    wallets[client1] = client1_wallet;
-    wallets[client2] = client2_wallet;
-    wallets[admin1] = admin1_wallet;
-    wallets[admin2] = admin2_wallet;
-    await jsonfile.writeFile('wallets.json', wallets);
-    await jsonfile.writeFile('for_login.json', {
-      client: jstr(client1_wallet),
-      admin:  jstr(admin1_wallet),
-    });
-  });
+  before(setupWallets());
 
   it('should add endpoints', async() => {
     await addEndpoints(admin1, admin1_wallet, ENDPOINTS);
@@ -408,6 +393,24 @@ async function getHistory(email, wallet, assetKey) {
         email,
         wallet,
         assetKey
+      })
+      .expect(200);
+    return res.body;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+async function pingcontract(email, wallet, text) {
+  try {
+    const res = await request(backend)
+      .post('/pingcontract')
+      .set(...CONTENT_JSON)
+      .send({
+        email,
+        wallet,
+        text
       })
       .expect(200);
     return res.body;

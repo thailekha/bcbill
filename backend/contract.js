@@ -30,36 +30,36 @@ exports.enroll = async (email, secret) => {
   const orgNo = parseOrgFromEmail(email);
   const wallet = await Wallets.newFileSystemWallet(WALLET_PATH(orgNo));
   const walletContent = await enrollCa(email, wallet, secret);
-  await executeContract(email, walletContent, ACTIONS.ADD_USER, email, hash(walletContent.credentials.certificate));
+  await executeContract({}, email, walletContent, ACTIONS.ADD_USER, email, hash(walletContent.credentials.certificate));
   return walletContent;
 };
 
-exports.ping = async (email, walletContent) => await executeContract(
-  email, walletContent, 'Ping', '');
+exports.ping = async (email, walletContent, text) => await executeContract(
+  {}, email, walletContent, 'Ping', text);
 
 exports.login = async (email, walletContent, timestamp) => await executeContract(
-  email, walletContent, ACTIONS.LOGIN, hash(walletContent.credentials.certificate), timestamp);
+  {}, email, walletContent, ACTIONS.LOGIN, hash(walletContent.credentials.certificate), timestamp);
 
 exports.addEndpoint = async (email, walletContent, path) => await executeContract(
-  email, walletContent, ACTIONS.ADD_ENDPOINT, path);
+  {}, email, walletContent, ACTIONS.ADD_ENDPOINT, path);
 
 exports.addMapping = async (email, walletContent, path) => await executeContract(
-  email, walletContent, ACTIONS.ADD_MAPPING, email, hash(walletContent.credentials.certificate), path);
+  {}, email, walletContent, ACTIONS.ADD_MAPPING, email, hash(walletContent.credentials.certificate), path);
 
 exports.forward = async (email, walletContent, path) => await executeContract(
-  email, walletContent, ACTIONS.FORWARD, hash(walletContent.credentials.certificate), path);
+  {fast: true}, email, walletContent, ACTIONS.FORWARD, hash(walletContent.credentials.certificate), path);
 
 exports.fetchall = async (email, walletContent) => await executeContract(
-  email, walletContent, ACTIONS.FETCH_ALL, hash(walletContent.credentials.certificate));
+  {fast: true}, email, walletContent, ACTIONS.FETCH_ALL, hash(walletContent.credentials.certificate));
 
 exports.revoke = async (email, walletContent, clientCertHash, path) => await executeContract(
-  email, walletContent, ACTIONS.REVOKE_MAPPING, clientCertHash, path);
+  {}, email, walletContent, ACTIONS.REVOKE_MAPPING, clientCertHash, path);
 
 exports.reenable = async (email, walletContent, clientCertHash, path) => await executeContract(
-  email, walletContent, ACTIONS.REENABLE_MAPPING, clientCertHash, path);
+  {}, email, walletContent, ACTIONS.REENABLE_MAPPING, clientCertHash, path);
 
 exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
-  email, walletContent, hash(walletContent.credentials.certificate), assetKey);
+  {}, email, walletContent, hash(walletContent.credentials.certificate), assetKey);
 
 async function inMemWallet(email, walletContent) {
   const wallet = await Wallets.newInMemoryWallet();
@@ -182,16 +182,35 @@ function processBlock(block, assetToCheck, ownerIdHash, accessors) {
   }
 }
 
-async function executeContract(identity, walletContent, action, ...args) {
+async function executeContract(opts, identity, walletContent, action, ...args) {
   const peer = getConnectionProfile(parseOrgFromEmail(identity));
   const wallet = await inMemWallet(identity, walletContent);
   const gateway = new Gateway();
   try {
-    await gateway.connect(peer, {
-      wallet,
-      identity,
-      discovery: { enabled: true, asLocalhost: true }
-    });    
+
+    // https://stackoverflow.com/questions/56936560/why-do-i-take-more-than-2-seconds-to-just-do-a-transaction
+    // https://hyperledger-fabric.readthedocs.io/en/release-2.2/developapps/connectionoptions.html
+    // fast
+    if (opts.fast) {
+      await gateway.connect(peer, {
+        wallet,
+        identity,
+        discovery: { enabled: true, asLocalhost: true },
+        eventHandlerOptions: {
+          commitTimeout: 10,
+          strategy: null
+        }
+      });
+    }
+    // safe
+    else {
+      await gateway.connect(peer, {
+        wallet,
+        identity,
+        discovery: { enabled: true, asLocalhost: true }
+      });
+    }
+
     const network = await gateway.getNetwork(CHANNEL);
     const contract = network.getContract(CHAINCODE);
     const result = await contract

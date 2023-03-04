@@ -5,10 +5,20 @@ const { Endpoint, DOCTYPE: ENDPOINT_DOCTYPE}   = require('./models/Endpoint');
 const { Mapping, DOCTYPE: MAPPING_DOCTYPE}  = require('./models/Mapping');
 const {query} = require('./lib/couchDbController');
 const {fromAdmin} = require('./lib/contract-utils');
+const LedgerEntity = require('./models/LedgerEntity');
 
 class APISentryContract extends Contract {
   async Ping(ctx, text) {
-    return {pong: text};
+    _l('Ping start', text);
+    await (new LedgerEntity(ctx, text, {ping: 'Ping'}, 'Ping').create());
+    for (let i = 0; i < 10; i++) {
+      _l('Loop', i);
+      await LedgerEntity._get(ctx, text);
+    }
+    const pong = await LedgerEntity._get(ctx, text);
+    _l('Ping finished');
+    return {pong: 'pong'};
+    // return {pong: text};
   }
 
   async AddUser(ctx, email, certHash) {

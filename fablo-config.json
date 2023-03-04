@@ -4,7 +4,7 @@
     "fabricVersion": "2.3.0",
     "tls": false,
     "tools": {
-      "explorer": true,
+      "explorer": false,
       "fabloRest": true
     }
   },
@@ -18,7 +18,7 @@
         {
           "groupName": "group1",
           "type": "solo",
-          "instances": 1
+          "instances": 2
         }
       ]
     },
@@ -28,7 +28,7 @@
         "domain": "org1.example.com"
       },
       "peer": {
-        "instances": 1,
+        "instances": 2,
         "db": "CouchDb"
       }
     },
@@ -40,7 +40,7 @@
         {
           "name": "Org1",
           "peers": [
-            "peer0",
+            "peer0", "peer1"
           ]
         },
       ]

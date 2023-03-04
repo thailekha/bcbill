@@ -21,6 +21,17 @@ app.get('/ping', async (req, res) => {
   }
 });
 
+app.post('/pingcontract', async (req, res) => {
+  try {
+    console.log('Sending ping');
+    const pong = await contract.ping(req.body.email, req.body.wallet, req.body.text);
+    res.json({ pong });
+  } catch (err) {
+    // console.log(prettyJSONString(JSON.stringify(err)));
+    res.status(500).send(err);
+  }
+});
+
 // Create a new fabric wallet for the API provider
 app.post('/api/provider/wallet', async (req, res) => {
   try {
