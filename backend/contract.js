@@ -8,29 +8,48 @@ const { caClient, prettyJSONString, parseOrgFromEmail, getConnectionProfile } = 
 const hash = require('object-hash');
 const moment = require('moment');
 const fs = require('fs');
-const userWalletCreated = user => fs.existsSync(`${__dirname}/wallet/${user}.id`);
+const fsWalletCreated = user => fs.existsSync(`${__dirname}/wallet/${user}.id`);
 
-const MSP = orgNo => `Org${orgNo}MSP`;
-const CA_HOST = orgNo => `ca.org${orgNo}.example.com`;
-const WALLET_PATH = orgNo => `${__dirname}/wallet${orgNo}` ;
-// const AFFILIATION = 'org1.department1';
+// API Sentry's admin is NOT the same as admin1@org1.com
+const ADMIN_ID = 'admin';
+const DEFAULT_ORG_NO = '1';
+const MSP = (orgNo = DEFAULT_ORG_NO) => `Org${orgNo}MSP`;
+const CA_HOST = (orgNo = DEFAULT_ORG_NO) => `ca.org${orgNo}.example.com`;
+const WALLET_PATH =( orgNo = DEFAULT_ORG_NO) => `${__dirname}/wallet${orgNo}` ;
+const AFFILIATION = (orgNo = DEFAULT_ORG_NO) =>  `${orgNo}.department1`;
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
-const PEERS = [
-  'peer0.org1.example.com',
-];
 
-const secrets = require(`${__dirname}/../admin/secrets.json`);
+const SECRETS_FILE = require(`${__dirname}/../admin/secrets.json`);
 
 exports.enroll = async (email, secret) => {
-  if (secret !== secrets[email]) {
+  if (secret !== SECRETS_FILE[email]) {
     throw new Error('invalid secret');
   }
-  const orgNo = parseOrgFromEmail(email);
-  const wallet = await Wallets.newFileSystemWallet(WALLET_PATH(orgNo));
-  const walletContent = await enrollCa(email, wallet, secret);
+  const wallet = await Wallets.newFileSystemWallet(WALLET_PATH());
+  const walletContent = await enrollEmailWithCa(email, wallet, secret);
   await executeContract({}, email, walletContent, ACTIONS.ADD_USER, email, hash(walletContent.credentials.certificate));
+  return walletContent;
+};
+
+// Flow: register -> get secret -> enroll
+exports.registerUser = async (email) => {
+  const wallet = await Wallets.newFileSystemWallet('/home/vagrant/work/bcbill/admin/wallet1');
+  const secret = await registerEmailWithCa(wallet, email);
+
+  const enrollment = await caConn().enroll({
+    enrollmentID: email,
+    enrollmentSecret: secret
+  });
+  const walletContent = {
+    credentials: {
+      certificate: enrollment.certificate,
+      privateKey: enrollment.key.toBytes(),
+    },
+    mspId: MSP(),
+    type: 'X.509',
+  };
   return walletContent;
 };
 
@@ -226,12 +245,29 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
   }
 }
 
-async function enrollCa(email, wallet, secret) {
-  if (userWalletCreated(email) || (await wallet.get(email))) { return; }
-  const orgNo = parseOrgFromEmail(email);
-  const peer = getConnectionProfile(orgNo);
-  const ca = caClient(peer, CA_HOST(orgNo));
-  const enrollment = await ca.enroll({
+function caConn() {
+  const peer = getConnectionProfile(DEFAULT_ORG_NO);
+  return caClient(peer, CA_HOST());
+}
+
+async function registerEmailWithCa(wallet, email) {
+  // wallet is just a folder that contains multiple creds
+  const adminIdentity = await wallet.get(ADMIN_ID);
+  if ((await wallet.get(email)) || !adminIdentity) return;
+  const adminUser = await wallet
+    .getProviderRegistry()
+    .getProvider(adminIdentity.type)
+    .getUserContext(adminIdentity, ADMIN_ID);
+  return await caConn().register({
+    affiliation: 'org1.department1',
+    enrollmentID: email,
+    role: 'client'
+  }, adminUser);
+}
+
+async function enrollEmailWithCa(email, wallet, secret, opts = {}) {
+  if (fsWalletCreated(email) || (await wallet.get(email))) { return; }
+  const enrollment = await caConn().enroll({
     enrollmentID: email,
     enrollmentSecret: secret
   });
@@ -240,7 +276,7 @@ async function enrollCa(email, wallet, secret) {
       certificate: enrollment.certificate,
       privateKey: enrollment.key.toBytes(),
     },
-    mspId: MSP(orgNo),
+    mspId: MSP(),
     type: 'X.509',
   };
   await wallet.put(email, walletContent);

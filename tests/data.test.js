@@ -83,7 +83,7 @@ const ENDPOINTS = [
 
 let client1_wallet, client2_wallet, admin1_wallet, admin2_wallet;
 
-function setupWallets() {
+function setupFsWallets() {
   return async () => {
     if (fs.existsSync(`${__dirname}/wallets.json`)) {
       const wallets = require(`${__dirname}/wallets.json`);
@@ -110,16 +110,21 @@ function setupWallets() {
 }
 
 describe('ping-contract', function() {
-  before(setupWallets());
+  before(setupFsWallets());
   it('should ping contract', async() => {
     await pingcontract(admin1, admin1_wallet, randomstring.generate());
   });
 });
 
 describe('full-suite', function() {
-  before(setupWallets());
+  before(setupFsWallets());
 
-  // load test only forward
+  it('should register some more users', async() => {
+    const w = await register(`${randomstring.generate()}@org1.com`);
+    await register(`${randomstring.generate()}@org1.com`);
+    await register(`${randomstring.generate()}@org1.com`);
+    console.log(w);
+  });
 
   it('should add endpoints', async() => {
     await addEndpoints(admin1, admin1_wallet, ENDPOINTS);
@@ -187,7 +192,7 @@ describe('full-suite', function() {
 });
 
 describe('setup-for-dev', function() {
-  before(setupWallets());
+  before(setupFsWallets());
 
   it('should add endpoints', async() => {
     await addEndpoints(admin1, admin1_wallet, ENDPOINTS);
@@ -247,6 +252,22 @@ async function enroll(email) {
     console.error(err);
     throw err;
   }  
+}
+
+async function register(email) {
+  try {
+    const {body: {walletContent}} = await request(backend)
+      .post('/register')
+      .set(...CONTENT_JSON)
+      .send({
+        email
+      })
+      .expect(200);
+    return walletContent;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 }
 
 async function login(email, wallet, location) {
