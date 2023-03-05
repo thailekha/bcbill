@@ -18,7 +18,7 @@
         {
           "groupName": "group1",
           "type": "solo",
-          "instances": 2
+          "instances": 1
         }
       ]
     },
@@ -28,7 +28,7 @@
         "domain": "org1.example.com"
       },
       "peer": {
-        "instances": 2,
+        "instances": 1,
         "db": "CouchDb"
       }
     },
@@ -40,7 +40,7 @@
         {
           "name": "Org1",
           "peers": [
-            "peer0", "peer1"
+            "peer0"
           ]
         },
       ]
