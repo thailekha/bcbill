@@ -1,42 +1,71 @@
 const FabricCAServices = require('fabric-ca-client');
-const path = require('path');
+const { Wallets } = require('fabric-network');
 const fs = require('fs');
+require('dotenv').config({ path: `${__dirname}/../.env` });
 
-exports.prettyJSONString = (inputString) => JSON.stringify(JSON.parse(inputString), null, 2);
+// ########################
+// Fabric
+// ########################
 
-exports.caClient = (peer, caHost) => {
-  const caInfo = peer.certificateAuthorities[caHost];
+const connectionProfile = () => parseJsonFile(process.env.FABRIC_CONNECTION_PROFILE);
+const caClient = () => {
+  const caInfo = connectionProfile().certificateAuthorities[process.env.FABRIC_CA_HOST];
   return new FabricCAServices(caInfo.url, { verify: false }, caInfo.caName);
-}; 
-
-exports.connectionProfileOrg1 = () => {
-  const profilePath = path.join(__dirname, '../fablo-target/fabric-config/connection-profiles/connection-profile-org1.json');
-  if (!fs.existsSync(profilePath)) throw new Error(`no such file or directory: ${profilePath}`);
-  console.log(`Loaded the network configuration located at ${profilePath}`);
-  return JSON.parse(fs.readFileSync(profilePath, 'utf8'));
 };
 
-// exports.connectionProfileOrg2 = () => {
-//   const profilePath = path.join(__dirname, '../fablo-target/fabric-config/connection-profiles/connection-profile-org2.json');
-//   if (!fs.existsSync(profilePath)) throw new Error(`no such file or directory: ${profilePath}`);
-//   console.log(`Loaded the network configuration located at ${profilePath}`);
-//   return JSON.parse(fs.readFileSync(profilePath, 'utf8'));
-// };
+// wallet is just a folder that contains multiple creds
+const fsWallet = async () => await Wallets.newFileSystemWallet(process.env.WALLET_PATH);
+const inMemWallet = async (email, walletContent) => {
+  const wallet = await Wallets.newInMemoryWallet();
+  wallet.put(email, walletContent);
+  return wallet;
+};
 
-const getConnectionProfile = orgNo => require(`../fablo-target/fabric-config/connection-profiles/connection-profile-org${orgNo}.json`);
+/*
+  For every new client: register -> get a secret -> use it to enroll -> get wallet content
+ */
+const registerClient = async (email) => {
+  const wallet = await fsWallet();
+  const root = await wallet.get(process.env.FABRIC_ROOT_ID);
+  const rootUser = await wallet
+    .getProviderRegistry()
+    .getProvider(root.type)
+    .getUserContext(root, process.env.FABRIC_ROOT_ID);
 
-const parseOrgFromEmail = email => email.includes('@org1.com') ? '1' : '2';
+  const ca = await caClient();
+  const secret = await ca.register({
+    affiliation: 'org1.department1',
+    enrollmentID: email,
+    role: 'client'
+  }, rootUser);
+  const enrollment = await ca.enroll({
+    enrollmentID: email,
+    enrollmentSecret: secret
+  });
+  const walletContent = {
+    credentials: {
+      certificate: enrollment.certificate,
+      privateKey: enrollment.key.toBytes(),
+    },
+    mspId: process.env.FABRIC_MSP,
+    type: 'X.509',
+  };
+  return walletContent;
+};
 
-exports.getConnectionProfile = getConnectionProfile;
+// ########################
+// Data structure
+// ########################
 
-exports.parseOrgFromEmail = parseOrgFromEmail;
+const parseJsonFile = filePath => JSON.parse(fs.readFileSync(filePath, 'utf8'));
+const prettyJSONString = (inputString) => JSON.stringify(JSON.parse(inputString), null, 2);
+const clone = obj => JSON.parse(JSON.stringify(obj));
 
-exports.getPeer = email => getConnectionProfile(parseOrgFromEmail(email));
-
-exports.clone = obj => JSON.parse(JSON.stringify(obj));
-
-exports.LOCATIONS = {
-  SASKATOON: [52.146973, -106.647034],
-  RUSSIA: [55.75, 37.6],
-  GERMANY:	[52.51666667, 13.4]
+module.exports = {
+  connectionProfile,
+  caClient,
+  fsWallet,
+  inMemWallet,
+  registerClient,
+  prettyJSONString
 };

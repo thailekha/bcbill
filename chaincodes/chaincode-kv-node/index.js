@@ -4,7 +4,7 @@ const { User, DOCTYPE: USER_DOCTYPE} = require('./models/User');
 const { Endpoint, DOCTYPE: ENDPOINT_DOCTYPE}   = require('./models/Endpoint');
 const { Mapping, DOCTYPE: MAPPING_DOCTYPE}  = require('./models/Mapping');
 const {query} = require('./lib/couchDbController');
-const {fromAdmin} = require('./lib/contract-utils');
+const {fromProvider} = require('./lib/contract-utils');
 const LedgerEntity = require('./models/LedgerEntity');
 
 class APISentryContract extends Contract {
@@ -51,10 +51,10 @@ class APISentryContract extends Contract {
   }
 
   /*
-    admin (org2): can access all users, endpoints, mappings
+    provider: can access all users, endpoints, mappings
     normal user org1: can access all endpoints and there own mapping
 
-    admin can revoke user's mapping
+    provider can revoke user's mapping
     user can just grab a mapping after signing up
   */
   // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
@@ -63,7 +63,7 @@ class APISentryContract extends Contract {
 
     // sort: [{ time: 'asc' }]
 
-    const adminQuery = [
+    const providerQuery = [
       {
         docType: USER_DOCTYPE
       },
@@ -87,7 +87,7 @@ class APISentryContract extends Contract {
 
     const query_result = await query(ctx, {
       selector: {
-        '$or': fromAdmin(ctx, false) ? adminQuery : normalUserQuery
+        '$or': fromProvider(ctx, false) ? providerQuery : normalUserQuery
       },
       fields: [
         'docType', 'email', 'path', 'certHash', 'authorized'

@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fabric-ca-client": "^2.2.11"
+    "dotenv": "^16.0.3",
+    "fabric-ca-client": "^2.2.11",
+    "fabric-network": "^2.2.16"
   }
 }

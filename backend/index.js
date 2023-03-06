@@ -2,156 +2,137 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const proxy = require('express-http-proxy');
-const { connectionProfileOrg1, caClient, prettyJSONString } = require('../utils');
+const { prettyJSONString } = require(`${__dirname}/../utils`);
 
-const contract = require(`${__dirname}/contract`);
-const {Wallets} = require('fabric-network');
-const FabricCAServices = require('fabric-ca-client');
-const path = require('path');
-const fs = require('fs');
+const sentry = require(`${__dirname}/sentry`);
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
+// Ping endpoint
 app.get('/ping', async (req, res) => {
-  try {
-    res.sendStatus(200);
-  } catch (err) {
-    res.status(500).send(err);
-  }
+  res.sendStatus(200);
 });
 
-app.post('/pingcontract', async (req, res) => {
+// User endpoints
+app.post('/register', async (req, res, next) => {
   try {
-    console.log('Sending ping');
-    const pong = await contract.ping(req.body.email, req.body.wallet, req.body.text);
-    res.json({ pong });
-  } catch (err) {
-    // console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
-  }
-});
-
-// Create a new fabric wallet for the API provider
-app.post('/register', async (req, res) => {
-  try {
-    const walletContent = await contract.registerUser(req.body.email);
+    const walletContent = await sentry.registerUser(req.body.email);
     res.json({ walletContent });
   } catch (err) {
-    // next(err);
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
+    next(err);
   }
 });
 
+app.post('/enroll', async (req, res, next) => {
+  try {
+    const walletContent = await sentry.enroll(req.body.email, req.body.secret);
+    res.json({ walletContent });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/login', async (req, res, next) => {
+  try {
+    const walletContent = await sentry.login(req.body.email, req.body.wallet, req.body.timestamp);
+    res.json({ walletContent });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Proxy endpoints
 app.use('/proxy', proxy('localhost:9998'));
 
 app.use('/protected', proxy('localhost:9998', {
   proxyReqOptDecorator: async function(proxyReqOpts, srcReq) {
     const {email, wallet} = JSON.parse(srcReq.headers.auth);
-    const authorized = await contract.forward(email, wallet, srcReq.path);
+    const authorized = await sentry.forward(email, wallet, srcReq.path);
     return authorized ? proxyReqOpts : Promise.reject('Unauthorized');
   }
 }));
 
-app.post('/enroll', async (req, res) => {
+// Chaincode endpoints
+app.post('/pingcontract', async (req, res, next) => {
   try {
-    const walletContent = await contract.enroll(req.body.email, req.body.secret);
-    res.json({ walletContent });
+    const pong = await sentry.ping(req.body.email, req.body.wallet, req.body.text);
+    res.json({ pong });
   } catch (err) {
-    // next(err);
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
+    next(err);
   }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/addendpoint', async (req, res, next) => {
   try {
-    const walletContent = await contract.login(req.body.email, req.body.wallet, req.body.timestamp);
-    res.json({ walletContent });
-  } catch (err) {
-    // next(err);
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
-  }
-});
-
-app.post('/addendpoint', async (req, res) => {
-  try {
-    await contract.addEndpoint(req.body.email, req.body.wallet, req.body.path);
+    await sentry.addEndpoint(req.body.email, req.body.wallet, req.body.path);
     res.sendStatus(200);
   } catch (err) {
-    // next(err);
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
+    next(err);
   }
 });
 
-app.post('/addmapping', async (req, res) => {
+app.post('/addmapping', async (req, res, next) => {
   try {
-    await contract.addMapping(req.body.email, req.body.wallet, req.body.path);
-    res.status(200).send();
+    await sentry.addMapping(req.body.email, req.body.wallet, req.body.path);
+    res.sendStatus(200);
   } catch (err) {
-    // next(err);
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
+    next(err);
   }
 });
 
-app.post('/forward', async (req, res) => {
+app.post('/forward', async (req, res, next) => {
   try {
-    const authorized = await contract.forward(req.body.email, req.body.wallet, req.body.path);
+    const authorized = await sentry.forward(req.body.email, req.body.wallet, req.body.path);
     res.json({ authorized });
   } catch (err) {
-    // next(err);
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
+    next(err);
   }
 });
 
-app.post('/fetchall', async (req, res) => {
+app.post('/fetchall', async (req, res, next) => {
   try {
-    const assets = await contract.fetchall(req.body.email, req.body.wallet);
+    const assets = await sentry.fetchall(req.body.email, req.body.wallet);
     res.json({ assets });
   } catch (err) {
-    // next(err);
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
+    next(err);
   }
 });
 
-app.post('/revoke', async (req, res) => {
+app.post('/revoke', async (req, res, next) => {
   try {
-    await contract.revoke(req.body.email, req.body.wallet, req.body.clientCertHash, req.body.path);
-    res.status(200).send();
+    await sentry.revoke(req.body.email, req.body.wallet, req.body.clientCertHash, req.body.path);
+    res.sendStatus(200);
   } catch (err) {
-    // next(err);
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
+    next(err);
   }
 });
 
-app.post('/reenable', async (req, res) => {
+app.post('/reenable', async (req, res, next) => {
   try {
-    await contract.reenable(req.body.email, req.body.wallet, req.body.clientCertHash, req.body.path);
-    res.status(200).send();
+    await sentry.reenable(req.body.email, req.body.wallet, req.body.clientCertHash, req.body.path);
+    res.sendStatus(200);
   } catch (err) {
-    // next(err);
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
+    next(err);
   }
 });
 
-app.post('/history', async (req, res) => {
+app.post('/history', async (req, res, next) => {
   try {
-    const accessors = await contract.traverseHistory(req.body.email, req.body.wallet, req.body.assetKey);
+    const accessors = await sentry.traverseHistory(req.body.email, req.body.wallet, req.body.assetKey);
     res.json(accessors);
   } catch (err) {
-    console.log(prettyJSONString(JSON.stringify(err)));
-    res.status(500).send(err);
+    next(err);
   }
+});
+
+// Error handling middleware
+app.use(function (err, req, res, next) {
+  console.error(prettyJSONString(JSON.stringify(err)));
+  res.status(500).send(err);
 });
 
 module.exports = app;
+

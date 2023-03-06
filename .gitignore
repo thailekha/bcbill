@@ -23,3 +23,5 @@ web/.vscode
 web-second-instance
 
 **/chaincode-kv-ts/index.js
+
+**/.env

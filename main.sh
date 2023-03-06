@@ -1,10 +1,14 @@
-set -eou pipefail
+#!/bin/bash
 
+set -eoux pipefail
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 DIR=$(pwd)
 cleanup() {
     cd $DIR
 }
 trap cleanup EXIT
+
+SENTRY_CONF_PATH=$(realpath ~)/.apisentry
 
 ############################
 # Empty network (start)
@@ -20,7 +24,6 @@ trap cleanup EXIT
 
 dev() {
     clean
-    admin
     cd tests
     npm run setup-for-dev
     cd -
@@ -45,14 +48,12 @@ start_components() {
 
 pretest_setup() {
     clean
-    admin
     protected_server
 #    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com"
 }
 
 test() {
     clean
-    admin
     protected_server
 #    org1_container_log
     cd tests
@@ -105,39 +106,34 @@ protected_server() {
 ############################
 
 clean() {
-    clear_wallets
+    clear_conf
     rm deployed-contract-version.json || true
-#    compile_contract
     ./fablo recreate
     sleep 5
+    setup_conf
     echo '{"version":1}' > deployed-contract-version.json
 }
 
-clear_wallets() {
-    rm -rf admin/secret*.json || true
-    rm -rf admin/wallet || true
-    rm -rf admin/wallet1 || true
-    rm -rf admin/wallet2 || true
-    rm -rf backend/wallet || true
-    rm -rf backend/wallet1 || true
-    rm -rf backend/wallet2 || true
-    rm -rf tests/wallets.json || true
+setup_conf() {
+    mkdir $SENTRY_CONF_PATH || true
+    mkdir $SENTRY_CONF_PATH/wallet || true
+    cp fablo-target/fabric-config/connection-profiles/connection-profile-org1.json $SENTRY_CONF_PATH/.
+    ls $SENTRY_CONF_PATH
 
-    rm -rf tests/runNo.json || true
+    rm -rf .env || true
+    echo "FABRIC_CONNECTION_PROFILE=$SENTRY_CONF_PATH/connection-profile-org1.json" >> .env
+    echo "WALLET_PATH=$SENTRY_CONF_PATH/wallet" >> .env
+    echo "FABRIC_ROOT_ID=admin" >> .env
+    echo "FABRIC_ROOT_PW=adminpw" >> .env
+    echo "FABRIC_MSP=Org1MSP" >> .env
+    echo "FABRIC_CA_HOST=ca.org1.example.com" >> .env
+
+    node utils/rootCredentials.js
 }
 
-admin() {
-    cd admin
-    node admin1.js customer1@org1.com customer2@org1.com admin1@org1.com admin2@org1.com
-#    jq -s '.[0] * .[1]' secret1.json > secrets.json
-    cp secret1.json secrets.json
-    cd -
-}
-
-compile_contract() {
-    cd chaincodes/chaincode-kv-ts
-    npm run compile
-    cd -
+clear_conf() {
+    rm -rf $SENTRY_CONF_PATH || true
+    rm -rf $SCRIPT_DIR/tests/runNo.json || true
 }
 
 newcontr() {
@@ -167,8 +163,6 @@ npm_install() {
     cd -
     cd chaincodes/chaincode-kv-node && npm i
     cd -
-    cd admin && npm i
-    cd -
     cd web && npm i
     cd -
     cd backend && npm i
@@ -177,7 +171,7 @@ npm_install() {
 
 lint() {
     which eslint || npm i -g eslint
-    eslint protected-server admin backend chaincodes utils tests --fix --ext .js --config eslintrc.json
+    eslint protected-server backend chaincodes utils tests --fix --ext .js --config eslintrc.json
 }
 
 ############################

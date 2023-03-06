@@ -2,7 +2,7 @@ const LedgerEntity = require('./LedgerEntity');
 const hash = require('object-hash');
 const _l = require('../lib/logger');
 const CustomException = require('../lib/CustomException');
-const {fromAdmin} = require('../lib/contract-utils');
+const {fromProvider} = require('../lib/contract-utils');
 const status = require('http-status-codes').StatusCodes;
 
 const getMappingId = (certHash, path) => hash({certHash, path});
@@ -46,7 +46,7 @@ class Mapping  extends LedgerEntity {
 
   async setAuthorized(authorized) {
     _l('setAuthorized start', this.value.path, authorized);
-    fromAdmin(this.ctx);
+    fromProvider(this.ctx);
     this.value.authorized = authorized;
     _l('setAuthorized finish');
     return await this.update();

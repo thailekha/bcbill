@@ -3,15 +3,15 @@ const { ClientIdentity } = require('fabric-shim');
 const CustomException = require('./CustomException');
 const _l = require('./logger');
 
-const fromAdmin = (ctx, throwErr = true) => {
+const fromProvider = (ctx, throwErr = true) => {
   const cid = new ClientIdentity(ctx.stub);
   const email = parseCommonNameFromx509DistinguishedName(cid.getID());
-  const isAdmin = email.includes('admin');
-  if (!isAdmin && throwErr) {
-    _l('Not admin: ', cid.getID(), email);
+  const isProvider = email.includes('provider');
+  if (!isProvider && throwErr) {
+    _l('Not provider: ', cid.getID(), email);
     throw new CustomException(status.FORBIDDEN);
   }
-  return isAdmin;
+  return isProvider;
 };
 
 /**
@@ -37,6 +37,6 @@ async function assetExists(ctx, id) {
 }
 
 module.exports = {
-  fromAdmin,
+  fromProvider: fromProvider,
   parseCommonNameFromx509DistinguishedName
 };

@@ -1,55 +1,19 @@
 'use strict';
 
-const { Gateway, Wallets } = require('fabric-network');
+const { Gateway } = require('fabric-network');
 const fabprotos = require('fabric-protos');
 const { BlockDecoder } = require('fabric-common');
 const ACTIONS =  require(`${__dirname}/actions.json`);
-const { caClient, prettyJSONString, parseOrgFromEmail, getConnectionProfile } = require('../utils');
+const { registerClient, inMemWallet, connectionProfile } = require(`${__dirname}/../utils`);
 const hash = require('object-hash');
 const moment = require('moment');
-const fs = require('fs');
-const fsWalletCreated = user => fs.existsSync(`${__dirname}/wallet/${user}.id`);
-
-// API Sentry's admin is NOT the same as admin1@org1.com
-const ADMIN_ID = 'admin';
-const DEFAULT_ORG_NO = '1';
-const MSP = (orgNo = DEFAULT_ORG_NO) => `Org${orgNo}MSP`;
-const CA_HOST = (orgNo = DEFAULT_ORG_NO) => `ca.org${orgNo}.example.com`;
-const WALLET_PATH =( orgNo = DEFAULT_ORG_NO) => `${__dirname}/wallet${orgNo}` ;
-const AFFILIATION = (orgNo = DEFAULT_ORG_NO) =>  `${orgNo}.department1`;
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
 
-const SECRETS_FILE = require(`${__dirname}/../admin/secrets.json`);
-
-exports.enroll = async (email, secret) => {
-  if (secret !== SECRETS_FILE[email]) {
-    throw new Error('invalid secret');
-  }
-  const wallet = await Wallets.newFileSystemWallet(WALLET_PATH());
-  const walletContent = await enrollEmailWithCa(email, wallet, secret);
+exports.registerUser = async email => {
+  const walletContent = await registerClient(email);
   await executeContract({}, email, walletContent, ACTIONS.ADD_USER, email, hash(walletContent.credentials.certificate));
-  return walletContent;
-};
-
-// Flow: register -> get secret -> enroll
-exports.registerUser = async (email) => {
-  const wallet = await Wallets.newFileSystemWallet('/home/vagrant/work/bcbill/admin/wallet1');
-  const secret = await registerEmailWithCa(wallet, email);
-
-  const enrollment = await caConn().enroll({
-    enrollmentID: email,
-    enrollmentSecret: secret
-  });
-  const walletContent = {
-    credentials: {
-      certificate: enrollment.certificate,
-      privateKey: enrollment.key.toBytes(),
-    },
-    mspId: MSP(),
-    type: 'X.509',
-  };
   return walletContent;
 };
 
@@ -80,18 +44,12 @@ exports.reenable = async (email, walletContent, clientCertHash, path) => await e
 exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
   {}, email, walletContent, hash(walletContent.credentials.certificate), assetKey);
 
-async function inMemWallet(email, walletContent) {
-  const wallet = await Wallets.newInMemoryWallet();
-  wallet.put(email, walletContent);
-  return wallet;
-}
-
 async function getHistory(identity, walletContent, certHash, assetToCheck) {
-  const peer = getConnectionProfile(parseOrgFromEmail(identity));
+  const profile = connectionProfile();
   const wallet = await inMemWallet(identity, walletContent);
   const gateway = new Gateway();
   try {
-    await gateway.connect(peer, {
+    await gateway.connect(profile, {
       wallet,
       identity,
       discovery: { enabled: true, asLocalhost: true }
@@ -202,7 +160,7 @@ function processBlock(block, assetToCheck, ownerIdHash, accessors) {
 }
 
 async function executeContract(opts, identity, walletContent, action, ...args) {
-  const peer = getConnectionProfile(parseOrgFromEmail(identity));
+  const profile = connectionProfile();
   const wallet = await inMemWallet(identity, walletContent);
   const gateway = new Gateway();
   try {
@@ -211,7 +169,7 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
     // https://hyperledger-fabric.readthedocs.io/en/release-2.2/developapps/connectionoptions.html
     // fast
     if (opts.fast) {
-      await gateway.connect(peer, {
+      await gateway.connect(profile, {
         wallet,
         identity,
         discovery: { enabled: true, asLocalhost: true },
@@ -223,7 +181,7 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
     }
     // safe
     else {
-      await gateway.connect(peer, {
+      await gateway.connect(profile, {
         wallet,
         identity,
         discovery: { enabled: true, asLocalhost: true }
@@ -243,43 +201,5 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
   finally {
     gateway.disconnect();
   }
-}
-
-function caConn() {
-  const peer = getConnectionProfile(DEFAULT_ORG_NO);
-  return caClient(peer, CA_HOST());
-}
-
-async function registerEmailWithCa(wallet, email) {
-  // wallet is just a folder that contains multiple creds
-  const adminIdentity = await wallet.get(ADMIN_ID);
-  if ((await wallet.get(email)) || !adminIdentity) return;
-  const adminUser = await wallet
-    .getProviderRegistry()
-    .getProvider(adminIdentity.type)
-    .getUserContext(adminIdentity, ADMIN_ID);
-  return await caConn().register({
-    affiliation: 'org1.department1',
-    enrollmentID: email,
-    role: 'client'
-  }, adminUser);
-}
-
-async function enrollEmailWithCa(email, wallet, secret, opts = {}) {
-  if (fsWalletCreated(email) || (await wallet.get(email))) { return; }
-  const enrollment = await caConn().enroll({
-    enrollmentID: email,
-    enrollmentSecret: secret
-  });
-  const walletContent = {
-    credentials: {
-      certificate: enrollment.certificate,
-      privateKey: enrollment.key.toBytes(),
-    },
-    mspId: MSP(),
-    type: 'X.509',
-  };
-  await wallet.put(email, walletContent);
-  return walletContent;
 }
 
