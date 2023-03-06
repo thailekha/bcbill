@@ -1,27 +1,29 @@
 const axios = require('axios');
 
-const newEndpoint1 = {
-  name: 'example1',
-  url: 'http://localhost:9998'
-};
-
-const newEndpoint2 = {
-  name: 'example2',
-  url: 'http://localhost:9999'
-};
-
-async function createEndpoints() {
+const addServer = async (serverName, serverUrl, endpoints) => {
   try {
-    // Make the first request to create the first endpoint
-    const response1 = await axios.post('http://localhost:3000/endpoints', newEndpoint1);
-    console.log(response1.data);
-
-    // Once the first request completes successfully, make the second request to create the second endpoint
-    const response2 = await axios.post('http://localhost:3000/endpoints', newEndpoint2);
-    console.log(response2.data);
+    const response = await axios.post('http://localhost:3000/servers', { name: serverName, url: serverUrl, endpoints });
+    console.log(response.data);
   } catch (error) {
     console.error(error);
   }
+};
+
+const callEndpoint = async (serverName, endpoint) => {
+  try {
+    const response = await axios.get(`http://localhost:3000/${serverName}/${endpoint}`);
+    console.log(response.data);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+async function main() {
+  // Add a new origin server
+  await addServer('awesome-rest-server', 'localhost:9998', ['/hello', '/ping']);
+
+  // Call an endpoint on the origin server
+  // await callEndpoint('awesome-rest-server', 'ping');
 }
 
-createEndpoints();
+main();

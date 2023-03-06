@@ -194,6 +194,21 @@ expose() {
 ############################
 
 ############################
+# Playground (start)
+############################
+
+# start protected server
+
+playground() {
+  protected_server
+  terminal_tab "cd /home/vagrant/work/bcbill/playground-scripts/js-scripts && node proxy.js"
+}
+
+############################
+# Playground (end)
+############################
+
+############################
 # Utils (start)
 ############################
 
