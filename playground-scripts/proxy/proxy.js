@@ -35,9 +35,9 @@ app.post('/servers', (req, res) => {
 });
 
 // Proxy requests to the appropriate endpoint on the appropriate server based on the URL
-app.get('*', (req, res) => {
+app.get('/proxy/*', (req, res) => {
   const url = req.url;
-  const [serverName, ...path] = url.substring(1).split('/');
+  const [serverName, ...path] = url.substring(7).split('/');
   const server = servers[serverName];
   if (server) {
     const endpoint = server.endpoints.find(ep => `/${path.join('/')}`.startsWith(ep));
