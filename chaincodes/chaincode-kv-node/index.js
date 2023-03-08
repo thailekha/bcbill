@@ -1,53 +1,51 @@
-const {Contract} = require('fabric-contract-api');
+const {Contract, Asset} = require('fabric-contract-api');
 const _l = require('./lib/logger');
-const { User, DOCTYPE: USER_DOCTYPE} = require('./models/User');
+const { Client, DOCTYPE: CLIENT_DOCTYPE} = require('./models/Client');
+const { ApiProvider, DOCTYPE: API_PROVIDER_DOCTYPE} = require('./models/ApiProvider');
+const { OriginServer, DOCTYPE: ORIGIN_SERVER_DOCTYPE} = require('./models/OriginServer');
 const { Endpoint, DOCTYPE: ENDPOINT_DOCTYPE}   = require('./models/Endpoint');
-const { Mapping, DOCTYPE: MAPPING_DOCTYPE}  = require('./models/Mapping');
+const { EndpointAccessGrant, DOCTYPE: ENDPOINT_ACCESS_GRANT_DOCTYPE}  = require('./models/EndpointAccessGrant');
 const {query} = require('./lib/couchDbController');
 const {fromProvider} = require('./lib/contract-utils');
-const LedgerEntity = require('./models/LedgerEntity');
 
 class APISentryContract extends Contract {
-  async Ping(ctx, text) {
-    _l('Ping start', text);
-    await (new LedgerEntity(ctx, text, {ping: 'Ping'}, 'Ping').create());
-    for (let i = 0; i < 10; i++) {
-      _l('Loop', i);
-      await LedgerEntity._get(ctx, text);
-    }
-    const pong = await LedgerEntity._get(ctx, text);
-    _l('Ping finished');
-    return {pong: 'pong'};
-    // return {pong: text};
+  async AddClient(ctx, email) {
+    return await(new Client(ctx, email)).create();
   }
 
-  async AddUser(ctx, email, certHash) {
-    return await(new User(ctx, email, certHash)).create();
+  async AddProvider(ctx, email) {
+    return await(new ApiProvider(ctx, email)).create();
   }
 
-  async AddEndpoint(ctx, path) {
-    return await(new Endpoint(ctx, path)).create();
+  async AddOriginServer(ctx, providerEmail, host) {
+    return await(new OriginServer(ctx, providerEmail, host)).create();
   }
 
-  async AddMapping(ctx, email, certHash, path) {
-    return await(new Mapping(ctx, email, certHash, path)).create();
+  async AddEndpoint(ctx, providerEmail, host, path, verb) {
+    return await(new Endpoint(ctx, providerEmail, host, path, verb)).create();
   }
 
-  async RevokeMapping(ctx, certHash, path) {
-    const mapping = await Mapping.find(ctx, certHash, path);
-    return await mapping.setAuthorized(false);
+  async AddEndpointAccessGrant(ctx, providerEmail, host, path, verb, clientEmail) {
+    return await(new EndpointAccessGrant(ctx, providerEmail, host, path, verb, clientEmail)).create();
   }
 
-  async ReenableMapping(ctx, certHash, path) {
-    const mapping = await Mapping.find(ctx, certHash, path);
-    return await mapping.setAuthorized(true);
+  async Revoke(ctx, endpointAccessGrantId) {
+    const endpointAccessGrant = await EndpointAccessGrant.getByIdForProvider(ctx, endpointAccessGrantId);
+    endpointAccessGrant.value.revoked = true;
+    await endpointAccessGrant.update();
   }
 
-  async Forward(ctx, certHash, path) {
-    _l('Forward start', certHash, path);
-    const mapping = await Mapping.find(ctx, certHash, path);
+  async Enable(ctx, endpointAccessGrantId) {
+    const endpointAccessGrant = await EndpointAccessGrant.getByIdForProvider(ctx, endpointAccessGrantId);
+    endpointAccessGrant.value.revoked = false;
+    await endpointAccessGrant.update();
+  }
+
+  async Forward(ctx, endpointAccessGrantId, clientEmail) {
+    _l('Forward start');
+    const endpointAccessGrant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
     _l('Forward finish');
-    return mapping.value.authorized;
+    return endpointAccessGrant.canForward(clientEmail);
   }
 
   /*
@@ -60,42 +58,53 @@ class APISentryContract extends Contract {
   // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
   async FetchAll(ctx, certHash) {
     _l('FetchAll start');
-
     // sort: [{ time: 'asc' }]
-
     const providerQuery = [
       {
-        docType: USER_DOCTYPE
+        docType: API_PROVIDER_DOCTYPE
+      },
+      {
+        docType: CLIENT_DOCTYPE
+      },
+      {
+        docType: ORIGIN_SERVER_DOCTYPE
       },
       {
         docType: ENDPOINT_DOCTYPE
       },
       {
-        docType: MAPPING_DOCTYPE
-      }
+        docType: ENDPOINT_ACCESS_GRANT_DOCTYPE
+      },
     ];
 
-    const normalUserQuery = [
+    const clientQuery = [
+      {
+        docType: API_PROVIDER_DOCTYPE
+      },
+      {
+        docType: CLIENT_DOCTYPE
+      },
+      {
+        docType: ORIGIN_SERVER_DOCTYPE
+      },
       {
         docType: ENDPOINT_DOCTYPE
       },
       {
-        docType: MAPPING_DOCTYPE,
-        certHash
-      }
+        docType: ENDPOINT_ACCESS_GRANT_DOCTYPE,
+        // certHash
+      },
     ];
 
     const query_result = await query(ctx, {
       selector: {
-        '$or': fromProvider(ctx, false) ? providerQuery : normalUserQuery
+        '$or': fromProvider(ctx, false) ? providerQuery : clientQuery
       },
       fields: [
-        'docType', 'email', 'path', 'certHash', 'authorized'
+        '*'
       ]
     });
-
     _l('FetchAll finish', query_result);
-
     return query_result;
   }
 }

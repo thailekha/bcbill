@@ -1,222 +1,133 @@
 const request = require('supertest');
 
 const CONTENT_JSON = ['Content-Type', 'application/json'];
+const ORIGIN_SERVER_HOST = 'localhost:9998';
 const ENDPOINTS = [
-  '/ping',
-  '/helloworld',
-  '/echo',
-  '/square-of',
-  '/sum',
-  '/average',
+  ['/ping', 'get',],
+  [  '/helloworld','get',],
+  [  '/echo', 'post',],
+  [  '/square-of', 'post',],
+  [  '/sum', 'post',],
+  [  '/average', 'post',],
 ];
 
 module.exports = (backend) => {
 
-  async function addEndpoints(user, wallet) {
-    for(const e of ENDPOINTS) {
-      await addEndpoint(user, wallet, e);
+  async function AddEndpoints(email, wallet) {
+    for(const [ path, verb ] of ENDPOINTS) {
+      await AddEndpoint(email, wallet, ORIGIN_SERVER_HOST, path, verb);
     }
   }
 
-  async function register(email) {
+  async function register(email, isProvider) {
     try {
       const {body: {walletContent}} = await request(backend)
         .post('/register')
         .set(...CONTENT_JSON)
         .send({
-          email
+          email,
+          isProvider
         })
         .expect(200);
       return walletContent;
     } catch (err) {
-      console.error(err);
       throw err;
     }
   }
-
-  async function login(email, wallet, location) {
+  async function AddOriginServer(email, wallet) {
     try {
-      const {body: {walletContent}} = await request(backend)
-        .post('/login')
+      await request(backend)
+        .post('/AddOriginServer')
         .set(...CONTENT_JSON)
         .send({
           email,
           wallet,
-          timestamp: (new Date()).getTime(),
-          location
+          host: ORIGIN_SERVER_HOST
         })
         .expect(200);
-      return walletContent;
     } catch (err) {
-      console.error(err);
       throw err;
     }
   }
 
-  async function getUser(email, wallet) {
+  async function AddEndpoint(email, wallet, host, path, verb) {
     try {
-      const {body: user} = await request(backend)
-        .post('/getuser')
-        .set(...CONTENT_JSON)
-        .send({ email, wallet })
-        .expect(200);
-      return user;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  }
-
-  async function addEndpoint(email, wallet, path) {
-    try {
-      return await request(backend)
-        .post('/addendpoint')
+      await request(backend)
+        .post('/AddEndpoint')
         .set(...CONTENT_JSON)
         .send({
           email,
           wallet,
-          path
+          host,
+          path,
+          verb
         })
         .expect(200);
     } catch (err) {
-      console.error(err);
       throw err;
     }
   }
 
-  async function addMapping(email, wallet, path) {
+  async function AddEndpointAccessGrant(email, wallet, providerEmail, host, path, verb, clientEmail) {
     try {
-      return await request(backend)
-        .post('/addmapping')
+      await request(backend)
+        .post('/AddEndpointAccessGrant')
         .set(...CONTENT_JSON)
         .send({
           email,
           wallet,
-          path
+          providerEmail,
+          host,
+          path,
+          verb,
+          clientEmail
         })
         .expect(200);
     } catch (err) {
-      console.error(err);
       throw err;
     }
   }
 
-  async function revoke(email, wallet, clientCertHash, path) {
+  async function Revoke(email, wallet, endpointAccessGrantId) {
     try {
-      return await request(backend)
-        .post('/revoke')
+      await request(backend)
+        .post('/Revoke')
         .set(...CONTENT_JSON)
         .send({
           email,
           wallet,
-          clientCertHash,
-          path
+          endpointAccessGrantId
         })
         .expect(200);
     } catch (err) {
-      console.error(err);
       throw err;
     }
   }
 
-  async function reenable(email, wallet, clientCertHash, path) {
+  async function Enable(email, wallet, endpointAccessGrantId) {
     try {
-      return await request(backend)
-        .post('/reenable')
+      await request(backend)
+        .post('/Enable')
         .set(...CONTENT_JSON)
         .send({
           email,
           wallet,
-          clientCertHash,
-          path
+          endpointAccessGrantId
         })
         .expect(200);
     } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  }
-
-  async function pingProtected(email, wallet, path, expectCode) {
-    try {
-      const res = await request(backend)
-        .get('/protected' + path)
-        .set({
-          auth: JSON.stringify({email, wallet})
-        })
-        .expect(expectCode);
-      return res.body;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  }
-
-  async function fetchall(email, wallet) {
-    try {
-      const res = await request(backend)
-        .post('/fetchall')
-        .set(...CONTENT_JSON)
-        .send({
-          email,
-          wallet
-        })
-        .expect(200);
-      return res.body;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  }
-
-  async function getHistory(email, wallet, assetKey) {
-    try {
-      const res = await request(backend)
-        .post('/history')
-        .set(...CONTENT_JSON)
-        .send({
-          email,
-          wallet,
-          assetKey
-        })
-        .expect(200);
-      return res.body;
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  }
-
-  async function pingcontract(email, wallet, text) {
-    try {
-      const res = await request(backend)
-        .post('/pingcontract')
-        .set(...CONTENT_JSON)
-        .send({
-          email,
-          wallet,
-          text
-        })
-        .expect(200);
-      return res.body;
-    } catch (err) {
-      console.error(err);
       throw err;
     }
   }
 
   return {
-    addEndpoints,
+    AddEndpoints,
     register,
-    login,
-    getUser,
-    addEndpoint,
-    addMapping,
-    revoke,
-    reenable,
-    pingProtected,
-    fetchall,
-    getHistory
+    AddOriginServer,
+    AddEndpoint,
+    AddEndpointAccessGrant,
+    Revoke,
+    Enable
   };
 };
 

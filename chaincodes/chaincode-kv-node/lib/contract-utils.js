@@ -29,13 +29,6 @@ const parseCommonNameFromx509DistinguishedName = dn => {
   return parseResult[0];
 };
 
-async function assetExists(ctx, id) {
-  const assetJSON = await ctx.stub.getState(id);
-  if (!(assetJSON && assetJSON.length > 0)) {
-    throw new Error(`The asset ${id} does not exist`);
-  }
-}
-
 module.exports = {
   fromProvider: fromProvider,
   parseCommonNameFromx509DistinguishedName

@@ -3,7 +3,7 @@
 const { Gateway } = require('fabric-network');
 const fabprotos = require('fabric-protos');
 const { BlockDecoder } = require('fabric-common');
-const ACTIONS =  require(`${__dirname}/actions.json`);
+const ACTIONS =  require(`${__dirname}/actions`);
 const { registerClient, inMemWallet, connectionProfile } = require(`${__dirname}/../utils`);
 const hash = require('object-hash');
 const moment = require('moment');
@@ -11,35 +11,32 @@ const moment = require('moment');
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
 
-exports.registerUser = async email => {
+exports.registerUser = async (email, isProvider) => {
   const walletContent = await registerClient(email);
-  await executeContract({}, email, walletContent, ACTIONS.ADD_USER, email, hash(walletContent.credentials.certificate));
+  await executeContract({}, email, walletContent, isProvider ? ACTIONS.AddProvider : ACTIONS.AddClient, email);
   return walletContent;
 };
 
-exports.ping = async (email, walletContent, text) => await executeContract(
-  {}, email, walletContent, 'Ping', text);
+exports.AddOriginServer = async (email, walletContent, host) => await executeContract(
+  {}, email, walletContent, ACTIONS.AddOriginServer, email, host);
 
-exports.login = async (email, walletContent, timestamp) => await executeContract(
-  {}, email, walletContent, ACTIONS.LOGIN, hash(walletContent.credentials.certificate), timestamp);
+exports.AddEndpoint = async (email, walletContent, host, path, verb) => await executeContract(
+  {}, email, walletContent, ACTIONS.AddEndpoint, email, host, path, verb);
 
-exports.addEndpoint = async (email, walletContent, path) => await executeContract(
-  {}, email, walletContent, ACTIONS.ADD_ENDPOINT, path);
+exports.AddEndpointAccessGrant = async (email, walletContent, providerEmail, host, path, verb, clientEmail) => await executeContract(
+  {}, email, walletContent, ACTIONS.AddEndpointAccessGrant, providerEmail, host, path, verb, clientEmail);
 
-exports.addMapping = async (email, walletContent, path) => await executeContract(
-  {}, email, walletContent, ACTIONS.ADD_MAPPING, email, hash(walletContent.credentials.certificate), path);
+exports.Revoke = async (email, walletContent, endpointAccessGrantId) => await executeContract(
+  {}, email, walletContent, ACTIONS.Revoke, endpointAccessGrantId);
 
-exports.forward = async (email, walletContent, path) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.FORWARD, hash(walletContent.credentials.certificate), path);
+exports.Enable = async (email, walletContent, endpointAccessGrantId) => await executeContract(
+  {}, email, walletContent, ACTIONS.Enable, endpointAccessGrantId);
 
-exports.fetchall = async (email, walletContent) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.FETCH_ALL, hash(walletContent.credentials.certificate));
+exports.Forward = async (email, walletContent, endpointAccessGrantId, clientEmail) => await executeContract(
+  {fast: true}, email, walletContent, ACTIONS.Forward, endpointAccessGrantId, clientEmail);
 
-exports.revoke = async (email, walletContent, clientCertHash, path) => await executeContract(
-  {}, email, walletContent, ACTIONS.REVOKE_MAPPING, clientCertHash, path);
-
-exports.reenable = async (email, walletContent, clientCertHash, path) => await executeContract(
-  {}, email, walletContent, ACTIONS.REENABLE_MAPPING, clientCertHash, path);
+exports.FetchAll = async (email, walletContent) => await executeContract(
+  {fast: true}, email, walletContent, ACTIONS.FetchAll);
 
 exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
   {}, email, walletContent, hash(walletContent.credentials.certificate), assetKey);

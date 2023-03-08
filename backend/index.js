@@ -19,33 +19,63 @@ app.get('/ping', async (req, res) => {
 // User endpoints
 app.post('/register', async (req, res, next) => {
   try {
-    const walletContent = await sentry.registerUser(req.body.email);
+    const {email, isProvider} = req.body;
+    const walletContent = await sentry.registerUser(email, isProvider);
     res.json({ walletContent });
   } catch (err) {
     next(err);
   }
 });
 
-app.post('/enroll', async (req, res, next) => {
+app.post('/AddOriginServer', async (req, res, next) => {
   try {
-    const walletContent = await sentry.enroll(req.body.email, req.body.secret);
-    res.json({ walletContent });
+    const {email, wallet, host} = req.body;
+    await sentry.AddOriginServer(email, wallet, host);
+    res.sendStatus(200);
   } catch (err) {
     next(err);
   }
 });
 
-app.post('/login', async (req, res, next) => {
+app.post('/AddEndpoint', async (req, res, next) => {
   try {
-    const walletContent = await sentry.login(req.body.email, req.body.wallet, req.body.timestamp);
-    res.json({ walletContent });
+    const {email, wallet, host, path, verb} = req.body;
+    await sentry.AddEndpoint(email, wallet, host, path, verb);
+    res.sendStatus(200);
   } catch (err) {
     next(err);
   }
 });
 
-// Proxy endpoints
-app.use('/proxy', proxy('localhost:9998'));
+app.post('/AddEndpointAccessGrant', async (req, res, next) => {
+  try {
+    const {email, wallet, providerEmail, host, path, verb, clientEmail} = req.body;
+    await sentry.AddEndpointAccessGrant(email, wallet, providerEmail, host, path, verb, clientEmail);
+    res.sendStatus(200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/Revoke', async (req, res, next) => {
+  try {
+    const {email, wallet, endpointAccessGrantId} = req.body;
+    await sentry.Revoke(email, wallet, endpointAccessGrantId);
+    res.sendStatus(200);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/Enable', async (req, res, next) => {
+  try {
+    const {email, wallet, endpointAccessGrantId} = req.body;
+    await sentry.Enable(email, wallet, endpointAccessGrantId);
+    res.sendStatus(200);
+  } catch (err) {
+    next(err);
+  }
+});
 
 app.use('/protected', proxy('localhost:9998', {
   proxyReqOptDecorator: async function(proxyReqOpts, srcReq) {
@@ -55,81 +85,8 @@ app.use('/protected', proxy('localhost:9998', {
   }
 }));
 
-// Chaincode endpoints
-app.post('/pingcontract', async (req, res, next) => {
-  try {
-    const pong = await sentry.ping(req.body.email, req.body.wallet, req.body.text);
-    res.json({ pong });
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/addendpoint', async (req, res, next) => {
-  try {
-    await sentry.addEndpoint(req.body.email, req.body.wallet, req.body.path);
-    res.sendStatus(200);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/addmapping', async (req, res, next) => {
-  try {
-    await sentry.addMapping(req.body.email, req.body.wallet, req.body.path);
-    res.sendStatus(200);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/forward', async (req, res, next) => {
-  try {
-    const authorized = await sentry.forward(req.body.email, req.body.wallet, req.body.path);
-    res.json({ authorized });
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/fetchall', async (req, res, next) => {
-  try {
-    const assets = await sentry.fetchall(req.body.email, req.body.wallet);
-    res.json({ assets });
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/revoke', async (req, res, next) => {
-  try {
-    await sentry.revoke(req.body.email, req.body.wallet, req.body.clientCertHash, req.body.path);
-    res.sendStatus(200);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/reenable', async (req, res, next) => {
-  try {
-    await sentry.reenable(req.body.email, req.body.wallet, req.body.clientCertHash, req.body.path);
-    res.sendStatus(200);
-  } catch (err) {
-    next(err);
-  }
-});
-
-app.post('/history', async (req, res, next) => {
-  try {
-    const accessors = await sentry.traverseHistory(req.body.email, req.body.wallet, req.body.assetKey);
-    res.json(accessors);
-  } catch (err) {
-    next(err);
-  }
-});
-
 // Error handling middleware
-app.use(function (err, req, res, next) {
+app.use(function (err, req, res) {
   console.error(prettyJSONString(JSON.stringify(err)));
   res.status(500).send(err);
 });
