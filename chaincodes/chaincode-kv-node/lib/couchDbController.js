@@ -1,3 +1,5 @@
+
+// write me a couchdb query to be used with the query function. It fetches all OriginServers belong to a providerEmail, then for each found OriginServers
 const query = async (ctx, query, opt = { formatResult: true }) => {
   let iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
   let result = await getIteratorData(iterator);

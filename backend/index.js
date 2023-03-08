@@ -57,6 +57,16 @@ app.post('/AddEndpointAccessGrant', async (req, res, next) => {
   }
 });
 
+app.post('/FetchAll', async (req, res, next) => {
+  try {
+    const {email, wallet, providerEmail} = req.body;
+    const result = await sentry.FetchAll(email, wallet, providerEmail);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/Revoke', async (req, res, next) => {
   try {
     const {email, wallet, endpointAccessGrantId} = req.body;

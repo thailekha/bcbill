@@ -8,10 +8,13 @@ const jstr = (i) => JSON.stringify(i);
 const _l = i => console.log(jstr(i));
 
 const {
+  ORIGIN_SERVER_HOST,
+  ENDPOINTS,
   AddEndpoints,
   register,
   AddOriginServer,
   AddEndpoint,
+  FetchAll,
   AddEndpointAccessGrant,
   Revoke,
   Enable
@@ -39,6 +42,19 @@ describe('full-suite', function() {
 
   it('should add endpoints', async() => {
     await AddEndpoints(provider1, provider1_wallet);
+  });
+
+  // MINIMAL INFO NEEDED TO grant access and test forward case
+  /*
+      client login
+      -> select provider
+      -> select origin servers (APIs)
+      -> select path + verb
+   */
+
+  it('should fetch origin servers and endpoints for client', async() => {
+    const result = await FetchAll(client1, client1_wallet, provider1);
+    console.log();
   });
   
   // it('should fetchall for admin', async() => {

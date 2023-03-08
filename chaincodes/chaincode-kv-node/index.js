@@ -56,53 +56,24 @@ class APISentryContract extends Contract {
     user can just grab a mapping after signing up
   */
   // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
-  async FetchAll(ctx, certHash) {
+  // fields: [  "email",  "providerEmail",  "host",  "path",  "verb",  "clientEmail",  "requestedBy",  "approvedBy",  "clientIds",  "limit",  "revoked" ]
+  async FetchAll(ctx, providerEmail) {
     _l('FetchAll start');
     // sort: [{ time: 'asc' }]
-    const providerQuery = [
-      {
-        docType: API_PROVIDER_DOCTYPE
-      },
-      {
-        docType: CLIENT_DOCTYPE
-      },
-      {
-        docType: ORIGIN_SERVER_DOCTYPE
-      },
-      {
-        docType: ENDPOINT_DOCTYPE
-      },
-      {
-        docType: ENDPOINT_ACCESS_GRANT_DOCTYPE
-      },
-    ];
-
-    const clientQuery = [
-      {
-        docType: API_PROVIDER_DOCTYPE
-      },
-      {
-        docType: CLIENT_DOCTYPE
-      },
-      {
-        docType: ORIGIN_SERVER_DOCTYPE
-      },
-      {
-        docType: ENDPOINT_DOCTYPE
-      },
-      {
-        docType: ENDPOINT_ACCESS_GRANT_DOCTYPE,
-        // certHash
-      },
-    ];
-
     const query_result = await query(ctx, {
       selector: {
-        '$or': fromProvider(ctx, false) ? providerQuery : clientQuery
+        $or: [
+          {
+            docType: 'OriginServer',
+            providerEmail: providerEmail
+          },
+          {
+            docType: 'Endpoint',
+            host: 'localhost:9998'
+          }
+        ]
       },
-      fields: [
-        '*'
-      ]
+      fields: [ '_id', 'value', '_attachments',  "email",  "providerEmail",  "host",  "path",  "verb",  "clientEmail",  "requestedBy",  "approvedBy",  "clientIds",  "limit",  "revoked" ]
     });
     _l('FetchAll finish', query_result);
     return query_result;

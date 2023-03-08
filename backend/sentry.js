@@ -35,8 +35,8 @@ exports.Enable = async (email, walletContent, endpointAccessGrantId) => await ex
 exports.Forward = async (email, walletContent, endpointAccessGrantId, clientEmail) => await executeContract(
   {fast: true}, email, walletContent, ACTIONS.Forward, endpointAccessGrantId, clientEmail);
 
-exports.FetchAll = async (email, walletContent) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.FetchAll);
+exports.FetchAll = async (email, walletContent, providerEmail) => await executeContract(
+  {fast: true}, email, walletContent, ACTIONS.FetchAll, providerEmail);
 
 exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
   {}, email, walletContent, hash(walletContent.credentials.certificate), assetKey);

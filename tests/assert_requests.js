@@ -4,11 +4,11 @@ const CONTENT_JSON = ['Content-Type', 'application/json'];
 const ORIGIN_SERVER_HOST = 'localhost:9998';
 const ENDPOINTS = [
   ['/ping', 'get',],
-  [  '/helloworld','get',],
-  [  '/echo', 'post',],
-  [  '/square-of', 'post',],
-  [  '/sum', 'post',],
-  [  '/average', 'post',],
+  // [  '/helloworld','get',],
+  // [  '/echo', 'post',],
+  // [  '/square-of', 'post',],
+  // [  '/sum', 'post',],
+  // [  '/average', 'post',],
 ];
 
 module.exports = (backend) => {
@@ -88,6 +88,22 @@ module.exports = (backend) => {
     }
   }
 
+  async function FetchAll(email, wallet, providerEmail) {
+    try {
+      return (await request(backend)
+        .post('/FetchAll')
+        .set(...CONTENT_JSON)
+        .send({
+          email,
+          wallet,
+          providerEmail
+        })
+        .expect(200)).body;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async function Revoke(email, wallet, endpointAccessGrantId) {
     try {
       await request(backend)
@@ -121,10 +137,13 @@ module.exports = (backend) => {
   }
 
   return {
+    ORIGIN_SERVER_HOST,
+    ENDPOINTS,
     AddEndpoints,
     register,
     AddOriginServer,
     AddEndpoint,
+    FetchAll,
     AddEndpointAccessGrant,
     Revoke,
     Enable
