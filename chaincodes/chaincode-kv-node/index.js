@@ -21,20 +21,20 @@ class APISentryContract extends Contract {
     return provider.getCopy();
   }
 
-  async AddOriginServer(ctx, providerEmail, host) {
-    const originServer = new OriginServer(ctx, providerEmail, host);
+  async AddOriginServer(ctx, providerEmail, serverName, host) {
+    const originServer = new OriginServer(ctx, providerEmail, serverName, host);
     await originServer.create();
     return originServer.getCopy();
   }
 
-  async AddEndpoint(ctx, providerEmail, host, path, verb) {
-    const endpoint = new Endpoint(ctx, providerEmail, host, path, verb);
+  async AddEndpoint(ctx, originServerId, path, verb) {
+    const endpoint = new Endpoint(ctx, originServerId, path, verb);
     await endpoint.create();
     return endpoint.getCopy();
   }
 
-  async AddEndpointAccessGrant(ctx, providerEmail, host, path, verb, clientEmail) {
-    const grant = new EndpointAccessGrant(ctx, providerEmail, host, path, verb, clientEmail);
+  async AddEndpointAccessGrant(ctx, endpointId, clientEmail) {
+    const grant = new EndpointAccessGrant(ctx, endpointId, clientEmail);
     await grant.create();
     return grant.getCopy();
   }

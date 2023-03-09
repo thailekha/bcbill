@@ -1,7 +1,9 @@
 const request = require('supertest');
 
 const CONTENT_JSON = ['Content-Type', 'application/json'];
-const ORIGIN_SERVER_HOST = 'localhost:9998';
+const ORIGIN_SERVERS = [
+  ['math', 'localhost:9998']
+];
 const ENDPOINTS = [
   ['/ping', 'get',],
   // [  '/helloworld','get',],
@@ -13,10 +15,12 @@ const ENDPOINTS = [
 
 module.exports = (backend) => {
 
-  async function AddEndpoints(email, wallet) {
+  async function AddEndpoints(email, wallet, originServerId) {
+    const added = [];
     for(const [ path, verb ] of ENDPOINTS) {
-      await AddEndpoint(email, wallet, ORIGIN_SERVER_HOST, path, verb);
+      added.push(await AddEndpoint(email, wallet, originServerId, path, verb));
     }
+    return added;
   }
 
   async function register(email, isProvider) {
@@ -36,39 +40,40 @@ module.exports = (backend) => {
   }
   async function AddOriginServer(email, wallet) {
     try {
-      await request(backend)
+      return (await request(backend)
         .post('/AddOriginServer')
         .set(...CONTENT_JSON)
         .send({
           email,
           wallet,
-          host: ORIGIN_SERVER_HOST
+          serverName: ORIGIN_SERVERS[0][0],
+          host: ORIGIN_SERVERS[0][1]
         })
-        .expect(200);
+        .expect(200)).body;
     } catch (err) {
       throw err;
     }
   }
 
-  async function AddEndpoint(email, wallet, host, path, verb) {
+  async function AddEndpoint(email, wallet, originServerId, path, verb) {
     try {
-      await request(backend)
+      return (await request(backend)
         .post('/AddEndpoint')
         .set(...CONTENT_JSON)
         .send({
           email,
           wallet,
-          host,
+          originServerId,
           path,
           verb
         })
-        .expect(200);
+        .expect(200)).body;
     } catch (err) {
       throw err;
     }
   }
 
-  async function AddEndpointAccessGrant(email, wallet, providerEmail, host, path, verb, clientEmail) {
+  async function AddEndpointAccessGrant(email, wallet, endpointId, clientEmail) {
     try {
       return (await request(backend)
         .post('/AddEndpointAccessGrant')
@@ -76,10 +81,7 @@ module.exports = (backend) => {
         .send({
           email,
           wallet,
-          providerEmail,
-          host,
-          path,
-          verb,
+          endpointId,
           clientEmail
         })
         .expect(200)).body;
@@ -171,7 +173,7 @@ module.exports = (backend) => {
   async function pingOriginServer(email, wallet, endpointAccessGrantId) {
     try {
       await request(backend)
-        .get('/proxy/ping')
+        .get('/origin-server/math/ping')
         .set({
           auth: JSON.stringify({email, wallet, endpointAccessGrantId})
         })
@@ -198,7 +200,7 @@ module.exports = (backend) => {
   // }
 
   return {
-    ORIGIN_SERVER_HOST,
+    ORIGIN_SERVER_HOST: ORIGIN_SERVERS,
     ENDPOINTS,
     AddEndpoints,
     register,

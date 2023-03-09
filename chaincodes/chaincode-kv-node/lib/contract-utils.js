@@ -17,7 +17,7 @@ const fromProvider = (ctx, throwErr = true, returnProviderEmail = false) => {
 const parseEmail = ctx => {
   const cid = new ClientIdentity(ctx.stub);
   return parseCommonNameFromx509DistinguishedName(cid.getID());
-}
+};
 
 /**
  * Parses the common name from an X.509 distinguished name.

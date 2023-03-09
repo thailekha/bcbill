@@ -3,21 +3,26 @@ const hash = require('object-hash');
 
 const DOCTYPE = 'Endpoint';
 
-function makeEndpointId(providerEmail, host, path, verb) {
-  return hash({providerEmail, host, path, verb});
+function makeEndpointId(originServerId, path, verb) {
+  return hash({originServerId, path, verb});
 }
 
 class Endpoint extends LedgerEntity {
-  constructor(ctx, providerEmail, host, path, verb) {
+  constructor(ctx, originServerId, path, verb) {
     super(
       ctx,
-      makeEndpointId(providerEmail, host, path, verb),
-      { providerEmail, host, path, verb },
+      makeEndpointId(originServerId, path, verb),
+      { originServerId, path, verb },
       DOCTYPE);
   }
 
-  static async get(ctx, providerEmail, host, path, verb, opt={ failFast: false}) {
-    return await super._get(ctx, makeEndpointId(providerEmail, host, path, verb), opt, DOCTYPE, Endpoint);
+  static construct(ctx, ledgerBlob) {
+    const { originServerId, path, verb } = ledgerBlob;
+    return new Endpoint(ctx, originServerId, path, verb);
+  }
+
+  static async get(ctx, originServerId, path, verb, opt={ failFast: false}) {
+    return await super._get(ctx, makeEndpointId(originServerId, path, verb), opt, DOCTYPE, Endpoint);
   }
 
   static async getById(ctx, id, opt={ failFast: false}) {

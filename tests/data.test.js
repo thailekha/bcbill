@@ -33,7 +33,7 @@ describe('full-suite', function() {
   const client2 = makeEmail('client');
   const provider1 = makeEmail('provider');
   let client1_wallet, client2_wallet, provider1_wallet;
-  let grant1;
+  let server1, endpoint1, grant1;
 
   before(async function() {
     client1_wallet = await register(client1);
@@ -42,11 +42,11 @@ describe('full-suite', function() {
   });
 
   it('should add origin server', async() => {
-    await AddOriginServer(provider1, provider1_wallet);
+    server1 = await AddOriginServer(provider1, provider1_wallet);
   });
 
   it('should add endpoints', async() => {
-    await AddEndpoints(provider1, provider1_wallet);
+    endpoint1 = (await AddEndpoints(provider1, provider1_wallet, server1.id))[0];
   });
 
   // MINIMAL INFO NEEDED TO grant access and test forward case
@@ -54,33 +54,68 @@ describe('full-suite', function() {
       client login
       -> select provider
       -> select origin servers (APIs)
+      -> fetch the endpoints
+      -> select endpoint
       -> select path + verb
    */
 
   it('client should request access', async() => {
     // Client request access
-    const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
-    expect(fetch.Endpoints).to.have.lengthOf(ENDPOINTS.length);
-    const { providerEmail, host, path, verb } = fetch.Endpoints[0];
-    grant1 = await AddEndpointAccessGrant(client1, client1_wallet, providerEmail, host, path, verb, client1);
+    grant1 = await AddEndpointAccessGrant(client1, client1_wallet, endpoint1.id, client1);
   });
   it('provider should approve access', async() => {
-    // Provider approves
-    const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
-    expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
-    expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
-    const eag = await Approve(provider1, provider1_wallet, fetch.EndpointAccessGrants[0].id);
+    const eag = await Approve(provider1, provider1_wallet, grant1.id);
     expect(eag.approvedBy).to.be.equal(provider1);
     grant1 = eag;
   });
-
   it('client should ping origin server', async() => {
-    const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
-    expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
-    expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
-    await pingOriginServer(client1, client1_wallet, fetch.EndpointAccessGrants[0].id);
+    await pingOriginServer(client1, client1_wallet, grant1.id);
   });
-  
+
+
+
+
+
+
+
+
+
+
+
+
+  // it('client should request access', async() => {
+  //   // Client request access
+  //   const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
+  //   expect(fetch.Endpoints).to.have.lengthOf(ENDPOINTS.length);
+  //   const { providerEmail, host, path, verb } = fetch.Endpoints[0];
+  //   grant1 = await AddEndpointAccessGrant(client1, client1_wallet, providerEmail, host, path, verb, client1);
+  // });
+  // it('provider should approve access', async() => {
+  //   // Provider approves
+  //   const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
+  //   expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
+  //   expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
+  //   const eag = await Approve(provider1, provider1_wallet, fetch.EndpointAccessGrants[0].id);
+  //   expect(eag.approvedBy).to.be.equal(provider1);
+  //   grant1 = eag;
+  // });
+  // it('client should ping origin server', async() => {
+  //   const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
+  //   expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
+  //   expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
+  //   await pingOriginServer(client1, client1_wallet, fetch.EndpointAccessGrants[0].id);
+  // });
+
+
+
+
+
+
+
+
+
+
+
   // it('should fetchall for admin', async() => {
   //   const { assets } = await fetchall(provider1, provider1_wallet);
   //

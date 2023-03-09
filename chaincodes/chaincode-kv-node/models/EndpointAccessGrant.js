@@ -3,10 +3,12 @@ const hash = require('object-hash');
 const _l = require('../lib/logger');
 const CustomException = require('../lib/CustomException');
 const {fromProvider} = require('../lib/contract-utils');
+const {Endpoint} = require('./Endpoint');
+const {OriginServer} = require('./OriginServer');
 const status = require('http-status-codes').StatusCodes;
 
-function makeEndpointAccessGrantId(providerEmail, host, path, verb, clientEmail) {
-  return hash({providerEmail, host, path, verb, clientEmail});
+function makeEndpointAccessGrantId(endpointId, clientEmail) {
+  return hash({endpointId, clientEmail});
 }
 
 const DOCTYPE = 'EndpointAccessGrant';
@@ -17,23 +19,22 @@ const DOCTYPE = 'EndpointAccessGrant';
  */
 class EndpointAccessGrant extends LedgerEntity {
   constructor(ctx,
-    providerEmail, host, path, verb, clientEmail,
+    endpointId, clientEmail,
     requestedBy = clientEmail, approvedBy = null, clientIds = [clientEmail], limit = 20, revoked= false
   ) {
     if (!clientEmail) {
       throw new Error(`invalid clientEmail ${clientEmail}`);
     }
     super(ctx,
-      makeEndpointAccessGrantId(providerEmail, host, path, verb, clientEmail),
-      { providerEmail, host, path, verb, clientEmail, requestedBy, approvedBy, clientIds, limit, revoked },
+      makeEndpointAccessGrantId(endpointId, clientEmail),
+      { endpointId, clientEmail, requestedBy, approvedBy, clientIds, limit, revoked },
       DOCTYPE
     );
   }
 
   static construct(ctx, ledgerBlob) {
-    _l('EndPointAccessGrant ledger blob', ledgerBlob);
-    const { providerEmail, host, path, verb, clientEmail, requestedBy, approvedBy, clientIds, limit, revoked } = ledgerBlob;
-    return new EndpointAccessGrant(ctx, providerEmail, host, path, verb, clientEmail, requestedBy, approvedBy, clientIds, limit, revoked);
+    const { endpointId, clientEmail, requestedBy, approvedBy, clientIds, limit, revoked } = ledgerBlob;
+    return new EndpointAccessGrant(ctx, endpointId, clientEmail, requestedBy, approvedBy, clientIds, limit, revoked);
   }
 
   async approve() {
@@ -44,11 +45,11 @@ class EndpointAccessGrant extends LedgerEntity {
     _l('Approved');
   }
 
-  static async get(ctx, providerEmail, host, path, verb, clientEmail, opt={ failFast: false}) {
+  static async get(ctx, endpointId, clientEmail, opt={ failFast: false}) {
     // check path exists
     // check mapping exists
     // check that state allows
-    const eag = await super._get(ctx, makeEndpointAccessGrantId(providerEmail, host, path, verb, clientEmail), opt, DOCTYPE, EndpointAccessGrant);
+    const eag = await super._get(ctx, makeEndpointAccessGrantId(endpointId, clientEmail), opt, DOCTYPE, EndpointAccessGrant);
     if (eag === null) {
       throw new CustomException(status.FORBIDDEN);
     }
@@ -69,11 +70,15 @@ class EndpointAccessGrant extends LedgerEntity {
       && this.value.clientIds.includes(clientId)
       && this.value.limit > 0
       && !this.value.revoked;
-    _l("processProxyRequest", clientId, isValid, this.value.approvedBy, this.value.clientIds, this.value.limit, this.value.revoked);
+    _l('processProxyRequest', clientId, isValid, this.value.approvedBy, this.value.clientIds, this.value.limit, this.value.revoked);
+
+    const endpoint = await Endpoint.getById(this.ctx, this.value.endpointId);
+    const originServer = await OriginServer.getById(this.ctx, endpoint.value.originServerId);
+
     return isValid ? {
-      host: this.value.host,
-      path: this.value.path,
-      verb: this.value.verb
+      host: originServer.value.host,
+      path: endpoint.value.path,
+      verb: endpoint.value.verb
     } : false;
   }
 }

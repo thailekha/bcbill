@@ -17,14 +17,14 @@ exports.registerUser = async (email, isProvider) => {
   return walletContent;
 };
 
-exports.AddOriginServer = async (email, walletContent, host) => await executeContract(
-  {}, email, walletContent, ACTIONS.AddOriginServer, email, host);
+exports.AddOriginServer = async (email, walletContent, serverName, host) => await executeContract(
+  {}, email, walletContent, ACTIONS.AddOriginServer, email, serverName, host);
 
-exports.AddEndpoint = async (email, walletContent, host, path, verb) => await executeContract(
-  {}, email, walletContent, ACTIONS.AddEndpoint, email, host, path, verb);
+exports.AddEndpoint = async (email, walletContent, originServerId, path, verb) => await executeContract(
+  {}, email, walletContent, ACTIONS.AddEndpoint, originServerId, path, verb);
 
-exports.AddEndpointAccessGrant = async (email, walletContent, providerEmail, host, path, verb, clientEmail) => await executeContract(
-  {}, email, walletContent, ACTIONS.AddEndpointAccessGrant, providerEmail, host, path, verb, clientEmail);
+exports.AddEndpointAccessGrant = async (email, walletContent, endpointId, clientEmail) => await executeContract(
+  {}, email, walletContent, ACTIONS.AddEndpointAccessGrant, endpointId, clientEmail);
 
 exports.GetEndpointAccessGrant = async (email, walletContent, endpointAccessGrantId) => await executeContract(
   {fast: true}, email, walletContent, ACTIONS.GetEndpointAccessGrant, endpointAccessGrantId);

@@ -32,11 +32,11 @@ app.all('/origin-server/*', async (req, res, next) => {
     // /proxy/ping
     // const url = req.url;
     const { email, wallet, endpointAccessGrantId } = JSON.parse(req.headers.auth);
-    const canForward = await sentry.GetEndpointAccessGrant(email, wallet, endpointAccessGrantId);
+    const canForward = await sentry.Forward(email, wallet, endpointAccessGrantId);
     if (!canForward) {
       return Promise.reject('Unauthorized');
     }
-    const { host, path: authorizedPath, verb } = canForward
+    const { host, path: authorizedPath, verb } = canForward;
   } catch (err) {
     next(err);
   }
@@ -44,9 +44,9 @@ app.all('/origin-server/*', async (req, res, next) => {
 
 app.post('/AddOriginServer', async (req, res, next) => {
   try {
-    const {email, wallet, host} = req.body;
-    await sentry.AddOriginServer(email, wallet, host);
-    res.sendStatus(200);
+    const {email, wallet, serverName, host} = req.body;
+    const server = await sentry.AddOriginServer(email, wallet, serverName, host);
+    res.json(server);
   } catch (err) {
     next(err);
   }
@@ -54,9 +54,9 @@ app.post('/AddOriginServer', async (req, res, next) => {
 
 app.post('/AddEndpoint', async (req, res, next) => {
   try {
-    const {email, wallet, host, path, verb} = req.body;
-    await sentry.AddEndpoint(email, wallet, host, path, verb);
-    res.sendStatus(200);
+    const {email, wallet, originServerId, path, verb} = req.body;
+    const endpoint = await sentry.AddEndpoint(email, wallet, originServerId, path, verb);
+    res.json(endpoint);
   } catch (err) {
     next(err);
   }
@@ -64,8 +64,8 @@ app.post('/AddEndpoint', async (req, res, next) => {
 
 app.post('/AddEndpointAccessGrant', async (req, res, next) => {
   try {
-    const {email, wallet, providerEmail, host, path, verb, clientEmail} = req.body;
-    const eag = await sentry.AddEndpointAccessGrant(email, wallet, providerEmail, host, path, verb, clientEmail);
+    const {email, wallet, endpointId, clientEmail} = req.body;
+    const eag = await sentry.AddEndpointAccessGrant(email, wallet, endpointId, clientEmail);
     res.json(eag);
   } catch (err) {
     next(err);

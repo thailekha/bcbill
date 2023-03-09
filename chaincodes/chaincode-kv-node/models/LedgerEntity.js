@@ -40,7 +40,7 @@ class LedgerEntity {
   }
 
   async update() {
-    _l('Updating ledger data', this.id, this.value)
+    _l('Updating ledger data', this.id, this.value);
     await this.ctx.stub.putState(this.id, toLedgerBlob(this.value));
   }
 

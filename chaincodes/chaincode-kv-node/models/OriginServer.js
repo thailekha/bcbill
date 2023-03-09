@@ -1,39 +1,28 @@
-
-
-/*
-
-I have two entities: APIprovider, with "email" as the primary key; Originserver, with "host" as the primary key;
-Endpoint, with "path" as the primary key. APIprovider contains an array of host strings, indicating a one-to-many relationship
-with Originserver. Originserver contains an array of path strings, indicating a one-to-many relationship with Endpoint.
-Could you please provide me with a JSON CouchDB query that retrieves all Endpoint objects associated with a given APIprovider email?
-
- */
-
 const hash = require('object-hash');
 const LedgerEntity = require('./LedgerEntity');
 
 const DOCTYPE = 'OriginServer';
 
-function makeOriginServerId(providerEmail, host) {
-  return hash({providerEmail, host});
+function makeOriginServerId(providerEmail, serverName) {
+  return hash({providerEmail, serverName});
 }
 
 class OriginServer extends LedgerEntity {
-  constructor(ctx, providerEmail, host) {
+  constructor(ctx, providerEmail, serverName, host) {
     super(
       ctx,
-      makeOriginServerId(providerEmail, host),
-      { providerEmail, host },
+      makeOriginServerId(providerEmail, serverName),
+      { providerEmail, serverName, host },
       DOCTYPE);
   }
 
   static construct(ctx, ledgerBlob) {
-    const { providerEmail, host } = ledgerBlob;
-    return new OriginServer(ctx, providerEmail, host);
+    const { providerEmail, serverName, host } = ledgerBlob;
+    return new OriginServer(ctx, providerEmail, serverName, host);
   }
 
-  static async get(ctx, providerEmail, host, opt={ failFast: false}) {
-    return await super._get(ctx, makeOriginServerId(providerEmail, host), opt, DOCTYPE, OriginServer);
+  static async get(ctx, providerEmail, serverName, opt={ failFast: false}) {
+    return await super._get(ctx, makeOriginServerId(providerEmail, serverName), opt, DOCTYPE, OriginServer);
   }
 
   static async getById(ctx, id, opt={ failFast: false}) {
