@@ -26,17 +26,23 @@ exports.AddEndpoint = async (email, walletContent, host, path, verb) => await ex
 exports.AddEndpointAccessGrant = async (email, walletContent, providerEmail, host, path, verb, clientEmail) => await executeContract(
   {}, email, walletContent, ACTIONS.AddEndpointAccessGrant, providerEmail, host, path, verb, clientEmail);
 
+exports.GetEndpointAccessGrant = async (email, walletContent, endpointAccessGrantId) => await executeContract(
+  {fast: true}, email, walletContent, ACTIONS.GetEndpointAccessGrant, endpointAccessGrantId);
+
 exports.Revoke = async (email, walletContent, endpointAccessGrantId) => await executeContract(
   {}, email, walletContent, ACTIONS.Revoke, endpointAccessGrantId);
 
 exports.Enable = async (email, walletContent, endpointAccessGrantId) => await executeContract(
   {}, email, walletContent, ACTIONS.Enable, endpointAccessGrantId);
 
-exports.Forward = async (email, walletContent, endpointAccessGrantId, clientEmail) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.Forward, endpointAccessGrantId, clientEmail);
+exports.Forward = async (email, walletContent, endpointAccessGrantId) => await executeContract(
+  {fast: true}, email, walletContent, ACTIONS.Forward, endpointAccessGrantId);
 
 exports.FetchAll = async (email, walletContent, providerEmail) => await executeContract(
   {fast: true}, email, walletContent, ACTIONS.FetchAll, providerEmail);
+
+exports.Approve = async (email, walletContent, endpointAccessGrantId) => await executeContract(
+  {}, email, walletContent, ACTIONS.Approve, endpointAccessGrantId);
 
 exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
   {}, email, walletContent, hash(walletContent.credentials.certificate), assetKey);

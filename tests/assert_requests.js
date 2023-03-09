@@ -70,7 +70,7 @@ module.exports = (backend) => {
 
   async function AddEndpointAccessGrant(email, wallet, providerEmail, host, path, verb, clientEmail) {
     try {
-      await request(backend)
+      return (await request(backend)
         .post('/AddEndpointAccessGrant')
         .set(...CONTENT_JSON)
         .send({
@@ -82,7 +82,23 @@ module.exports = (backend) => {
           verb,
           clientEmail
         })
-        .expect(200);
+        .expect(200)).body;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async function GetEndpointAccessGrant(email, wallet, endpointAccessGrantId) {
+    try {
+      return (await request(backend)
+        .post('/GetEndpointAccessGrant')
+        .set(...CONTENT_JSON)
+        .send({
+          email,
+          wallet,
+          endpointAccessGrantId
+        })
+        .expect(200)).body;
     } catch (err) {
       throw err;
     }
@@ -97,6 +113,22 @@ module.exports = (backend) => {
           email,
           wallet,
           providerEmail
+        })
+        .expect(200)).body;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async function Approve(email, wallet, endpointAccessGrantId) {
+    try {
+      return (await request(backend)
+        .post('/Approve')
+        .set(...CONTENT_JSON)
+        .send({
+          email,
+          wallet,
+          endpointAccessGrantId
         })
         .expect(200)).body;
     } catch (err) {
@@ -136,6 +168,35 @@ module.exports = (backend) => {
     }
   }
 
+  async function pingOriginServer(email, wallet, endpointAccessGrantId) {
+    try {
+      await request(backend)
+        .get('/proxy/ping')
+        .set({
+          auth: JSON.stringify({email, wallet, endpointAccessGrantId})
+        })
+        .expect(200);
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  // async function pingOriginServer(email, wallet, endpointAccessGrantId) {
+  //   try {
+  //     await request(backend)
+  //       .post('/proxy')
+  //       .set(...CONTENT_JSON)
+  //       .send({
+  //         email,
+  //         wallet,
+  //         endpointAccessGrantId
+  //       })
+  //       .expect(200);
+  //   } catch (err) {
+  //     throw err;
+  //   }
+  // }
+
   return {
     ORIGIN_SERVER_HOST,
     ENDPOINTS,
@@ -145,8 +206,11 @@ module.exports = (backend) => {
     AddEndpoint,
     FetchAll,
     AddEndpointAccessGrant,
+    GetEndpointAccessGrant,
+    Approve,
     Revoke,
-    Enable
+    Enable,
+    pingOriginServer
   };
 };
 

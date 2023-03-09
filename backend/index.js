@@ -27,6 +27,21 @@ app.post('/register', async (req, res, next) => {
   }
 });
 
+app.all('/origin-server/*', async (req, res, next) => {
+  try {
+    // /proxy/ping
+    // const url = req.url;
+    const { email, wallet, endpointAccessGrantId } = JSON.parse(req.headers.auth);
+    const canForward = await sentry.GetEndpointAccessGrant(email, wallet, endpointAccessGrantId);
+    if (!canForward) {
+      return Promise.reject('Unauthorized');
+    }
+    const { host, path: authorizedPath, verb } = canForward
+  } catch (err) {
+    next(err);
+  }
+});
+
 app.post('/AddOriginServer', async (req, res, next) => {
   try {
     const {email, wallet, host} = req.body;
@@ -50,8 +65,18 @@ app.post('/AddEndpoint', async (req, res, next) => {
 app.post('/AddEndpointAccessGrant', async (req, res, next) => {
   try {
     const {email, wallet, providerEmail, host, path, verb, clientEmail} = req.body;
-    await sentry.AddEndpointAccessGrant(email, wallet, providerEmail, host, path, verb, clientEmail);
-    res.sendStatus(200);
+    const eag = await sentry.AddEndpointAccessGrant(email, wallet, providerEmail, host, path, verb, clientEmail);
+    res.json(eag);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/GetEndpointAccessGrant', async (req, res, next) => {
+  try {
+    const {email, wallet, endpointAccessGrantId} = req.body;
+    const eag = await sentry.GetEndpointAccessGrant(email, wallet, endpointAccessGrantId);
+    res.json(eag);
   } catch (err) {
     next(err);
   }
@@ -61,7 +86,17 @@ app.post('/FetchAll', async (req, res, next) => {
   try {
     const {email, wallet, providerEmail} = req.body;
     const result = await sentry.FetchAll(email, wallet, providerEmail);
-    res.json(result);
+    res.json({ result });
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.post('/Approve', async (req, res, next) => {
+  try {
+    const {email, wallet, endpointAccessGrantId} = req.body;
+    const eag = await sentry.Approve(email, wallet, endpointAccessGrantId);
+    res.json(eag);
   } catch (err) {
     next(err);
   }

@@ -7,6 +7,10 @@ class ApiProvider extends LedgerEntity {
     super(ctx, email, { email }, DOCTYPE);
   }
 
+  static construct(ctx, id) {
+    return new ApiProvider(ctx, id);
+  }
+
   static async get(ctx, email, opt={ failFast: false}) {
     return await super._get(ctx, email, opt, DOCTYPE, ApiProvider);
   }

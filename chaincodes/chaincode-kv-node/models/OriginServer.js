@@ -27,6 +27,11 @@ class OriginServer extends LedgerEntity {
       DOCTYPE);
   }
 
+  static construct(ctx, ledgerBlob) {
+    const { providerEmail, host } = ledgerBlob;
+    return new OriginServer(ctx, providerEmail, host);
+  }
+
   static async get(ctx, providerEmail, host, opt={ failFast: false}) {
     return await super._get(ctx, makeOriginServerId(providerEmail, host), opt, DOCTYPE, OriginServer);
   }

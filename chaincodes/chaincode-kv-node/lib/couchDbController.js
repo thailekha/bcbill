@@ -1,5 +1,6 @@
 
 // write me a couchdb query to be used with the query function. It fetches all OriginServers belong to a providerEmail, then for each found OriginServers
+const _l = require('./logger');
 const query = async (ctx, query, opt = { formatResult: true }) => {
   let iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
   let result = await getIteratorData(iterator);
@@ -18,14 +19,35 @@ const getIteratorData = async iterator => {
   while (true) {
     let res = await iterator.next();
 
+    /*
+    {
+      "value": {
+        "key": "9fac91710f9c590fc95a76e579dda05de79f67c8",
+        "value": {
+          "type": "Buffer",
+          "data": [
+            123,
+            34,
+            104,
+            111,
+            34
+          ]
+        }
+      },
+      "done": false
+    }
+     */
+
     //res.value -- contains other metadata
     //res.value.value -- contains the actual value
     //res.value.key -- contains the key
 
     let resJson = {};
     if (res.value && res.value.value.toString()) {
-      resJson.key = res.value.key;
       resJson.value = JSON.parse(res.value.value.toString());
+
+      // put the key into the value object
+      resJson.value.id = res.value.key;
       resultArray.push(resJson);
     }
 

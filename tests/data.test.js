@@ -6,6 +6,7 @@ const { stringify } = require('querystring');
 const randomstring = require('randomstring');
 const jstr = (i) => JSON.stringify(i);
 const _l = i => console.log(jstr(i));
+const foo = i => JSON.parse(JSON.stringify(i));
 
 const {
   ORIGIN_SERVER_HOST,
@@ -15,9 +16,12 @@ const {
   AddOriginServer,
   AddEndpoint,
   FetchAll,
+  Approve,
   AddEndpointAccessGrant,
+  GetEndpointAccessGrant,
   Revoke,
-  Enable
+  Enable,
+  pingOriginServer
 } = require('./assert_requests')(backend);
 
 function makeEmail(pre) {
@@ -29,10 +33,11 @@ describe('full-suite', function() {
   const client2 = makeEmail('client');
   const provider1 = makeEmail('provider');
   let client1_wallet, client2_wallet, provider1_wallet;
+  let grant1;
 
   before(async function() {
     client1_wallet = await register(client1);
-    client2_wallet = await register(client2);
+    // client2_wallet = await register(client2);
     provider1_wallet = await register(provider1);
   });
 
@@ -52,9 +57,28 @@ describe('full-suite', function() {
       -> select path + verb
    */
 
-  it('should fetch origin servers and endpoints for client', async() => {
-    const result = await FetchAll(client1, client1_wallet, provider1);
-    console.log();
+  it('client should request access', async() => {
+    // Client request access
+    const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
+    expect(fetch.Endpoints).to.have.lengthOf(ENDPOINTS.length);
+    const { providerEmail, host, path, verb } = fetch.Endpoints[0];
+    grant1 = await AddEndpointAccessGrant(client1, client1_wallet, providerEmail, host, path, verb, client1);
+  });
+  it('provider should approve access', async() => {
+    // Provider approves
+    const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
+    expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
+    expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
+    const eag = await Approve(provider1, provider1_wallet, fetch.EndpointAccessGrants[0].id);
+    expect(eag.approvedBy).to.be.equal(provider1);
+    grant1 = eag;
+  });
+
+  it('client should ping origin server', async() => {
+    const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
+    expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
+    expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
+    await pingOriginServer(client1, client1_wallet, fetch.EndpointAccessGrants[0].id);
   });
   
   // it('should fetchall for admin', async() => {

@@ -4,9 +4,11 @@ module.exports = {
   AddOriginServer: 'AddOriginServer',
   AddEndpoint: 'AddEndpoint',
   AddEndpointAccessGrant: 'AddEndpointAccessGrant',
+  GetEndpointAccessGrant: 'GetEndpointAccessGrant',
   Revoke: 'Revoke',
   Enable: 'Enable',
   Forward: 'Forward',
-  FetchAll: 'FetchAll'
+  FetchAll: 'FetchAll',
+  Approve: 'Approve'
 };
 

@@ -6,27 +6,48 @@ const { OriginServer, DOCTYPE: ORIGIN_SERVER_DOCTYPE} = require('./models/Origin
 const { Endpoint, DOCTYPE: ENDPOINT_DOCTYPE}   = require('./models/Endpoint');
 const { EndpointAccessGrant, DOCTYPE: ENDPOINT_ACCESS_GRANT_DOCTYPE}  = require('./models/EndpointAccessGrant');
 const {query} = require('./lib/couchDbController');
-const {fromProvider} = require('./lib/contract-utils');
+const {fromProvider, parseEmail} = require('./lib/contract-utils');
 
 class APISentryContract extends Contract {
   async AddClient(ctx, email) {
-    return await(new Client(ctx, email)).create();
+    const client = new Client(ctx, email);
+    await client.create();
+    return client.getCopy();
   }
 
   async AddProvider(ctx, email) {
-    return await(new ApiProvider(ctx, email)).create();
+    const provider = new ApiProvider(ctx, email);
+    await provider.create();
+    return provider.getCopy();
   }
 
   async AddOriginServer(ctx, providerEmail, host) {
-    return await(new OriginServer(ctx, providerEmail, host)).create();
+    const originServer = new OriginServer(ctx, providerEmail, host);
+    await originServer.create();
+    return originServer.getCopy();
   }
 
   async AddEndpoint(ctx, providerEmail, host, path, verb) {
-    return await(new Endpoint(ctx, providerEmail, host, path, verb)).create();
+    const endpoint = new Endpoint(ctx, providerEmail, host, path, verb);
+    await endpoint.create();
+    return endpoint.getCopy();
   }
 
   async AddEndpointAccessGrant(ctx, providerEmail, host, path, verb, clientEmail) {
-    return await(new EndpointAccessGrant(ctx, providerEmail, host, path, verb, clientEmail)).create();
+    const grant = new EndpointAccessGrant(ctx, providerEmail, host, path, verb, clientEmail);
+    await grant.create();
+    return grant.getCopy();
+  }
+
+  async GetEndpointAccessGrant(ctx, endpointAccessGrantId) {
+    const grant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
+    return grant.getCopy();
+  }
+
+  async Approve(ctx, endpointAccessGrantId) {
+    const grant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
+    await grant.approve();
+    return grant.getCopy();
   }
 
   async Revoke(ctx, endpointAccessGrantId) {
@@ -41,11 +62,11 @@ class APISentryContract extends Contract {
     await endpointAccessGrant.update();
   }
 
-  async Forward(ctx, endpointAccessGrantId, clientEmail) {
+  async Forward(ctx, endpointAccessGrantId) {
     _l('Forward start');
     const endpointAccessGrant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
     _l('Forward finish');
-    return endpointAccessGrant.canForward(clientEmail);
+    return endpointAccessGrant.processProxyRequest(parseEmail(ctx));
   }
 
   /*
@@ -64,16 +85,15 @@ class APISentryContract extends Contract {
       selector: {
         $or: [
           {
-            docType: 'OriginServer',
+            docType: 'Endpoint',
             providerEmail: providerEmail
           },
           {
-            docType: 'Endpoint',
-            host: 'localhost:9998'
+            docType: 'EndpointAccessGrant',
+            providerEmail: providerEmail
           }
         ]
-      },
-      fields: [ '_id', 'value', '_attachments',  "email",  "providerEmail",  "host",  "path",  "verb",  "clientEmail",  "requestedBy",  "approvedBy",  "clientIds",  "limit",  "revoked" ]
+      }
     });
     _l('FetchAll finish', query_result);
     return query_result;

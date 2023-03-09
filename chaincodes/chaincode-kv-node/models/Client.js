@@ -7,6 +7,10 @@ class Client extends LedgerEntity {
     super(ctx, email, { email }, DOCTYPE);
   }
 
+  static construct(ctx, id) {
+    return new Client(ctx, id);
+  }
+
   static async get(ctx, email, opt={ failFast: false}) {
     return await super._get(ctx, email, opt, DOCTYPE, Client);
   }
