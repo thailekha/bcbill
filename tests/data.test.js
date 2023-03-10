@@ -4,6 +4,7 @@ const hash = require('object-hash');
 const backend = require('../backend/bin/www');
 const { stringify } = require('querystring');
 const randomstring = require('randomstring');
+const request = require('supertest');
 const jstr = (i) => JSON.stringify(i);
 const _l = i => console.log(jstr(i));
 const foo = i => JSON.parse(JSON.stringify(i));
@@ -27,6 +28,19 @@ const {
 function makeEmail(pre) {
   return `${pre}_${randomstring.generate()}@org1.com`;
 }
+
+describe('Test /origin-server endpoint', () => {
+  it('should return the correct path and parameters', async () => {
+    const response = await request(backend)
+      .get('/origin-server/test/ping')
+      .set('Accept', 'application/json')
+      .expect(200);
+
+    const { path, params } = response.body;
+    expect(path).to.equal('/test/path');
+    expect(params).to.deep.equal({ foo: 'bar' });
+  });
+});
 
 describe('full-suite', function() {
   const client1 = makeEmail('client');

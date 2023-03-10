@@ -62,10 +62,10 @@ class APISentryContract extends Contract {
     await endpointAccessGrant.update();
   }
 
-  async Forward(ctx, endpointAccessGrantId) {
-    _l('Forward start');
+  async GetOriginServerInfo(ctx, endpointAccessGrantId) {
+    _l('GetOriginServerInfo start');
     const endpointAccessGrant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
-    _l('Forward finish');
+    _l('GetOriginServerInfo finish');
     return endpointAccessGrant.processProxyRequest(parseEmail(ctx));
   }
 

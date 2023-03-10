@@ -1,7 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const url = require('url');
 const cors = require('cors');
-const proxy = require('express-http-proxy');
+const httpProxy = require('http-proxy');
+
+const proxy = httpProxy.createProxyServer();
+
 const { prettyJSONString } = require(`${__dirname}/../utils`);
 
 const sentry = require(`${__dirname}/sentry`);
@@ -27,16 +31,32 @@ app.post('/register', async (req, res, next) => {
   }
 });
 
+// have an origin server that download and sends back a random image from giphy
+
 app.all('/origin-server/*', async (req, res, next) => {
   try {
-    // /proxy/ping
-    // const url = req.url;
+    const { pathname, search } = url.parse(req.url, true);
     const { email, wallet, endpointAccessGrantId } = JSON.parse(req.headers.auth);
-    const canForward = await sentry.Forward(email, wallet, endpointAccessGrantId);
-    if (!canForward) {
+    const originServerInfo = await sentry.GetOriginServerInfo(email, wallet, endpointAccessGrantId);
+    if (!originServerInfo) {
       return Promise.reject('Unauthorized');
     }
-    const { host, path: authorizedPath, verb } = canForward;
+    const { host: originServerHost, path: authorizedPath, verb: authorizedVerb } = originServerInfo;
+    const [originServerName, ...endpointPath] = pathname.slice('/origin-server/'.length).split('/');
+    const finalAuthorizedCheck = authorizedPath === endpointPath.join('/') && authorizedVerb.toUpperCase() === req.method;
+
+    if (!finalAuthorizedCheck) {
+      return Promise.reject('Unauthorized');
+    }
+
+    req.url = '/' + endpointPath.join('/') + (search ? search : '');
+
+    proxy.web(req, res, { target: originServerHost, changeOrigin: true }, (error) => {
+      // Handle errors that occur when forwarding the request
+      console.error(`Error forwarding request: ${error}`);
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end(`An error occurred: ${error}`);
+    });
   } catch (err) {
     next(err);
   }
@@ -121,14 +141,6 @@ app.post('/Enable', async (req, res, next) => {
     next(err);
   }
 });
-
-app.use('/protected', proxy('localhost:9998', {
-  proxyReqOptDecorator: async function(proxyReqOpts, srcReq) {
-    const {email, wallet} = JSON.parse(srcReq.headers.auth);
-    const authorized = await sentry.forward(email, wallet, srcReq.path);
-    return authorized ? proxyReqOpts : Promise.reject('Unauthorized');
-  }
-}));
 
 // Error handling middleware
 app.use(function (err, req, res) {

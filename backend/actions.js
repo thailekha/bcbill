@@ -7,7 +7,7 @@ module.exports = {
   GetEndpointAccessGrant: 'GetEndpointAccessGrant',
   Revoke: 'Revoke',
   Enable: 'Enable',
-  Forward: 'Forward',
+  GetOriginServerInfo: 'GetOriginServerInfo',
   FetchAll: 'FetchAll',
   Approve: 'Approve'
 };

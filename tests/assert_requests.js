@@ -2,15 +2,15 @@ const request = require('supertest');
 
 const CONTENT_JSON = ['Content-Type', 'application/json'];
 const ORIGIN_SERVERS = [
-  ['math', 'localhost:9998']
+  ['math', 'http://localhost:9998']
 ];
 const ENDPOINTS = [
-  ['/ping', 'get',],
-  // [  '/helloworld','get',],
-  // [  '/echo', 'post',],
-  // [  '/square-of', 'post',],
-  // [  '/sum', 'post',],
-  // [  '/average', 'post',],
+  ['ping', 'get',],
+  // [  'helloworld','get',],
+  // [  'echo', 'post',],
+  // [  'square-of', 'post',],
+  // [  'sum', 'post',],
+  // [  'average', 'post',],
 ];
 
 module.exports = (backend) => {

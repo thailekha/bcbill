@@ -35,8 +35,8 @@ exports.Revoke = async (email, walletContent, endpointAccessGrantId) => await ex
 exports.Enable = async (email, walletContent, endpointAccessGrantId) => await executeContract(
   {}, email, walletContent, ACTIONS.Enable, endpointAccessGrantId);
 
-exports.Forward = async (email, walletContent, endpointAccessGrantId) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.Forward, endpointAccessGrantId);
+exports.GetOriginServerInfo = async (email, walletContent, endpointAccessGrantId) => await executeContract(
+  {fast: true}, email, walletContent, ACTIONS.GetOriginServerInfo, endpointAccessGrantId);
 
 exports.FetchAll = async (email, walletContent, providerEmail) => await executeContract(
   {fast: true}, email, walletContent, ACTIONS.FetchAll, providerEmail);
