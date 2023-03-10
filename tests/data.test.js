@@ -5,6 +5,7 @@ const backend = require('../backend/bin/www');
 const { stringify } = require('querystring');
 const randomstring = require('randomstring');
 const request = require('supertest');
+const jsonfile = require('jsonfile');
 const jstr = (i) => JSON.stringify(i);
 const _l = i => console.log(jstr(i));
 const foo = i => JSON.parse(JSON.stringify(i));
@@ -12,17 +13,18 @@ const foo = i => JSON.parse(JSON.stringify(i));
 const {
   ORIGIN_SERVER_HOST,
   ENDPOINTS,
+  AddEndpoint,
   AddEndpoints,
   register,
   AddOriginServer,
-  AddEndpoint,
-  FetchAll,
+  ClientHomepageData,
   Approve,
   AddEndpointAccessGrant,
   GetEndpointAccessGrant,
   Revoke,
   Enable,
-  pingOriginServer
+  pingOriginServer,
+  pingOriginServerFail
 } = require('./assert_requests')(backend);
 
 function makeEmail(pre) {
@@ -42,27 +44,78 @@ describe('Test /origin-server endpoint', () => {
   });
 });
 
-describe('full-suite', function() {
+describe('minimal proxy case', function() {
   const client1 = makeEmail('client');
   const client2 = makeEmail('client');
   const provider1 = makeEmail('provider');
   let client1_wallet, client2_wallet, provider1_wallet;
   let server1, endpoint1, grant1;
-
   before(async function() {
     client1_wallet = await register(client1);
     // client2_wallet = await register(client2);
     provider1_wallet = await register(provider1);
   });
-
   it('should add origin server', async() => {
     server1 = await AddOriginServer(provider1, provider1_wallet);
   });
-
-  it('should add endpoints', async() => {
-    endpoint1 = (await AddEndpoints(provider1, provider1_wallet, server1.id))[0];
+  it('should add ping endpoint', async() => {
+    endpoint1 = await AddEndpoint(provider1, provider1_wallet, server1.id, ENDPOINTS[0][0], ENDPOINTS[0][1]);
   });
+  it('should request access', async() => {
+    // Client request access
+    grant1 = await AddEndpointAccessGrant(client1, client1_wallet, endpoint1.id, client1);
+  });
+  it('should approve access', async() => {
+    const eag = await Approve(provider1, provider1_wallet, grant1.id);
+    expect(eag.approvedBy).to.be.equal(provider1);
+    grant1 = eag;
+  });
+  it('should ping origin server', async() => {
+    await pingOriginServer(client1, client1_wallet, grant1.id);
+  });
+  // revoke, ping, reenable, ping
+  it('should revoke access', async() => {
+    await Revoke(provider1, provider1_wallet, grant1.id);
+  });
+  it('should not ping origin server', async() => {
+    await pingOriginServerFail(client1, client1_wallet, grant1.id);
+  });
+  it('should enable access', async() => {
+    await Enable(provider1, provider1_wallet, grant1.id);
+  });
+  it('should ping origin server', async() => {
+    await pingOriginServer(client1, client1_wallet, grant1.id);
+  });
+});
 
+// Ask for edge cases like duplicates
+
+describe('UI-suite', function() {
+  const client1 = makeEmail('client');
+  const client2 = makeEmail('client');
+  const provider1 = makeEmail('provider');
+  let client1_wallet, client2_wallet, provider1_wallet;
+  let server1, endpoint1, grant1;
+  before(async function() {
+    client1_wallet = await register(client1);
+    // client2_wallet = await register(client2);
+    provider1_wallet = await register(provider1);
+  });
+  it('should add origin server', async() => {
+    server1 = await AddOriginServer(provider1, provider1_wallet);
+  });
+  it('should add endpoints', async() => {
+    await AddEndpoints(provider1, provider1_wallet, server1.id);
+  });
+  it('should fetch discovery data for client', async() => {
+    const homepageData = await ClientHomepageData(provider1, provider1_wallet, server1.id);
+    expect(homepageData).to.not.have.property('Client');
+    expect(homepageData).to.not.have.property('EndpointAccessGrant');
+
+    expect(homepageData.ApiProvider).to.be.an('array').that.is.not.empty;
+    expect(homepageData.OriginServer).to.be.an('array').that.is.not.empty;
+    expect(homepageData.Endpoint).to.be.an('array').that.is.not.empty;
+  });
   // MINIMAL INFO NEEDED TO grant access and test forward case
   /*
       client login
@@ -72,41 +125,20 @@ describe('full-suite', function() {
       -> select endpoint
       -> select path + verb
    */
-
-  it('client should request access', async() => {
-    // Client request access
-    grant1 = await AddEndpointAccessGrant(client1, client1_wallet, endpoint1.id, client1);
-  });
-  it('provider should approve access', async() => {
-    const eag = await Approve(provider1, provider1_wallet, grant1.id);
-    expect(eag.approvedBy).to.be.equal(provider1);
-    grant1 = eag;
-  });
-  it('client should ping origin server', async() => {
-    await pingOriginServer(client1, client1_wallet, grant1.id);
-  });
-
-
-
-
-
-
-
-
-
-
-
-
+  /*
+      just fetch all providers, servers, and endpoints
+      only things to hide are EAG and the actual server host
+   */
   // it('client should request access', async() => {
   //   // Client request access
-  //   const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
+  //   const {result: fetch} = await ClientHomepageData(client1, client1_wallet, provider1);
   //   expect(fetch.Endpoints).to.have.lengthOf(ENDPOINTS.length);
   //   const { providerEmail, host, path, verb } = fetch.Endpoints[0];
   //   grant1 = await AddEndpointAccessGrant(client1, client1_wallet, providerEmail, host, path, verb, client1);
   // });
   // it('provider should approve access', async() => {
   //   // Provider approves
-  //   const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
+  //   const {result: fetch} = await ClientHomepageData(client1, client1_wallet, provider1);
   //   expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
   //   expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
   //   const eag = await Approve(provider1, provider1_wallet, fetch.EndpointAccessGrants[0].id);
@@ -114,127 +146,40 @@ describe('full-suite', function() {
   //   grant1 = eag;
   // });
   // it('client should ping origin server', async() => {
-  //   const {result: fetch} = await FetchAll(client1, client1_wallet, provider1);
+  //   const {result: fetch} = await ClientHomepageData(client1, client1_wallet, provider1);
   //   expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
   //   expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
   //   await pingOriginServer(client1, client1_wallet, fetch.EndpointAccessGrants[0].id);
   // });
-
-
-
-
-
-
-
-
-
-
-
-  // it('should fetchall for admin', async() => {
-  //   const { assets } = await fetchall(provider1, provider1_wallet);
-  //
-  //   expect(assets.users).to.have.lengthOf(3);
-  //   expect(assets.endpoints).to.have.lengthOf(ENDPOINTS.length);
-  //   expect(assets.mappings).to.be.undefined;
-  // });
-  //
-  // it('should let user 1 claim access to endpoint (add mapping)', async() => {
-  //   const { assets } = await fetchall(client1, client1_wallet);
-  //
-  //   expect(assets.users).to.be.undefined;
-  //   expect(assets.endpoints).to.have.lengthOf(ENDPOINTS.length);
-  //   expect(assets.mappings).to.be.undefined;
-  //
-  //   await addMapping(client1, client1_wallet, ENDPOINTS[0]);
-  // });
-  //
-  // it('should let user 2 claim access to endpoint (add mapping)', async() => {
-  //   const { assets } = await fetchall(client2, client2_wallet);
-  //
-  //   expect(assets.users).to.be.undefined;
-  //   expect(assets.endpoints).to.have.lengthOf(ENDPOINTS.length);
-  //   expect(assets.mappings).to.be.undefined;
-  //
-  //   await addMapping(client2, client2_wallet, ENDPOINTS[1]);
-  // });
-  //
-  // it('should fetchall for admin', async() => {
-  //   const { assets } = await fetchall(provider1, provider1_wallet);
-  //
-  //   expect(assets.users).to.have.lengthOf(3);
-  //   expect(assets.endpoints).to.have.lengthOf(ENDPOINTS.length);
-  //   expect(assets.mappings).to.have.lengthOf(2);
-  // });
-  //
-  // it('should forward granted endpoint', async() => {
-  //   await pingProtected(client1, client1_wallet, ENDPOINTS[0], 200);
-  // });
-  //
-  // it('should not forward ungranted endpoint', async() => {
-  //   await pingProtected(client1, client1_wallet, ENDPOINTS[1], 500);
-  // });
-  //
-  // it('should revoke mapping', async() => {
-  //   await revoke(provider1, provider1_wallet, hash(client1_wallet.credentials.certificate), ENDPOINTS[0]);
-  // });
-  //
-  // it('should not forward revoked endpoint', async() => {
-  //   await pingProtected(client1, client1_wallet, ENDPOINTS[0], 500);
-  // });
-  //
-  // it('should reennable mapping', async() => {
-  //   await reenable(provider1, provider1_wallet, hash(client1_wallet.credentials.certificate), ENDPOINTS[0]);
-  // });
-  //
-  // it('should forward reenabled endpoint', async() => {
-  //   await pingProtected(client1, client1_wallet, ENDPOINTS[0], 200);
-  // });
 });
 
-describe('setup-for-dev', function() {
-  const client1 = 'client1@org1.com';
-  const client2 = 'client2@org1.com';
-  const provider1 = 'provider@org1.com';
-  let client1_wallet, client2_wallet, provider1_wallet;
 
+describe('setup-for-dev', function() {
+  const client1 = makeEmail('client');
+  const client2 = makeEmail('client');
+  const provider1 = makeEmail('provider');
+  let client1_wallet, client2_wallet, provider1_wallet;
+  let server1, endpoint1, grant1;
   before(async function() {
     client1_wallet = await register(client1);
-    client2_wallet = await register(client2);
+    // client2_wallet = await register(client2);
     provider1_wallet = await register(provider1);
   });
-
+  it('should add origin server', async() => {
+    server1 = await AddOriginServer(provider1, provider1_wallet);
+  });
   it('should add endpoints', async() => {
-    await addEndpoints(provider1, provider1_wallet, ENDPOINTS);
+    await AddEndpoints(provider1, provider1_wallet, server1.id);
   });
-
-  it('should fetchall for admin', async() => {
-    const { assets } = await fetchall(provider1, provider1_wallet);
-
-    expect(assets.users).to.have.lengthOf(3);
-    expect(assets.endpoints).to.have.lengthOf(ENDPOINTS.length);
-    expect(assets.mappings).to.be.undefined;
+  it('should write data to file', async() => {
+    jsonfile.writeFileSync('ui-data.json', {
+      client1,
+      client2,
+      provider1,
+      client1_wallet,
+      client2_wallet,
+      provider1_wallet
+    });
   });
-
-  it('should fetchall for client 2', async() => {
-    const { assets } = await fetchall(client2, client2_wallet);
-
-    expect(assets.users).to.be.undefined;
-    expect(assets.endpoints).to.have.lengthOf(ENDPOINTS.length);
-    expect(assets.mappings).to.be.undefined;
-
-    // const {
-    //   email, path
-    // } = assets.mappings[0].value;
-    // expect(email).equal(client2);
-    // expect(path).equal(ENDPOINTS[0]);
-  });
-
-  // it('should let user 1 claim access to endpoint (add mapping)', async() => {
-  //   await addMapping(client1, client1_wallet, ENDPOINTS[0]);
-  //   await addMapping(client1, client1_wallet, ENDPOINTS[2]);
-  //   await addMapping(client1, client1_wallet, ENDPOINTS[4]);
-  //
-  //   console.log(`Added ${ENDPOINTS[0]}, ${ENDPOINTS[2]}, ${ENDPOINTS[4]}`);
-  // });
 });
 

@@ -6,7 +6,7 @@ const query = async (ctx, query, opt = { formatResult: true }) => {
   let result = await getIteratorData(iterator);
   if (opt.formatResult) {
     return result.reduce((result, item) => {
-      addItemToArrayInObject(result, item.value.docType + 's', item.value);
+      addItemToArrayInObject(result, item.value.docType, item.value);
       return result;
     }, {});
   }

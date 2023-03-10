@@ -34,39 +34,41 @@ class APISentryContract extends Contract {
   }
 
   async AddEndpointAccessGrant(ctx, endpointId, clientEmail) {
-    const grant = new EndpointAccessGrant(ctx, endpointId, clientEmail);
-    await grant.create();
-    return grant.getCopy();
+    const eag = new EndpointAccessGrant(ctx, endpointId, clientEmail);
+    await eag.create();
+    return eag.getCopy();
   }
 
   async GetEndpointAccessGrant(ctx, endpointAccessGrantId) {
-    const grant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
-    return grant.getCopy();
+    const eag = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
+    return eag.getCopy();
   }
 
   async Approve(ctx, endpointAccessGrantId) {
-    const grant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
-    await grant.approve();
-    return grant.getCopy();
+    const eag = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
+    await eag.approve();
+    return eag.getCopy();
   }
 
   async Revoke(ctx, endpointAccessGrantId) {
-    const endpointAccessGrant = await EndpointAccessGrant.getByIdForProvider(ctx, endpointAccessGrantId);
-    endpointAccessGrant.value.revoked = true;
-    await endpointAccessGrant.update();
+    const eag = await EndpointAccessGrant.getByIdForProvider(ctx, endpointAccessGrantId);
+    eag.value.revoked = true;
+    await eag.update();
+    return eag.getCopy();
   }
 
   async Enable(ctx, endpointAccessGrantId) {
-    const endpointAccessGrant = await EndpointAccessGrant.getByIdForProvider(ctx, endpointAccessGrantId);
-    endpointAccessGrant.value.revoked = false;
-    await endpointAccessGrant.update();
+    const eag = await EndpointAccessGrant.getByIdForProvider(ctx, endpointAccessGrantId);
+    eag.value.revoked = false;
+    await eag.update();
+    return eag.getCopy();
   }
 
   async GetOriginServerInfo(ctx, endpointAccessGrantId) {
     _l('GetOriginServerInfo start');
     const endpointAccessGrant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
     _l('GetOriginServerInfo finish');
-    return endpointAccessGrant.processProxyRequest(parseEmail(ctx));
+    return endpointAccessGrant.getOriginServerInfo(parseEmail(ctx));
   }
 
   /*
@@ -78,26 +80,33 @@ class APISentryContract extends Contract {
   */
   // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
   // fields: [  "email",  "providerEmail",  "host",  "path",  "verb",  "clientEmail",  "requestedBy",  "approvedBy",  "clientIds",  "limit",  "revoked" ]
-  async FetchAll(ctx, providerEmail) {
-    _l('FetchAll start');
+  async ClientHomepageData(ctx) {
+    _l('ClientHomepageData start');
     // sort: [{ time: 'asc' }]
     const query_result = await query(ctx, {
       selector: {
         $or: [
           {
-            docType: 'Endpoint',
-            providerEmail: providerEmail
+            docType: API_PROVIDER_DOCTYPE
           },
           {
-            docType: 'EndpointAccessGrant',
-            providerEmail: providerEmail
-          }
+            docType: ORIGIN_SERVER_DOCTYPE
+          },
+          {
+            docType: ENDPOINT_DOCTYPE
+          },
+          {
+            docType: ENDPOINT_ACCESS_GRANT_DOCTYPE,
+            requestedBy: parseEmail(ctx)
+          },
         ]
       }
     });
-    _l('FetchAll finish', query_result);
+    _l('ClientHomepageData finish', query_result);
     return query_result;
   }
 }
+
+// ClientSharepageData?
 
 exports.contracts = [APISentryContract];

@@ -8,7 +8,7 @@ module.exports = {
   Revoke: 'Revoke',
   Enable: 'Enable',
   GetOriginServerInfo: 'GetOriginServerInfo',
-  FetchAll: 'FetchAll',
+  ClientHomepageData: 'ClientHomepageData',
   Approve: 'Approve'
 };
 

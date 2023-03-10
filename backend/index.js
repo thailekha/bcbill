@@ -39,14 +39,18 @@ app.all('/origin-server/*', async (req, res, next) => {
     const { email, wallet, endpointAccessGrantId } = JSON.parse(req.headers.auth);
     const originServerInfo = await sentry.GetOriginServerInfo(email, wallet, endpointAccessGrantId);
     if (!originServerInfo) {
-      return Promise.reject('Unauthorized');
+      const err = new Error('Unauthorized');
+      err.statusCode = 401;
+      return next(err);
     }
     const { host: originServerHost, path: authorizedPath, verb: authorizedVerb } = originServerInfo;
     const [originServerName, ...endpointPath] = pathname.slice('/origin-server/'.length).split('/');
     const finalAuthorizedCheck = authorizedPath === endpointPath.join('/') && authorizedVerb.toUpperCase() === req.method;
 
     if (!finalAuthorizedCheck) {
-      return Promise.reject('Unauthorized');
+      const err = new Error('Bad path / verb');
+      err.statusCode = 400;
+      return next(err);
     }
 
     req.url = '/' + endpointPath.join('/') + (search ? search : '');
@@ -102,10 +106,10 @@ app.post('/GetEndpointAccessGrant', async (req, res, next) => {
   }
 });
 
-app.post('/FetchAll', async (req, res, next) => {
+app.post('/ClientHomepageData', async (req, res, next) => {
   try {
-    const {email, wallet, providerEmail} = req.body;
-    const result = await sentry.FetchAll(email, wallet, providerEmail);
+    const {email, wallet} = req.body;
+    const result = await sentry.ClientHomepageData(email, wallet);
     res.json({ result });
   } catch (err) {
     next(err);
@@ -124,9 +128,9 @@ app.post('/Approve', async (req, res, next) => {
 
 app.post('/Revoke', async (req, res, next) => {
   try {
-    const {email, wallet, endpointAccessGrantId} = req.body;
-    await sentry.Revoke(email, wallet, endpointAccessGrantId);
-    res.sendStatus(200);
+    const { email, wallet, endpointAccessGrantId } = req.body;
+    const eag = await sentry.Revoke(email, wallet, endpointAccessGrantId);
+    res.json(eag);
   } catch (err) {
     next(err);
   }
@@ -135,8 +139,8 @@ app.post('/Revoke', async (req, res, next) => {
 app.post('/Enable', async (req, res, next) => {
   try {
     const {email, wallet, endpointAccessGrantId} = req.body;
-    await sentry.Enable(email, wallet, endpointAccessGrantId);
-    res.sendStatus(200);
+    const eag = await sentry.Enable(email, wallet, endpointAccessGrantId);
+    res.json(eag);
   } catch (err) {
     next(err);
   }
@@ -145,7 +149,11 @@ app.post('/Enable', async (req, res, next) => {
 // Error handling middleware
 app.use(function (err, req, res) {
   console.error(prettyJSONString(JSON.stringify(err)));
-  res.status(500).send(err);
+  if (err.statusCode) {
+    res.status(err.statusCode).send(err.message);
+  } else {
+    res.status(500).send(err);
+  }
 });
 
 module.exports = app;

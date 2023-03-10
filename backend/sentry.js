@@ -38,8 +38,8 @@ exports.Enable = async (email, walletContent, endpointAccessGrantId) => await ex
 exports.GetOriginServerInfo = async (email, walletContent, endpointAccessGrantId) => await executeContract(
   {fast: true}, email, walletContent, ACTIONS.GetOriginServerInfo, endpointAccessGrantId);
 
-exports.FetchAll = async (email, walletContent, providerEmail) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.FetchAll, providerEmail);
+exports.ClientHomepageData = async (email, walletContent) => await executeContract(
+  {fast: true}, email, walletContent, ACTIONS.ClientHomepageData);
 
 exports.Approve = async (email, walletContent, endpointAccessGrantId) => await executeContract(
   {}, email, walletContent, ACTIONS.Approve, endpointAccessGrantId);

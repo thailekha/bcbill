@@ -65,21 +65,24 @@ class EndpointAccessGrant extends LedgerEntity {
     return await super._get(ctx, id, opt, DOCTYPE, EndpointAccessGrant);
   }
 
-  async processProxyRequest(clientId) {
+  async getOriginServerInfo(clientId) {
     const isValid = this.value.approvedBy
       && this.value.clientIds.includes(clientId)
       && this.value.limit > 0
       && !this.value.revoked;
-    _l('processProxyRequest', clientId, isValid, this.value.approvedBy, this.value.clientIds, this.value.limit, this.value.revoked);
+
+    if (!isValid) {
+      return false;
+    }
 
     const endpoint = await Endpoint.getById(this.ctx, this.value.endpointId);
     const originServer = await OriginServer.getById(this.ctx, endpoint.value.originServerId);
 
-    return isValid ? {
+    return {
       host: originServer.value.host,
       path: endpoint.value.path,
       verb: endpoint.value.verb
-    } : false;
+    };
   }
 }
 

@@ -171,7 +171,7 @@ npm_install() {
 
 lint() {
     which eslint || npm i -g eslint
-    eslint protected-server backend chaincodes utils tests playground-scripts --fix --ext .js --config eslintrc.json
+    eslint protected-server backend chaincodes utils tests --fix --ext .js --config eslintrc.json
 }
 
 ############################
