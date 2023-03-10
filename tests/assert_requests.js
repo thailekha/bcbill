@@ -6,11 +6,11 @@ const ORIGIN_SERVERS = [
 ];
 const ENDPOINTS = [
   ['ping', 'get',],
-  // [  'helloworld','get',],
-  // [  'echo', 'post',],
-  // [  'square-of', 'post',],
-  // [  'sum', 'post',],
-  // [  'average', 'post',],
+  [  'helloworld','get',],
+  [  'echo', 'post',],
+  [  'square-of', 'post',],
+  [  'sum', 'post',],
+  [  'average', 'post',],
 ];
 
 module.exports = (backend) => {

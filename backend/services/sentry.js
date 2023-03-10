@@ -4,7 +4,7 @@ const { Gateway } = require('fabric-network');
 const fabprotos = require('fabric-protos');
 const { BlockDecoder } = require('fabric-common');
 const ACTIONS =  require(`${__dirname}/actions`);
-const { registerClient, inMemWallet, connectionProfile } = require(`${__dirname}/../utils`);
+const { registerClient, inMemWallet, connectionProfile } = require(`../../utils`);
 const hash = require('object-hash');
 const moment = require('moment');
 

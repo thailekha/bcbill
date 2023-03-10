@@ -1,0 +1,12 @@
+extends layout
+include mixins/utils
+
+block append content
+  +form_container("Register")
+    form(action="/register", method="post")
+      +form_input("email")
+      +form_input("password", "password")
+      .mb-3.form-check
+        input(type="checkbox", class="form-check-input", id="isProvider", name="isProvider")
+        label(for="isProvider", class="form-check-label") Are you an API provider?
+      button(type="submit", class="btn btn-primary") Register

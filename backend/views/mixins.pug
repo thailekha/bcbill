@@ -1,0 +1,19 @@
+mixin form_input(id, display=null, type='text', required_input=true)
+    .form-group.mb-3
+        label.form-label.fw-bold(for=id)= display || +capitalize_first_letter(id)
+        input.form-control(type=type, id=id, name=id, required=required_input)
+
+//define capitalize_first_letter(text)
+//    = text.charAt(0).toUpperCase() + text.slice(1)
+//
+
+
+//mixin form_input(id, display, type, required_input)
+//  - display = display || null
+//  - type = type || 'text'
+//  - required_input = required_input || true
+//    .form-group.mb-3
+//        label.form-label.fw-bold(for=id)= display || +capitalize_first_letter(id)
+//        input.form-control(type=type, id=id, name=id, required=required_input)
+//
+//

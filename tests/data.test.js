@@ -31,19 +31,6 @@ function makeEmail(pre) {
   return `${pre}_${randomstring.generate()}@org1.com`;
 }
 
-describe('Test /origin-server endpoint', () => {
-  it('should return the correct path and parameters', async () => {
-    const response = await request(backend)
-      .get('/origin-server/test/ping')
-      .set('Accept', 'application/json')
-      .expect(200);
-
-    const { path, params } = response.body;
-    expect(path).to.equal('/test/path');
-    expect(params).to.deep.equal({ foo: 'bar' });
-  });
-});
-
 describe('minimal proxy case', function() {
   const client1 = makeEmail('client');
   const client2 = makeEmail('client');
