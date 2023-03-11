@@ -21,6 +21,12 @@ class APISentryContract extends Contract {
     return provider.getCopy();
   }
 
+  async GetUser(ctx) {
+    const email = parseEmail(ctx);
+    const user = fromProvider(ctx, false) ? await ApiProvider.getById(ctx, email) : await Client.getById(ctx, email);
+    return user.getCopy();
+  }
+
   async AddOriginServer(ctx, providerEmail, serverName, host) {
     const originServer = new OriginServer(ctx, providerEmail, serverName, host);
     await originServer.create();

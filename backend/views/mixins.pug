@@ -1,19 +1,24 @@
-mixin form_input(id, display=null, type='text', required_input=true)
-    .form-group.mb-3
-        label.form-label.fw-bold(for=id)= display || +capitalize_first_letter(id)
-        input.form-control(type=type, id=id, name=id, required=required_input)
+mixin form_input(id, type='text', required_input=true)
+  .form-group.mb-3
+    label.form-label.fw-bold(for=id)= id.charAt(0).toUpperCase() + id.slice(1)
+    input.form-control(type=type, id=id, name=id, required=required_input, minlength="3")
 
-//define capitalize_first_letter(text)
-//    = text.charAt(0).toUpperCase() + text.slice(1)
-//
+mixin form_checkbox(id, label)
+  .mb-3.form-check
+    input.form-check-input(type="checkbox", id=id, name=id)
+    label.form-check-label(for=id)= label
 
+mixin form_container(header)
+  .container.mt-5
+    .row.justify-content-center
+      .col-lg-6
+        .bg-light.p-4.mb-4
+          h2.text-center.mb-4= header
+          block
 
-//mixin form_input(id, display, type, required_input)
-//  - display = display || null
-//  - type = type || 'text'
-//  - required_input = required_input || true
-//    .form-group.mb-3
-//        label.form-label.fw-bold(for=id)= display || +capitalize_first_letter(id)
-//        input.form-control(type=type, id=id, name=id, required=required_input)
-//
-//
+mixin flash_messages(messages, alertLevel)
+  for message in messages
+    div.alert(class=`alert-${alertLevel}`, role='alert')
+      i.fas.fa-exclamation-triangle
+      span #{message}
+

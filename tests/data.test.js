@@ -13,6 +13,7 @@ const foo = i => JSON.parse(JSON.stringify(i));
 const {
   ORIGIN_SERVER_HOST,
   ENDPOINTS,
+  GetUser,
   AddEndpoint,
   AddEndpoints,
   register,
@@ -41,6 +42,16 @@ describe('minimal proxy case', function() {
     client1_wallet = await register(client1);
     // client2_wallet = await register(client2);
     provider1_wallet = await register(provider1);
+  });
+  it('should get user provider', async() => {
+    p1 = await GetUser(provider1, provider1_wallet);
+    expect(p1.email).to.be.equal(provider1);
+    expect(p1.docType).to.be.equal('ApiProvider');
+  });
+  it('should get user client', async() => {
+    c1 = await GetUser(client1, client1_wallet);
+    expect(c1.email).to.be.equal(client1);
+    expect(c1.docType).to.be.equal('Client');
   });
   it('should add origin server', async() => {
     server1 = await AddOriginServer(provider1, provider1_wallet);

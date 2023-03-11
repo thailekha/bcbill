@@ -1,12 +1,11 @@
 extends layout
-include mixins/utils
 
 block append content
   +form_container("Register")
-    form(action="/register", method="post")
-      +form_input("email")
-      +form_input("password", "password")
-      .mb-3.form-check
-        input(type="checkbox", class="form-check-input", id="isProvider", name="isProvider")
-        label(for="isProvider", class="form-check-label") Are you an API provider?
-      button(type="submit", class="btn btn-primary") Register
+    form(action="/ui/register", method="post")
+      +form_input("username")
+      +form_checkbox("isProvider", "Are you an API provider?")
+      .text-center
+        button.btn.btn-primary(type="submit") Create Account
+        .mt-3.form-check-label Already have an account?
+          a(href='/ui/login')      Login

@@ -4,7 +4,7 @@ const { Gateway } = require('fabric-network');
 const fabprotos = require('fabric-protos');
 const { BlockDecoder } = require('fabric-common');
 const ACTIONS =  require(`${__dirname}/actions`);
-const { registerClient, inMemWallet, connectionProfile } = require(`../../utils`);
+const { registerClient, inMemWallet, connectionProfile } = require('../../utils');
 const hash = require('object-hash');
 const moment = require('moment');
 
@@ -16,6 +16,9 @@ exports.registerUser = async (email, isProvider) => {
   await executeContract({}, email, walletContent, isProvider ? ACTIONS.AddProvider : ACTIONS.AddClient, email);
   return walletContent;
 };
+
+exports.GetUser = async (email, walletContent) => await executeContract(
+  {fast: true}, email, walletContent, ACTIONS.GetUser);
 
 exports.AddOriginServer = async (email, walletContent, serverName, host) => await executeContract(
   {}, email, walletContent, ACTIONS.AddOriginServer, email, serverName, host);

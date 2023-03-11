@@ -1,16 +1,21 @@
+include mixins
+
 doctype html
 html(lang='en')
-    head
-        title= title
-        meta(charset='utf-8')
-        meta(name='viewport', content='width=device-width, initial-scale=1')
-        link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css' crossorigin='anonymous')
-        link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css' crossorigin='anonymous')
-        link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js' crossorigin='anonymous')
-
-        //- link(rel='stylesheet', href='/stylesheets/style.css')
-    body
-        block content
-            div.container-fluid.bg-dark.text-light.py-3
-                h1.text-center API Sentry
+  head
+    title= title
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css' crossorigin='anonymous')
+    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css' crossorigin='anonymous')
+    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js' crossorigin='anonymous')
+    //- link(rel='stylesheet', href='/stylesheets/style.css')
+  body
+    block content
+      div.container-fluid.bg-dark.text-light.py-3
+        h1.text-center API Sentry
+      +flash_messages(success, 'success')
+      +flash_messages(info, 'info')
+      +flash_messages(warning, 'warning')
+      +flash_messages(danger, 'danger')
 

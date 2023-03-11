@@ -4,22 +4,26 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node_modules/nodemon/bin/nodemon.js bin/www"
+    "dev": "node_modules/nodemon/bin/nodemon.js --watch . --ext js,pug --ignore node_modules/ bin/www"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.0",
+    "connect-flash": "^0.1.1",
     "cors": "^2.8.5",
+    "cowsay": "^1.5.0",
     "express": "^4.17.3",
-    "express-http-proxy": "^1.6.3",
+    "express-session": "^1.17.3",
     "fabric-ca-client": "^2.2.11",
     "fabric-network": "^2.2.11",
     "fabric-protos": "^2.2.13",
     "http-proxy": "^1.18.1",
     "http-status-codes": "^2.2.0",
+    "joi": "^17.8.3",
     "jsonfile": "^6.1.0",
     "moment": "^2.29.4",
+    "morgan": "^1.10.0",
     "object-hash": "^3.0.0",
     "pug": "^3.0.2",
     "url": "^0.11.0"

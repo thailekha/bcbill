@@ -1,13 +1,14 @@
 const router = require('express').Router();
 const sentry = require('../services/sentry');
-const url = require("url");
+const url = require('url');
 const httpProxy = require('http-proxy');
+const _l = require('../services/logger');
 const proxy = httpProxy.createProxyServer();
 
 router.post('/register', async (req, res, next) => {
   try {
     const {email, isProvider} = req.body;
-    const walletContent = await sentry.registerUser(email, isProvider);
+    const walletContent = await sentry.registerUser(email, isProvider === true || isProvider === 'on');
     res.json({ walletContent });
   } catch (err) {
     next(err);
@@ -42,6 +43,16 @@ router.all('/origin-server/*', async (req, res, next) => {
       res.writeHead(500, { 'Content-Type': 'text/plain' });
       res.end(`An error occurred: ${error}`);
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/GetUser', async (req, res, next) => {
+  try {
+    const {email, wallet} = req.body;
+    const user = await sentry.GetUser(email, wallet);
+    res.json(user);
   } catch (err) {
     next(err);
   }
@@ -91,7 +102,7 @@ router.post('/ClientHomepageData', async (req, res, next) => {
   try {
     const {email, wallet} = req.body;
     const result = await sentry.ClientHomepageData(email, wallet);
-    res.json({ result });
+    res.json(result);
   } catch (err) {
     next(err);
   }

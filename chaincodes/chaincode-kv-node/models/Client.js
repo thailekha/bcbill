@@ -7,8 +7,9 @@ class Client extends LedgerEntity {
     super(ctx, email, { email }, DOCTYPE);
   }
 
-  static construct(ctx, id) {
-    return new Client(ctx, id);
+  static construct(ctx, ledgerBlob) {
+    const {email} = ledgerBlob;
+    return new Client(ctx, email);
   }
 
   static async get(ctx, email, opt={ failFast: false}) {

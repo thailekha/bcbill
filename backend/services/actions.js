@@ -9,6 +9,7 @@ module.exports = {
   Enable: 'Enable',
   GetOriginServerInfo: 'GetOriginServerInfo',
   ClientHomepageData: 'ClientHomepageData',
-  Approve: 'Approve'
+  Approve: 'Approve',
+  GetUser: 'GetUser'
 };
 

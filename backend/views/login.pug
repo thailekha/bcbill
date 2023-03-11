@@ -1,0 +1,11 @@
+extends layout
+
+block append content
+  +form_container("Login")
+    form(action="/ui/login", method="post")
+      +form_input("username")
+      +form_input("wallet")
+      .text-center
+        button.btn.btn-primary(type="submit") Login
+        .mt-3.form-check-label Don't have an account?
+          a(href='/ui/register')      Register

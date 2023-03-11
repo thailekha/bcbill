@@ -7,8 +7,9 @@ class ApiProvider extends LedgerEntity {
     super(ctx, email, { email }, DOCTYPE);
   }
 
-  static construct(ctx, id) {
-    return new ApiProvider(ctx, id);
+  static construct(ctx, ledgerBlob) {
+    const {email} = ledgerBlob;
+    return new ApiProvider(ctx, email);
   }
 
   static async get(ctx, email, opt={ failFast: false}) {

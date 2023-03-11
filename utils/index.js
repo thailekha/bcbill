@@ -1,6 +1,7 @@
 const FabricCAServices = require('fabric-ca-client');
 const { Wallets } = require('fabric-network');
 const fs = require('fs');
+const cowsay = require('cowsay');
 require('dotenv').config({ path: `${__dirname}/../.env` });
 
 // ########################
@@ -67,5 +68,5 @@ module.exports = {
   fsWallet,
   inMemWallet,
   registerClient,
-  prettyJSONString
+  prettyJSONString,
 };
