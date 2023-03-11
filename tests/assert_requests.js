@@ -122,6 +122,23 @@ module.exports = (backend) => {
     }
   }
 
+  async function ShareAccess(email, wallet, endpointAccessGrantId, otherClientEmail) {
+    try {
+      return (await request(backend)
+        .post('/api/ShareAccess')
+        .set(...CONTENT_JSON)
+        .send({
+          email,
+          wallet,
+          endpointAccessGrantId,
+          otherClientEmail
+        })
+        .expect(200)).body;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async function ClientHomepageData(email, wallet) {
     try {
       return (await request(backend)
@@ -222,6 +239,7 @@ module.exports = (backend) => {
     ClientHomepageData,
     AddEndpointAccessGrant,
     GetEndpointAccessGrant,
+    ShareAccess,
     Approve,
     Revoke,
     Enable,

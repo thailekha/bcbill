@@ -2,7 +2,7 @@ const LedgerEntity = require('./LedgerEntity');
 const hash = require('object-hash');
 const _l = require('../lib/logger');
 const CustomException = require('../lib/CustomException');
-const {fromProvider} = require('../lib/contract-utils');
+const {fromProvider, parseEmail} = require('../lib/contract-utils');
 const {Endpoint} = require('./Endpoint');
 const {OriginServer} = require('./OriginServer');
 const status = require('http-status-codes').StatusCodes;
@@ -20,7 +20,7 @@ const DOCTYPE = 'EndpointAccessGrant';
 class EndpointAccessGrant extends LedgerEntity {
   constructor(ctx,
     endpointId, clientEmail,
-    requestedBy = clientEmail, approvedBy = null, clientIds = [clientEmail], limit = 20, revoked= false
+    requestedBy = clientEmail, approvedBy = null, clientIds = [], limit = 20, revoked= false
   ) {
     if (!clientEmail) {
       throw new Error(`invalid clientEmail ${clientEmail}`);
@@ -65,13 +65,17 @@ class EndpointAccessGrant extends LedgerEntity {
     return await super._get(ctx, id, opt, DOCTYPE, EndpointAccessGrant);
   }
 
-  async getOriginServerInfo(clientId) {
-    const isValid = this.value.approvedBy
-      && this.value.clientIds.includes(clientId)
+  fullyGranted() {
+    const requestor = parseEmail(this.ctx);
+    const extraCondition = requestor === this.value.requestedBy ? true : this.value.clientIds.includes(requestor);
+    return this.value.approvedBy
       && this.value.limit > 0
-      && !this.value.revoked;
+      && !this.value.revoked
+      && extraCondition;
+  }
 
-    if (!isValid) {
+  async getOriginServerInfo() {
+    if (!this.fullyGranted()) {
       return false;
     }
 
@@ -83,6 +87,22 @@ class EndpointAccessGrant extends LedgerEntity {
       path: endpoint.value.path,
       verb: endpoint.value.verb
     };
+  }
+
+  /*
+    Can only share if
+      - it's the client who originally created the eag
+      - client is not the same as otherClient
+      - approved, has enough limit, and not revoked
+      - otherClient exists
+   */
+  shareWith(otherClientEmail) {
+    const requestor = parseEmail(this.ctx);
+    if (requestor === otherClientEmail || requestor !== this.value.requestedBy || !this.fullyGranted()) {
+      throw new CustomException(status.FORBIDDEN);
+    }
+    this.value.clientIds.push(otherClientEmail);
+    this.value.clientIds = [...new Set(this.value.clientIds)];
   }
 }
 

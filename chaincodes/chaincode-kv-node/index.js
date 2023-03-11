@@ -1,4 +1,4 @@
-const {Contract, Asset} = require('fabric-contract-api');
+const {Contract} = require('fabric-contract-api');
 const _l = require('./lib/logger');
 const { Client, DOCTYPE: CLIENT_DOCTYPE} = require('./models/Client');
 const { ApiProvider, DOCTYPE: API_PROVIDER_DOCTYPE} = require('./models/ApiProvider');
@@ -50,6 +50,13 @@ class APISentryContract extends Contract {
     return eag.getCopy();
   }
 
+  async ShareAccess(ctx, endpointAccessGrantId, otherClientEmail) {
+    const eag = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
+    eag.shareWith(otherClientEmail);
+    await eag.update();
+    return eag.getCopy();
+  }
+
   async Approve(ctx, endpointAccessGrantId) {
     const eag = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
     await eag.approve();
@@ -74,7 +81,7 @@ class APISentryContract extends Contract {
     _l('GetOriginServerInfo start');
     const endpointAccessGrant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
     _l('GetOriginServerInfo finish');
-    return endpointAccessGrant.getOriginServerInfo(parseEmail(ctx));
+    return endpointAccessGrant.getOriginServerInfo();
   }
 
   /*

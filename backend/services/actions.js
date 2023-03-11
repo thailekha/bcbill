@@ -10,6 +10,7 @@ module.exports = {
   GetOriginServerInfo: 'GetOriginServerInfo',
   ClientHomepageData: 'ClientHomepageData',
   Approve: 'Approve',
-  GetUser: 'GetUser'
+  GetUser: 'GetUser',
+  ShareAccess: 'ShareAccess'
 };
 

@@ -1,17 +1,12 @@
+/* global describe, before, it */
+
 const chai = require('chai');
 const expect = chai.expect;
-const hash = require('object-hash');
 const backend = require('../backend/bin/www');
-const { stringify } = require('querystring');
 const randomstring = require('randomstring');
-const request = require('supertest');
 const jsonfile = require('jsonfile');
-const jstr = (i) => JSON.stringify(i);
-const _l = i => console.log(jstr(i));
-const foo = i => JSON.parse(JSON.stringify(i));
 
 const {
-  ORIGIN_SERVER_HOST,
   ENDPOINTS,
   GetUser,
   AddEndpoint,
@@ -21,7 +16,7 @@ const {
   ClientHomepageData,
   Approve,
   AddEndpointAccessGrant,
-  GetEndpointAccessGrant,
+  ShareAccess,
   Revoke,
   Enable,
   pingOriginServer,
@@ -40,16 +35,16 @@ describe('minimal proxy case', function() {
   let server1, endpoint1, grant1;
   before(async function() {
     client1_wallet = await register(client1);
-    // client2_wallet = await register(client2);
+    client2_wallet = await register(client2);
     provider1_wallet = await register(provider1);
   });
   it('should get user provider', async() => {
-    p1 = await GetUser(provider1, provider1_wallet);
+    const p1 = await GetUser(provider1, provider1_wallet);
     expect(p1.email).to.be.equal(provider1);
     expect(p1.docType).to.be.equal('ApiProvider');
   });
   it('should get user client', async() => {
-    c1 = await GetUser(client1, client1_wallet);
+    const c1 = await GetUser(client1, client1_wallet);
     expect(c1.email).to.be.equal(client1);
     expect(c1.docType).to.be.equal('Client');
   });
@@ -68,8 +63,13 @@ describe('minimal proxy case', function() {
     expect(eag.approvedBy).to.be.equal(provider1);
     grant1 = eag;
   });
+  it('should share access', async() => {
+    const eag = await ShareAccess(client1, client1_wallet, grant1.id, client2);
+    expect(eag.clientIds).to.include(client2);
+  });
   it('should ping origin server', async() => {
     await pingOriginServer(client1, client1_wallet, grant1.id);
+    await pingOriginServer(client2, client2_wallet, grant1.id);
   });
   // revoke, ping, reenable, ping
   it('should revoke access', async() => {
@@ -77,23 +77,26 @@ describe('minimal proxy case', function() {
   });
   it('should not ping origin server', async() => {
     await pingOriginServerFail(client1, client1_wallet, grant1.id);
+    await pingOriginServerFail(client2, client2_wallet, grant1.id);
   });
   it('should enable access', async() => {
     await Enable(provider1, provider1_wallet, grant1.id);
   });
   it('should ping origin server', async() => {
     await pingOriginServer(client1, client1_wallet, grant1.id);
+    await pingOriginServer(client2, client2_wallet, grant1.id);
   });
 });
 
 // Ask for edge cases like duplicates
+// Test all Verbs !
 
 describe('UI-suite', function() {
   const client1 = makeEmail('client');
-  const client2 = makeEmail('client');
+  // const client2 = makeEmail('client');
   const provider1 = makeEmail('provider');
-  let client1_wallet, client2_wallet, provider1_wallet;
-  let server1, endpoint1, grant1;
+  let client1_wallet, provider1_wallet;
+  let server1;
   before(async function() {
     client1_wallet = await register(client1);
     // client2_wallet = await register(client2);
@@ -106,7 +109,7 @@ describe('UI-suite', function() {
     await AddEndpoints(provider1, provider1_wallet, server1.id);
   });
   it('should fetch discovery data for client', async() => {
-    const homepageData = await ClientHomepageData(provider1, provider1_wallet, server1.id);
+    const homepageData = await ClientHomepageData(client1, client1_wallet, server1.id);
     expect(homepageData).to.not.have.property('Client');
     expect(homepageData).to.not.have.property('EndpointAccessGrant');
 
@@ -152,32 +155,32 @@ describe('UI-suite', function() {
 });
 
 
-describe('setup-for-dev', function() {
-  const client1 = makeEmail('client');
-  const client2 = makeEmail('client');
-  const provider1 = makeEmail('provider');
-  let client1_wallet, client2_wallet, provider1_wallet;
-  let server1, endpoint1, grant1;
-  before(async function() {
-    client1_wallet = await register(client1);
-    // client2_wallet = await register(client2);
-    provider1_wallet = await register(provider1);
-  });
-  it('should add origin server', async() => {
-    server1 = await AddOriginServer(provider1, provider1_wallet);
-  });
-  it('should add endpoints', async() => {
-    await AddEndpoints(provider1, provider1_wallet, server1.id);
-  });
-  it('should write data to file', async() => {
-    jsonfile.writeFileSync('ui-data.json', {
-      client1,
-      client2,
-      provider1,
-      client1_wallet,
-      client2_wallet,
-      provider1_wallet
-    });
-  });
-});
-
+// describe('setup-for-dev', function() {
+//   const client1 = makeEmail('client');
+//   const client2 = makeEmail('client');
+//   const provider1 = makeEmail('provider');
+//   let client1_wallet, client2_wallet, provider1_wallet;
+//   let server1, endpoint1, grant1;
+//   before(async function() {
+//     client1_wallet = await register(client1);
+//     // client2_wallet = await register(client2);
+//     provider1_wallet = await register(provider1);
+//   });
+//   it('should add origin server', async() => {
+//     server1 = await AddOriginServer(provider1, provider1_wallet);
+//   });
+//   it('should add endpoints', async() => {
+//     await AddEndpoints(provider1, provider1_wallet, server1.id);
+//   });
+//   it('should write data to file', async() => {
+//     jsonfile.writeFileSync('ui-data.json', {
+//       client1,
+//       client2,
+//       provider1,
+//       client1_wallet,
+//       client2_wallet,
+//       provider1_wallet
+//     });
+//   });
+// });
+//

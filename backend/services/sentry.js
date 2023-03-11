@@ -32,6 +32,9 @@ exports.AddEndpointAccessGrant = async (email, walletContent, endpointId, client
 exports.GetEndpointAccessGrant = async (email, walletContent, endpointAccessGrantId) => await executeContract(
   {fast: true}, email, walletContent, ACTIONS.GetEndpointAccessGrant, endpointAccessGrantId);
 
+exports.ShareAccess = async (email, walletContent, endpointAccessGrantId, otherClientEmail) => await executeContract(
+  {}, email, walletContent, ACTIONS.ShareAccess, endpointAccessGrantId, otherClientEmail);
+
 exports.Revoke = async (email, walletContent, endpointAccessGrantId) => await executeContract(
   {}, email, walletContent, ACTIONS.Revoke, endpointAccessGrantId);
 

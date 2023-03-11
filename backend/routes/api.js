@@ -2,7 +2,6 @@ const router = require('express').Router();
 const sentry = require('../services/sentry');
 const url = require('url');
 const httpProxy = require('http-proxy');
-const _l = require('../services/logger');
 const proxy = httpProxy.createProxyServer();
 
 router.post('/register', async (req, res, next) => {
@@ -92,6 +91,16 @@ router.post('/GetEndpointAccessGrant', async (req, res, next) => {
   try {
     const {email, wallet, endpointAccessGrantId} = req.body;
     const eag = await sentry.GetEndpointAccessGrant(email, wallet, endpointAccessGrantId);
+    res.json(eag);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/ShareAccess', async (req, res, next) => {
+  try {
+    const {email, wallet, endpointAccessGrantId, otherClientEmail} = req.body;
+    const eag = await sentry.ShareAccess(email, wallet, endpointAccessGrantId, otherClientEmail);
     res.json(eag);
   } catch (err) {
     next(err);

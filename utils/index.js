@@ -1,7 +1,7 @@
 const FabricCAServices = require('fabric-ca-client');
 const { Wallets } = require('fabric-network');
 const fs = require('fs');
-const cowsay = require('cowsay');
+// const cowsay = require('cowsay');
 require('dotenv').config({ path: `${__dirname}/../.env` });
 
 // ########################
@@ -60,7 +60,7 @@ const registerClient = async (email) => {
 
 const parseJsonFile = filePath => JSON.parse(fs.readFileSync(filePath, 'utf8'));
 const prettyJSONString = (inputString) => JSON.stringify(JSON.parse(inputString), null, 2);
-const clone = obj => JSON.parse(JSON.stringify(obj));
+// const clone = obj => JSON.parse(JSON.stringify(obj));
 
 module.exports = {
   connectionProfile,

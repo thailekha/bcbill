@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const morgan = require('morgan');
 const flash = require('connect-flash');
@@ -12,10 +13,14 @@ app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
+app.use(cookieParser());
 app.use(session({
-  secret: 'mysecretkey',
-  resave: false,
-  saveUninitialized: false
+  secret: 'mysecret',
+  resave: true,
+  saveUninitialized: true,
+
+  // set true for HTTPS
+  cookie: { secure: false }
 }));
 app.use(flash());
 app.use((req, res, next) => {
