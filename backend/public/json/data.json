@@ -1,0 +1,174 @@
+{
+  "Endpoint": [
+    {
+      "docType": "Endpoint",
+      "originServerId": "5f0a3ad33636b0bf6513e5e15d29b9b13315fa85",
+      "path": "square-of",
+      "verb": "post",
+      "id": "26e134df7ba8cdf99533761a64373daa62cd54cc"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "aaebad31c3ec514c23365470df164d5537d107f6",
+      "path": "helloworld",
+      "verb": "get",
+      "id": "464ac69c3817dda78cd631b58c070f2fe413d152"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "5f0a3ad33636b0bf6513e5e15d29b9b13315fa85",
+      "path": "helloworld",
+      "verb": "get",
+      "id": "66f1bcc04f566a4787089f4174857fc6a586c840"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "aaebad31c3ec514c23365470df164d5537d107f6",
+      "path": "sum",
+      "verb": "post",
+      "id": "7a0ff6c200d20beaf1b81d0d5bc46a7b71d47213"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "aaebad31c3ec514c23365470df164d5537d107f6",
+      "path": "ping",
+      "verb": "get",
+      "id": "87ef3090d26ecf6129ba9999ebea0b7332ab9cac"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "5f0a3ad33636b0bf6513e5e15d29b9b13315fa85",
+      "path": "ping",
+      "verb": "get",
+      "id": "8f4284357de5ef06a45881fabc13f5c93f1bb3e6"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "aaebad31c3ec514c23365470df164d5537d107f6",
+      "path": "average",
+      "verb": "post",
+      "id": "99b585fc4f9965affc81ec94a8417f2391837750"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "5f0a3ad33636b0bf6513e5e15d29b9b13315fa85",
+      "path": "echo",
+      "verb": "post",
+      "id": "9c155b4392eaae342ca65bcc28a8bc2f878c53a4"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "5f0a3ad33636b0bf6513e5e15d29b9b13315fa85",
+      "path": "average",
+      "verb": "post",
+      "id": "ab213041ac899384399503d676e3758f9358c9be"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "aaebad31c3ec514c23365470df164d5537d107f6",
+      "path": "echo",
+      "verb": "post",
+      "id": "c130b7ae18585bbe6c30d6d31968fea4c79576b9"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "aaebad31c3ec514c23365470df164d5537d107f6",
+      "path": "square-of",
+      "verb": "post",
+      "id": "d9d5788628d411ef88a7cb1be86f677f7fce9854"
+    },
+    {
+      "docType": "Endpoint",
+      "originServerId": "5f0a3ad33636b0bf6513e5e15d29b9b13315fa85",
+      "path": "sum",
+      "verb": "post",
+      "id": "fef56002cf9700280e7d7dda6fea2b0d86e80f38"
+    }
+  ],
+  "EndpointAccessGrant": [
+    {
+      "approvedBy": "provider_lY7cyefn38Pokod2hGWPWR0J6k14DdVi@org1.com",
+      "clientEmail": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com",
+      "clientIds": [],
+      "docType": "EndpointAccessGrant",
+      "endpointId": "8f4284357de5ef06a45881fabc13f5c93f1bb3e6",
+      "limit": 20,
+      "requestedBy": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com",
+      "revoked": false,
+      "id": "455626f9f684acd2a70ec1a84dfe5b80409901cf"
+    },
+    {
+      "approvedBy": "provider_5RA1F9ChYJvsnK73o0Yq9n6RWsjVyDHQ@org1.com",
+      "clientEmail": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com",
+      "clientIds": [],
+      "docType": "EndpointAccessGrant",
+      "endpointId": "c130b7ae18585bbe6c30d6d31968fea4c79576b9",
+      "limit": 20,
+      "requestedBy": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com",
+      "revoked": false,
+      "id": "7bdb42b412ec243d9f5de26330a8407580051977"
+    },
+    {
+      "approvedBy": "provider_lY7cyefn38Pokod2hGWPWR0J6k14DdVi@org1.com",
+      "clientEmail": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com",
+      "clientIds": [],
+      "docType": "EndpointAccessGrant",
+      "endpointId": "9c155b4392eaae342ca65bcc28a8bc2f878c53a4",
+      "limit": 20,
+      "requestedBy": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com",
+      "revoked": false,
+      "id": "a2b093a98634d3447bd55d1b23c1116c5627bf94"
+    },
+    {
+      "approvedBy": "provider_lY7cyefn38Pokod2hGWPWR0J6k14DdVi@org1.com",
+      "clientEmail": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com",
+      "clientIds": [],
+      "docType": "EndpointAccessGrant",
+      "endpointId": "66f1bcc04f566a4787089f4174857fc6a586c840",
+      "limit": 20,
+      "requestedBy": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com",
+      "revoked": false,
+      "id": "cb4096dbbca70596132ce68e026bf4433fe187d7"
+    }
+  ],
+  "OriginServer": [
+    {
+      "docType": "OriginServer",
+      "host": "http://localhost:9998",
+      "providerEmail": "provider_lY7cyefn38Pokod2hGWPWR0J6k14DdVi@org1.com",
+      "serverName": "math",
+      "id": "5f0a3ad33636b0bf6513e5e15d29b9b13315fa85"
+    },
+    {
+      "docType": "OriginServer",
+      "host": "http://localhost:9997",
+      "providerEmail": "provider_5RA1F9ChYJvsnK73o0Yq9n6RWsjVyDHQ@org1.com",
+      "serverName": "dumb",
+      "id": "aaebad31c3ec514c23365470df164d5537d107f6"
+    }
+  ],
+  "Client": [
+    {
+      "docType": "Client",
+      "email": "client_AidqXOZXGW25mYBvC0wwbXumAOdrktPS@org1.com",
+      "id": "client_AidqXOZXGW25mYBvC0wwbXumAOdrktPS@org1.com"
+    },
+    {
+      "docType": "Client",
+      "email": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com",
+      "id": "client_E1yzO4kYsozrXbi72MfQQziMzAbGsDUc@org1.com"
+    }
+  ],
+  "ApiProvider": [
+    {
+      "docType": "ApiProvider",
+      "email": "provider_5RA1F9ChYJvsnK73o0Yq9n6RWsjVyDHQ@org1.com",
+      "id": "provider_5RA1F9ChYJvsnK73o0Yq9n6RWsjVyDHQ@org1.com"
+    },
+    {
+      "docType": "ApiProvider",
+      "email": "provider_lY7cyefn38Pokod2hGWPWR0J6k14DdVi@org1.com",
+      "id": "provider_lY7cyefn38Pokod2hGWPWR0J6k14DdVi@org1.com"
+    }
+  ]
+}

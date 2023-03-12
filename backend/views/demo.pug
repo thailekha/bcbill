@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  script(src='https://code.jquery.com/jquery-3.6.0.min.js')
+  script(src='https://d3js.org/d3.v7.min.js')
+  script(src='https://cdn.jsdelivr.net/npm/d3-context-menu@2.1.0/js/d3-context-menu.min.js')
+  link(href='https://cdn.jsdelivr.net/npm/d3-context-menu@2.1.0/css/d3-context-menu.min.css', rel='stylesheet')
+
+  svg(width="800" height="600")
+  button#draw-graph-button Draw Graph
+  div#gif-container
+  script(type='module', src='/public/js/graph.js')
