@@ -5,8 +5,9 @@ const cors = require('cors');
 const morgan = require('morgan');
 const flash = require('connect-flash');
 const bodyParser = require('body-parser');
+const path = require('path');
 const api = require('./routes/api');
-const ui = require('./routes/ui');
+const ui = require('./routes/web');
 
 const app = express();
 app.use(morgan('dev'));
@@ -30,6 +31,7 @@ app.use((req, res, next) => {
   res.locals.danger = req.flash('danger');
   next();
 });
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'pug');
 app.use('/ui', ui);
 app.use('/api', api);

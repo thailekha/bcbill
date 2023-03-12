@@ -13,6 +13,7 @@ const {
   AddEndpoints,
   register,
   AddOriginServer,
+  AddOriginServer2,
   ClientHomepageData,
   Approve,
   AddEndpointAccessGrant,
@@ -56,7 +57,7 @@ describe('minimal proxy case', function() {
   });
   it('should request access', async() => {
     // Client request access
-    grant1 = await AddEndpointAccessGrant(client1, client1_wallet, endpoint1.id, client1);
+    grant1 = await AddEndpointAccessGrant(client1, client1_wallet, endpoint1.id);
   });
   it('should approve access', async() => {
     const eag = await Approve(provider1, provider1_wallet, grant1.id);
@@ -71,7 +72,6 @@ describe('minimal proxy case', function() {
     await pingOriginServer(client1, client1_wallet, grant1.id);
     await pingOriginServer(client2, client2_wallet, grant1.id);
   });
-  // revoke, ping, reenable, ping
   it('should revoke access', async() => {
     await Revoke(provider1, provider1_wallet, grant1.id);
   });
@@ -90,32 +90,72 @@ describe('minimal proxy case', function() {
 
 // Ask for edge cases like duplicates
 // Test all Verbs !
+// one origin server can only be of one provider
 
 describe('UI-suite', function() {
-  const client1 = makeEmail('client');
-  // const client2 = makeEmail('client');
-  const provider1 = makeEmail('provider');
-  let client1_wallet, provider1_wallet;
-  let server1;
+  const clientA = makeEmail('client');
+  const clientB = makeEmail('client');
+  const providerX = makeEmail('provider');
+  const providerY = makeEmail('provider');
+
+  // NUMBER is endpoint
+  // A or B is client
+  // X or Y is provider
+
+  let clientA_wallet, clientB_wallet, providerX_wallet, providerY_wallet;
+  let serverX, serverY;
+  let endpoint1X, endpoint2X, endpoint3X, endpoint4X, endpoint5X;
+  let endpoint1Y, endpoint2Y, endpoint3Y, endpoint4Y, endpoint5Y;
+  let grant1XA, grant2XA, grant3XA, grant4XB;
+  let grant1YB, grant2YB, grant3YA;
+
   before(async function() {
-    client1_wallet = await register(client1);
-    // client2_wallet = await register(client2);
-    provider1_wallet = await register(provider1);
+    clientA_wallet = await register(clientA);
+    clientB_wallet = await register(clientB);
+    providerX_wallet = await register(providerX);
+    providerY_wallet = await register(providerY);
   });
   it('should add origin server', async() => {
-    server1 = await AddOriginServer(provider1, provider1_wallet);
+    serverX = await AddOriginServer(providerX, providerX_wallet);
+    serverY = await AddOriginServer2(providerY, providerX_wallet);
   });
   it('should add endpoints', async() => {
-    await AddEndpoints(provider1, provider1_wallet, server1.id);
+    [endpoint1X, endpoint2X, endpoint3X, endpoint4X, endpoint5X] = await AddEndpoints(providerX, providerX_wallet, serverX.id);
+    [endpoint1Y, endpoint2Y, endpoint3Y, endpoint4Y, endpoint5Y] = await AddEndpoints(providerY, providerY_wallet, serverY.id);
+  });
+  it('should grant', async() => {
+    // e.g. endpoint 1, server X, client A
+    grant1XA = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint1X.id);
+    grant2XA = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint2X.id);
+    grant3XA = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint3X.id);
+    grant4XB = await AddEndpointAccessGrant(clientB, clientB_wallet, endpoint4X.id);
+    grant1YB = await AddEndpointAccessGrant(clientB, clientB_wallet, endpoint1Y.id);
+    grant2YB = await AddEndpointAccessGrant(clientB, clientB_wallet, endpoint2Y.id);
+    grant3YA = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint3Y.id);
+  });
+  it('should approve access', async() => {
+    grant1XA = await Approve(providerX, providerX_wallet, grant1XA.id);
+    grant2XA = await Approve(providerX, providerX_wallet, grant2XA.id);
+    grant3XA = await Approve(providerX, providerX_wallet, grant3XA.id);
+    grant4XB = await Approve(providerX, providerX_wallet, grant4XB.id);
+    grant1YB = await Approve(providerY, providerY_wallet, grant1YB.id);
+    grant2YB = await Approve(providerY, providerY_wallet, grant2YB.id);
+    grant3YA = await Approve(providerY, providerY_wallet, grant3YA.id);
+    expect(grant1XA.approvedBy).to.be.equal(providerX);
+    expect(grant2XA.approvedBy).to.be.equal(providerX);
+    expect(grant3XA.approvedBy).to.be.equal(providerX);
+    expect(grant4XB.approvedBy).to.be.equal(providerX);
+    expect(grant1YB.approvedBy).to.be.equal(providerY);
+    expect(grant2YB.approvedBy).to.be.equal(providerY);
+    expect(grant3YA.approvedBy).to.be.equal(providerY);
   });
   it('should fetch discovery data for client', async() => {
-    const homepageData = await ClientHomepageData(client1, client1_wallet, server1.id);
-    expect(homepageData).to.not.have.property('Client');
-    expect(homepageData).to.not.have.property('EndpointAccessGrant');
-
-    expect(homepageData.ApiProvider).to.be.an('array').that.is.not.empty;
-    expect(homepageData.OriginServer).to.be.an('array').that.is.not.empty;
-    expect(homepageData.Endpoint).to.be.an('array').that.is.not.empty;
+    const homepageData = await ClientHomepageData(clientA, clientA_wallet);
+    expect(homepageData.Client).to.have.lengthOf(2);
+    expect(homepageData.ApiProvider).to.have.lengthOf(2);
+    expect(homepageData.OriginServer).to.have.lengthOf(2);
+    expect(homepageData.Endpoint).to.have.lengthOf(12);
+    expect(homepageData.EndpointAccessGrant).to.have.lengthOf(4);
   });
   // MINIMAL INFO NEEDED TO grant access and test forward case
   /*
@@ -126,61 +166,13 @@ describe('UI-suite', function() {
       -> select endpoint
       -> select path + verb
    */
-  /*
-      just fetch all providers, servers, and endpoints
-      only things to hide are EAG and the actual server host
-   */
-  // it('client should request access', async() => {
-  //   // Client request access
-  //   const {result: fetch} = await ClientHomepageData(client1, client1_wallet, provider1);
-  //   expect(fetch.Endpoints).to.have.lengthOf(ENDPOINTS.length);
-  //   const { providerEmail, host, path, verb } = fetch.Endpoints[0];
-  //   grant1 = await AddEndpointAccessGrant(client1, client1_wallet, providerEmail, host, path, verb, client1);
-  // });
-  // it('provider should approve access', async() => {
-  //   // Provider approves
-  //   const {result: fetch} = await ClientHomepageData(client1, client1_wallet, provider1);
-  //   expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
-  //   expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
-  //   const eag = await Approve(provider1, provider1_wallet, fetch.EndpointAccessGrants[0].id);
-  //   expect(eag.approvedBy).to.be.equal(provider1);
-  //   grant1 = eag;
-  // });
-  // it('client should ping origin server', async() => {
-  //   const {result: fetch} = await ClientHomepageData(client1, client1_wallet, provider1);
-  //   expect(fetch.EndpointAccessGrants).to.have.lengthOf(1);
-  //   expect(fetch.EndpointAccessGrants[0]).to.deep.equal(grant1);
-  //   await pingOriginServer(client1, client1_wallet, fetch.EndpointAccessGrants[0].id);
-  // });
+  it('should write data to file', async() => {
+    jsonfile.writeFileSync('ui-data.json', {
+      clientA,
+      clientB,
+      clientA_wallet,
+      clientB_wallet,
+    });
+  });
 });
 
-
-// describe('setup-for-dev', function() {
-//   const client1 = makeEmail('client');
-//   const client2 = makeEmail('client');
-//   const provider1 = makeEmail('provider');
-//   let client1_wallet, client2_wallet, provider1_wallet;
-//   let server1, endpoint1, grant1;
-//   before(async function() {
-//     client1_wallet = await register(client1);
-//     // client2_wallet = await register(client2);
-//     provider1_wallet = await register(provider1);
-//   });
-//   it('should add origin server', async() => {
-//     server1 = await AddOriginServer(provider1, provider1_wallet);
-//   });
-//   it('should add endpoints', async() => {
-//     await AddEndpoints(provider1, provider1_wallet, server1.id);
-//   });
-//   it('should write data to file', async() => {
-//     jsonfile.writeFileSync('ui-data.json', {
-//       client1,
-//       client2,
-//       provider1,
-//       client1_wallet,
-//       client2_wallet,
-//       provider1_wallet
-//     });
-//   });
-// });
-//

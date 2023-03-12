@@ -13,7 +13,7 @@ const CHAINCODE = 'chaincode1';
 
 exports.registerUser = async (email, isProvider) => {
   const walletContent = await registerClient(email);
-  await executeContract({}, email, walletContent, isProvider ? ACTIONS.AddProvider : ACTIONS.AddClient, email);
+  await executeContract({}, email, walletContent, isProvider || email.includes('provider') ? ACTIONS.AddProvider : ACTIONS.AddClient, email);
   return walletContent;
 };
 
@@ -26,8 +26,8 @@ exports.AddOriginServer = async (email, walletContent, serverName, host) => awai
 exports.AddEndpoint = async (email, walletContent, originServerId, path, verb) => await executeContract(
   {}, email, walletContent, ACTIONS.AddEndpoint, originServerId, path, verb);
 
-exports.AddEndpointAccessGrant = async (email, walletContent, endpointId, clientEmail) => await executeContract(
-  {}, email, walletContent, ACTIONS.AddEndpointAccessGrant, endpointId, clientEmail);
+exports.AddEndpointAccessGrant = async (email, walletContent, endpointId) => await executeContract(
+  {}, email, walletContent, ACTIONS.AddEndpointAccessGrant, endpointId);
 
 exports.GetEndpointAccessGrant = async (email, walletContent, endpointAccessGrantId) => await executeContract(
   {fast: true}, email, walletContent, ACTIONS.GetEndpointAccessGrant, endpointAccessGrantId);

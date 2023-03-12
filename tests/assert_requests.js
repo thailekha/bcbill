@@ -2,7 +2,8 @@ const request = require('supertest');
 
 const CONTENT_JSON = ['Content-Type', 'application/json'];
 const ORIGIN_SERVERS = [
-  ['math', 'http://localhost:9998']
+  ['math', 'http://localhost:9998'],
+  ['dumb', 'http://localhost:9997'],
 ];
 const ENDPOINTS = [
   ['ping', 'get',],
@@ -71,6 +72,23 @@ module.exports = (backend) => {
     }
   }
 
+  async function AddOriginServer2(email, wallet) {
+    try {
+      return (await request(backend)
+        .post('/api/AddOriginServer')
+        .set(...CONTENT_JSON)
+        .send({
+          email,
+          wallet,
+          serverName: ORIGIN_SERVERS[1][0],
+          host: ORIGIN_SERVERS[1][1]
+        })
+        .expect(200)).body;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async function AddEndpoint(email, wallet, originServerId, path, verb) {
     try {
       return (await request(backend)
@@ -89,7 +107,7 @@ module.exports = (backend) => {
     }
   }
 
-  async function AddEndpointAccessGrant(email, wallet, endpointId, clientEmail) {
+  async function AddEndpointAccessGrant(email, wallet, endpointId) {
     try {
       return (await request(backend)
         .post('/api/AddEndpointAccessGrant')
@@ -97,8 +115,7 @@ module.exports = (backend) => {
         .send({
           email,
           wallet,
-          endpointId,
-          clientEmail
+          endpointId
         })
         .expect(200)).body;
     } catch (err) {
@@ -235,6 +252,7 @@ module.exports = (backend) => {
     AddEndpoints,
     register,
     AddOriginServer,
+    AddOriginServer2,
     AddEndpoint,
     ClientHomepageData,
     AddEndpointAccessGrant,

@@ -39,8 +39,8 @@ class APISentryContract extends Contract {
     return endpoint.getCopy();
   }
 
-  async AddEndpointAccessGrant(ctx, endpointId, clientEmail) {
-    const eag = new EndpointAccessGrant(ctx, endpointId, clientEmail);
+  async AddEndpointAccessGrant(ctx, endpointId) {
+    const eag = new EndpointAccessGrant(ctx, endpointId, parseEmail(ctx));
     await eag.create();
     return eag.getCopy();
   }
@@ -92,15 +92,36 @@ class APISentryContract extends Contract {
     user can just grab a mapping after signing up
   */
   // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
-  // fields: [  "email",  "providerEmail",  "host",  "path",  "verb",  "clientEmail",  "requestedBy",  "approvedBy",  "clientIds",  "limit",  "revoked" ]
+  /*
+      All fields:
+      email
+      originServerId
+      path
+      verb
+      endpointId
+      clientEmail
+      requestedBy
+      approvedBy
+      clientIds
+      limit
+      revoked
+      providerEmail
+      serverName
+      host
+   */
   async ClientHomepageData(ctx) {
     _l('ClientHomepageData start');
     // sort: [{ time: 'asc' }]
+    // what to hide: originServer host, eag that is not of requester
+    // fields: [  "email", "originServerId", "path", "verb", "endpointId", "clientEmail", "requestedBy", "approvedBy", "clientIds", "limit", "revoked", "providerEmail", "serverName" ]
     const query_result = await query(ctx, {
       selector: {
         $or: [
           {
             docType: API_PROVIDER_DOCTYPE
+          },
+          {
+            docType: CLIENT_DOCTYPE
           },
           {
             docType: ORIGIN_SERVER_DOCTYPE
@@ -119,7 +140,5 @@ class APISentryContract extends Contract {
     return query_result;
   }
 }
-
-// ClientSharepageData?
 
 exports.contracts = [APISentryContract];

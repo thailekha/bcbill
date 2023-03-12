@@ -79,8 +79,8 @@ router.post('/AddEndpoint', async (req, res, next) => {
 
 router.post('/AddEndpointAccessGrant', async (req, res, next) => {
   try {
-    const {email, wallet, endpointId, clientEmail} = req.body;
-    const eag = await sentry.AddEndpointAccessGrant(email, wallet, endpointId, clientEmail);
+    const {email, wallet, endpointId} = req.body;
+    const eag = await sentry.AddEndpointAccessGrant(email, wallet, endpointId);
     res.json(eag);
   } catch (err) {
     next(err);
