@@ -1,14 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>D3 Network Graph</title>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <style>
-    </style>
+  <title>D3 Network Graph</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="
+https://cdn.jsdelivr.net/npm/d3-context-menu@2.1.0/js/d3-context-menu.min.js
+"></script>
+  <link href="
+https://cdn.jsdelivr.net/npm/d3-context-menu@2.1.0/css/d3-context-menu.min.css
+" rel="stylesheet">
+  <style>
+  </style>
 </head>
 <body>
 <svg width="800" height="600"></svg>
+<div id="gif-container"></div>
 <script>
+  async function getRandomGif() {
+    const searchQuery = "dog";
+    const gfycatApiUrl = `https://api.gfycat.com/v1/gfycats/search?search_text=${searchQuery}`;
+    const response = await fetch(gfycatApiUrl);
+    const data = await response.json();
+    const randomIndex = Math.floor(Math.random() * data.gfycats.length);
+    const gifUrl = data.gfycats[randomIndex].max2mbGif;
+    const container = $("#gif-container");
+    container.empty();
+    const imgElement = $("<img>");
+    imgElement.attr("src", gifUrl);
+    container.append(imgElement);
+  }
+
+
+  const menuItems = [
+    {
+      title: "Request access",
+      action: async function(d, i) {
+        await getRandomGif();
+        console.log("Request access clicked for node " + d.id);
+      }
+    },
+    {
+      title: "Share",
+      action: function(d, i) {
+        console.log("Share clicked for node " + d.id);
+      }
+    }
+  ];
+
   const data = {
     nodes: [
       {id: "node1"},
@@ -66,7 +105,8 @@
         if (!event.active) simulation.alphaTarget(0);
         d.fx = null;
         d.fy = null;
-      }));
+      }))
+    .on('contextmenu', d3.contextMenu(menuItems));
 
   node
     .append("rect")
