@@ -11,11 +11,20 @@ trap cleanup EXIT
 SENTRY_CONF_PATH=$(realpath ~)/.apisentry
 
 ############################
-# Empty network (start)
+# fablo mod dev (start)
 ############################
 
+mod() {
+    ./fablo recreate
+    ./fablo-target/fabric-docker.sh up
+}
+
+fabdoc() {
+    cp fablo-mods/fabric-docker.sh fablo-target/.
+}
+
 ############################
-# Empty network (end)
+# fablo mod dev (end)
 ############################
 
 ############################
