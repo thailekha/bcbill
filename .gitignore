@@ -6,7 +6,6 @@
 **/yarn-debug.log*
 **/yarn-error.log*
 
-fablo
 fablo-target
 
 admin/secret*.json
