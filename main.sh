@@ -109,7 +109,7 @@ clean() {
     clear_conf
     rm deployed-contract-version.json || true
     ./fablo recreate
-    sleep 5
+    # sleep 5
     setup_conf
     echo '{"version":1}' > deployed-contract-version.json
 }

@@ -28,7 +28,7 @@ function makeEmail(pre) {
   return `${pre}_${randomstring.generate()}@org1.com`;
 }
 
-describe('minimal proxy case', function() {
+describe('minimal-proxy-case', function() {
   const client1 = makeEmail('client');
   const client2 = makeEmail('client');
   const provider1 = makeEmail('provider');
