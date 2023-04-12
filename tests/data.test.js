@@ -25,7 +25,7 @@ const {
 } = require('./assert_requests')(backend);
 
 function makeEntityID(pre) {
-  return `${pre}_${randomstring.generate()}@org1.com`;
+  return `${pre}_${randomstring.generate()}`;
 }
 
 describe('minimal-proxy-case', function() {
@@ -37,7 +37,7 @@ describe('minimal-proxy-case', function() {
   before(async function() {
     client1_wallet = await register(client1);
     client2_wallet = await register(client2);
-    provider1_wallet = await register(provider1);
+    provider1_wallet = await register(provider1, true);
   });
   it('should get user provider', async() => {
     const p1 = await GetUser(provider1, provider1_wallet);
@@ -112,8 +112,8 @@ describe('UI-suite', function() {
   before(async function() {
     clientA_wallet = await register(clientA);
     clientB_wallet = await register(clientB);
-    providerX_wallet = await register(providerX);
-    providerY_wallet = await register(providerY);
+    providerX_wallet = await register(providerX, true);
+    providerY_wallet = await register(providerY, true);
   });
   it('should add origin server', async() => {
     serverX = await AddOriginServer(providerX, providerX_wallet);

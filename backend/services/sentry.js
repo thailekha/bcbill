@@ -12,6 +12,10 @@ const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
 
 exports.registerUser = async (entityID, isProvider) => {
+  if (isProvider !== entityID.includes('provider')) {
+    const error = isProvider ? 'Provider must have "provider" in their username' : 'Client must not have "provider" in their username';
+    throw new Error(error);
+  }
   const walletContent = await registerClient(entityID);
   await executeContract({}, entityID, walletContent, isProvider || entityID.includes('provider') ? ACTIONS.AddProvider : ACTIONS.AddClient, entityID);
   return walletContent;
