@@ -2,20 +2,9 @@ const router = require('express').Router();
 const sentry = require('../services/sentry');
 const url = require('url');
 const httpProxy = require('http-proxy');
-const {encrypt, decrypt} = require('../services/crypt');
+const {encrypt} = require('../services/crypt');
 const proxy = httpProxy.createProxyServer();
 
-function decryptWalletFromHeader(req, res, next) {
-  const auth = JSON.parse(req.headers.auth);
-  auth.wallet = JSON.parse(decrypt(auth.wallet));
-  req.headers.auth = JSON.stringify(auth);
-  next();
-}
-
-function decryptWalletFromBody(req, res, next) {
-  req.body.wallet = JSON.parse(decrypt(req.body.wallet));
-  next();
-}
 router.post('/register', async (req, res, next) => {
   try {
     const {entityID, isProvider} = req.body;
@@ -26,7 +15,7 @@ router.post('/register', async (req, res, next) => {
   }
 });
 
-router.all('/origin-server/*', decryptWalletFromHeader, async (req, res, next) => {
+router.all('/origin-server/*', async (req, res, next) => {
   try {
     const { pathname, search } = url.parse(req.url, true);
     const { entityID, wallet, endpointAccessGrantId } = JSON.parse(req.headers.auth);
@@ -59,7 +48,7 @@ router.all('/origin-server/*', decryptWalletFromHeader, async (req, res, next) =
   }
 });
 
-router.post('/GetUser', decryptWalletFromBody, async (req, res, next) => {
+router.post('/GetUser', async (req, res, next) => {
   try {
     const {entityID, wallet} = req.body;
     const user = await sentry.GetUser(entityID, wallet);
@@ -69,7 +58,7 @@ router.post('/GetUser', decryptWalletFromBody, async (req, res, next) => {
   }
 });
 
-router.post('/AddOriginServer', decryptWalletFromBody, async (req, res, next) => {
+router.post('/AddOriginServer', async (req, res, next) => {
   try {
     const {entityID, wallet, serverName, host} = req.body;
     const server = await sentry.AddOriginServer(entityID, wallet, serverName, host);
@@ -79,7 +68,7 @@ router.post('/AddOriginServer', decryptWalletFromBody, async (req, res, next) =>
   }
 });
 
-router.post('/AddEndpoint', decryptWalletFromBody, async (req, res, next) => {
+router.post('/AddEndpoint', async (req, res, next) => {
   try {
     const {entityID, wallet, originServerId, path, verb} = req.body;
     const endpoint = await sentry.AddEndpoint(entityID, wallet, originServerId, path, verb);
@@ -89,7 +78,7 @@ router.post('/AddEndpoint', decryptWalletFromBody, async (req, res, next) => {
   }
 });
 
-router.post('/AddEndpointAccessGrant', decryptWalletFromBody, async (req, res, next) => {
+router.post('/AddEndpointAccessGrant', async (req, res, next) => {
   try {
     const {entityID, wallet, endpointId} = req.body;
     const eag = await sentry.AddEndpointAccessGrant(entityID, wallet, endpointId);
@@ -99,7 +88,7 @@ router.post('/AddEndpointAccessGrant', decryptWalletFromBody, async (req, res, n
   }
 });
 
-router.post('/GetEndpointAccessGrant', decryptWalletFromBody, async (req, res, next) => {
+router.post('/GetEndpointAccessGrant', async (req, res, next) => {
   try {
     const {entityID, wallet, endpointAccessGrantId} = req.body;
     const eag = await sentry.GetEndpointAccessGrant(entityID, wallet, endpointAccessGrantId);
@@ -109,7 +98,7 @@ router.post('/GetEndpointAccessGrant', decryptWalletFromBody, async (req, res, n
   }
 });
 
-router.post('/ShareAccess', decryptWalletFromBody, async (req, res, next) => {
+router.post('/ShareAccess', async (req, res, next) => {
   try {
     const {entityID, wallet, endpointAccessGrantId, otherClientEntityID} = req.body;
     const eag = await sentry.ShareAccess(entityID, wallet, endpointAccessGrantId, otherClientEntityID);
@@ -119,7 +108,7 @@ router.post('/ShareAccess', decryptWalletFromBody, async (req, res, next) => {
   }
 });
 
-router.post('/ClientHomepageData', decryptWalletFromBody, async (req, res, next) => {
+router.post('/ClientHomepageData', async (req, res, next) => {
   try {
     const {entityID, wallet} = req.body;
     const result = await sentry.ClientHomepageData(entityID, wallet);
@@ -129,7 +118,7 @@ router.post('/ClientHomepageData', decryptWalletFromBody, async (req, res, next)
   }
 });
 
-router.post('/Approve', decryptWalletFromBody, async (req, res, next) => {
+router.post('/Approve', async (req, res, next) => {
   try {
     const {entityID, wallet, endpointAccessGrantId} = req.body;
     const eag = await sentry.Approve(entityID, wallet, endpointAccessGrantId);
@@ -139,7 +128,7 @@ router.post('/Approve', decryptWalletFromBody, async (req, res, next) => {
   }
 });
 
-router.post('/Revoke', decryptWalletFromBody, async (req, res, next) => {
+router.post('/Revoke', async (req, res, next) => {
   try {
     const { entityID, wallet, endpointAccessGrantId } = req.body;
     const eag = await sentry.Revoke(entityID, wallet, endpointAccessGrantId);
@@ -149,7 +138,7 @@ router.post('/Revoke', decryptWalletFromBody, async (req, res, next) => {
   }
 });
 
-router.post('/Enable', decryptWalletFromBody, async (req, res, next) => {
+router.post('/Enable', async (req, res, next) => {
   try {
     const {entityID, wallet, endpointAccessGrantId} = req.body;
     const eag = await sentry.Enable(entityID, wallet, endpointAccessGrantId);

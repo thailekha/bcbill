@@ -7,6 +7,7 @@ const ACTIONS =  require(`${__dirname}/actions`);
 const { registerClient, inMemWallet, connectionProfile } = require('../../utils');
 const hash = require('object-hash');
 const moment = require('moment');
+const {decrypt} = require('./crypt');
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
@@ -174,7 +175,7 @@ function processBlock(block, assetToCheck, ownerIdHash, accessors) {
 
 async function executeContract(opts, identity, walletContent, action, ...args) {
   const profile = connectionProfile();
-  const wallet = await inMemWallet(identity, walletContent);
+  const wallet = await inMemWallet(identity, typeof walletContent === 'string' ? JSON.parse(decrypt(walletContent)): walletContent);
   const gateway = new Gateway();
   try {
 
