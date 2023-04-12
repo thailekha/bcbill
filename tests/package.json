@@ -5,7 +5,7 @@
   "main": "data.test.js",
   "scripts": {
     "test": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --grep 'minimal-proxy-case' --timeout 60000 --exit",
-    "setup-for-dev": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --grep 'setup-for-dev' --timeout 60000 --exit",
+    "setup-for-dev": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --grep 'UI-suite' --timeout 60000 --exit",
     "testping": "NODE_PATH=~/work/bcbill/tests/node_modules mocha --trace-warnings ./data.test.js --grep 'ping-contract' --timeout 60000 --exit",
     "load-test": "./node_modules/.bin/k6 run load-test.js"
   },

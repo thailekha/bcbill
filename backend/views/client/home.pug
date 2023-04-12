@@ -1,5 +1,9 @@
 extends ../layout
 
 block append content
-	h1 Client homepage
-
+	h1 #{entityID} homepage
+	ul.list-group
+		each provider in data.ApiProvider
+			li.list-group-item
+				p= provider.entityID
+				small.text-muted= provider.id

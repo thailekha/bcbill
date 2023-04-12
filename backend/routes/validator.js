@@ -1,15 +1,10 @@
 const Joi = require('joi');
 
 const email = Joi.string().email().required();
-const username = Joi.string().alphanum().min(3).max(30).required();
-const isProvider = Joi.boolean().default(false).truthy('on');
-const wallet = Joi.string().custom((value, helpers) => {
-  try {
-    return JSON.parse(value);
-  } catch (error) {
-    return helpers.error('any.custom', { message: 'Invalid JSON Wallet' });
-  }
-});
+const appname = Joi.string().alphanum().min(3).max(30);
+const username = Joi.string().alphanum().min(3).required();
+const isProviderCheckbox = Joi.boolean().default(false).truthy('on');
+const wallet = Joi.string().required();
 
 function validator(schema) {
   return (req, res, next) => {
@@ -27,7 +22,8 @@ function validator(schema) {
 module.exports = {
   email,
   username,
-  isProvider,
+  appname,
+  isProviderCheckbox,
   wallet,
   validator
 };

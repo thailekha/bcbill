@@ -3,7 +3,7 @@ const D3Node = require('d3-node');
 const sentry = require('../services/sentry');
 const _l = require('../services/logger');
 const auth = require('../services/auth');
-const { username, isProvider, wallet, validator } = require('./validator');
+const { username, appname, wallet, validator, isProviderCheckbox} = require('./validator');
 const jstr = (i) => JSON.stringify(i, null, 0);
 
 const PREFIX = '/ui';
@@ -25,12 +25,21 @@ router.get('/register', (req, res) => {
   res.render('register');
 });
 
-router.post('/register', validator({username, isProvider}), async (req, res, next) => {
+function makeEntityID(appname, username, isProvider) {
+  return isProvider ? 'provider_' + username : appname + '_' + username;
+}
+
+function checkIsProvider(isProviderCheckbox) {
+  return isProviderCheckbox === true || isProviderCheckbox === 'on';
+}
+
+router.post('/register', validator({appname, username, isProviderCheckbox}), async (req, res, next) => {
   try {
-    const {username, isProvider} = req.body;
-    const walletContent = await sentry.registerUser(username + '@org1.com', isProvider === true || isProvider === 'on');
-    req.flash('success', `Here is your wallet: ${jstr(walletContent)}`);
-    res.redirect(PREFIX + '/register');
+    const {appname, username, isProviderCheckbox} = req.body;
+    const isProvider = checkIsProvider(isProviderCheckbox);
+    const walletContent = await sentry.registerUser(makeEntityID(appname, username, isProvider), isProvider);
+    req.flash('success', `Here is your password: ${walletContent}`);
+    res.redirect(PREFIX + '/login');
   } catch (err) {
     next(err);
   }
@@ -40,15 +49,23 @@ router.get('/login', (req, res) => {
   res.render('login');
 });
 
-router.post('/login', validator({ username, wallet }), async (req, res, next) => {
+router.post('/login', validator({ appname, username, wallet, isProviderCheckbox }), async (req, res, next) => {
   try {
-    const {username, wallet} = req.body;
-    const user = await sentry.GetUser(username + '@org1.com', wallet);
+    const {appname, username, wallet, isProviderCheckbox} = req.body;
+    const isProvider = checkIsProvider(isProviderCheckbox);
+    const entityID = makeEntityID(appname, username, isProvider)
+    const user = await sentry.GetUser(entityID, wallet);
     if (user.docType === 'Client') {
-      auth.login(req, username, wallet);
+      auth.login(req, entityID, wallet);
       return res.redirect(PREFIX + '/client');
     }
-    res.redirect(PREFIX + '/login');
+    else if (user.docType === 'ApiProvider') {
+      auth.login(req, entityID, wallet);
+      return res.redirect(PREFIX + '/provider');
+    }
+
+    // not match any user docType
+    res.redirect(PREFIX + '/register');
   } catch (err) {
     next(err);
   }
@@ -58,7 +75,8 @@ router.get('/client', walletRequired, async (req, res) => {
   _l(...auth.creds(req));
   const data = await sentry.ClientHomepageData(...auth.creds(req));
   _l(data);
-  res.render('client/home');
+
+  res.render('client/home', { data });
 });
 
 

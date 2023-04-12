@@ -25,7 +25,7 @@ const {
 } = require('./assert_requests')(backend);
 
 function makeEntityID(pre) {
-  return `${pre}_${randomstring.generate()}`;
+  return `${pre}${randomstring.generate()}`;
 }
 
 describe('minimal-proxy-case', function() {
@@ -93,8 +93,8 @@ describe('minimal-proxy-case', function() {
 // one origin server can only be of one provider
 
 describe('UI-suite', function() {
-  const clientA = makeEntityID('client');
-  const clientB = makeEntityID('client');
+  const clientA = makeEntityID('app1_tom');
+  const clientB = makeEntityID('app2_tom');
   const providerX = makeEntityID('provider');
   const providerY = makeEntityID('provider');
 
@@ -172,7 +172,7 @@ describe('UI-suite', function() {
       clientB,
       clientA_wallet,
       clientB_wallet,
-    });
+    }, { spaces: 4 });
   });
 });
 

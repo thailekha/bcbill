@@ -2,13 +2,12 @@ const router = require('express').Router();
 const sentry = require('../services/sentry');
 const url = require('url');
 const httpProxy = require('http-proxy');
-const {encrypt} = require('../services/crypt');
 const proxy = httpProxy.createProxyServer();
 
 router.post('/register', async (req, res, next) => {
   try {
     const {entityID, isProvider} = req.body;
-    const walletContent = encrypt(JSON.stringify(await sentry.registerUser(entityID, isProvider === true || isProvider === 'on')));
+    const walletContent = await sentry.registerUser(entityID, isProvider === true || isProvider === 'on');
     res.json({ walletContent });
   } catch (err) {
     next(err);

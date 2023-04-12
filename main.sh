@@ -27,7 +27,8 @@ dev() {
     cd tests
     npm run setup-for-dev
     cd -
-    start_components
+    # start_components
+    cd backend && npm run dev
 }
 
 start_components() {

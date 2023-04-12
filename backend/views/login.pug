@@ -3,8 +3,10 @@ extends layout
 block append content
   +form_container("Login")
     form(action="/ui/login", method="post")
-      +form_input("username")
-      +form_input("wallet", "password")
+      +form_input("appname", "App name")
+      +form_input("username", "Your name")
+      +form_input("wallet", "Password", "password")
+      +form_checkbox("isProviderCheckbox", "Are you an API provider?")
       .text-center
         button.btn.btn-primary(type="submit") Login
         .mt-3.form-check-label Don't have an account?

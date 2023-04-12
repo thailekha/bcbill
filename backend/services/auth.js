@@ -3,9 +3,9 @@ const auth = {
     return req.session.loggedIn;
   },
 
-  login: (req, username, wallet) => {
+  login: (req, entityID, wallet) => {
     req.session.loggedIn = true;
-    req.session.username = username;
+    req.session.entityID = entityID;
     req.session.wallet = wallet;
   },
 
@@ -30,7 +30,7 @@ const auth = {
   },
 
   creds: (req) => {
-    return [req.session.username + '@org1.com', req.session.wallet];
+    return [req.session.entityID, req.session.wallet];
   }
 };
 

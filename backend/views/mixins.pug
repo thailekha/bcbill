@@ -1,6 +1,6 @@
-mixin form_input(id, type='text', required_input=true)
+mixin form_input(id, display, type='text', required_input=true)
   .form-group.mb-3
-    label.form-label.fw-bold(for=id)= id.charAt(0).toUpperCase() + id.slice(1)
+    label.form-label.fw-bold(for=id)= display ? display : id.charAt(0).toUpperCase() + id.slice(1)
     input.form-control(type=type, id=id, name=id, required=required_input, minlength="3")
 
 mixin form_checkbox(id, label)
@@ -18,7 +18,7 @@ mixin form_container(header)
 
 mixin flash_messages(messages, alertLevel)
   for message in messages
-    div.alert(class=`alert-${alertLevel}`, role='alert')
+    div.alert(class=`alert-${alertLevel}`, role='alert', style='word-wrap: break-word;')
       i.fas.fa-exclamation-triangle
       span #{message}
 

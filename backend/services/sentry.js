@@ -7,7 +7,7 @@ const ACTIONS =  require(`${__dirname}/actions`);
 const { registerClient, inMemWallet, connectionProfile } = require('../../utils');
 const hash = require('object-hash');
 const moment = require('moment');
-const {decrypt} = require('./crypt');
+const {decrypt, encrypt} = require('./crypt');
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
@@ -18,8 +18,8 @@ exports.registerUser = async (entityID, isProvider) => {
     throw new Error(error);
   }
   const walletContent = await registerClient(entityID);
-  await executeContract({}, entityID, walletContent, isProvider || entityID.includes('provider') ? ACTIONS.AddProvider : ACTIONS.AddClient, entityID);
-  return walletContent;
+  await executeContract({}, entityID, walletContent, isProvider ? ACTIONS.AddProvider : ACTIONS.AddClient, entityID);
+  return encrypt(JSON.stringify(walletContent));
 };
 
 exports.GetUser = async (entityID, walletContent) => await executeContract(

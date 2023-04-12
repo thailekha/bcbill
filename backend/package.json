@@ -31,6 +31,7 @@
     "url": "^0.11.0"
   },
   "devDependencies": {
+    "kill-port": "^2.0.1",
     "nodemon": "^2.0.15"
   }
 }
