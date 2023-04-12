@@ -6,29 +6,29 @@ const { OriginServer, DOCTYPE: ORIGIN_SERVER_DOCTYPE} = require('./models/Origin
 const { Endpoint, DOCTYPE: ENDPOINT_DOCTYPE}   = require('./models/Endpoint');
 const { EndpointAccessGrant, DOCTYPE: ENDPOINT_ACCESS_GRANT_DOCTYPE}  = require('./models/EndpointAccessGrant');
 const {query} = require('./lib/couchDbController');
-const {fromProvider, parseEmail} = require('./lib/contract-utils');
+const {fromProvider, parseEntityID} = require('./lib/contract-utils');
 
 class APISentryContract extends Contract {
-  async AddClient(ctx, email) {
-    const client = new Client(ctx, email);
+  async AddClient(ctx, entityID) {
+    const client = new Client(ctx, entityID);
     await client.create();
     return client.getCopy();
   }
 
-  async AddProvider(ctx, email) {
-    const provider = new ApiProvider(ctx, email);
+  async AddProvider(ctx, entityID) {
+    const provider = new ApiProvider(ctx, entityID);
     await provider.create();
     return provider.getCopy();
   }
 
   async GetUser(ctx) {
-    const email = parseEmail(ctx);
-    const user = fromProvider(ctx, false) ? await ApiProvider.getById(ctx, email) : await Client.getById(ctx, email);
+    const entityID = parseEntityID(ctx);
+    const user = fromProvider(ctx, false) ? await ApiProvider.getById(ctx, entityID) : await Client.getById(ctx, entityID);
     return user.getCopy();
   }
 
-  async AddOriginServer(ctx, providerEmail, serverName, host) {
-    const originServer = new OriginServer(ctx, providerEmail, serverName, host);
+  async AddOriginServer(ctx, providerEntityID, serverName, host) {
+    const originServer = new OriginServer(ctx, providerEntityID, serverName, host);
     await originServer.create();
     return originServer.getCopy();
   }
@@ -40,7 +40,7 @@ class APISentryContract extends Contract {
   }
 
   async AddEndpointAccessGrant(ctx, endpointId) {
-    const eag = new EndpointAccessGrant(ctx, endpointId, parseEmail(ctx));
+    const eag = new EndpointAccessGrant(ctx, endpointId, parseEntityID(ctx));
     await eag.create();
     return eag.getCopy();
   }
@@ -50,9 +50,9 @@ class APISentryContract extends Contract {
     return eag.getCopy();
   }
 
-  async ShareAccess(ctx, endpointAccessGrantId, otherClientEmail) {
+  async ShareAccess(ctx, endpointAccessGrantId, otherClientEntityID) {
     const eag = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
-    eag.shareWith(otherClientEmail);
+    eag.shareWith(otherClientEntityID);
     await eag.update();
     return eag.getCopy();
   }
@@ -94,18 +94,18 @@ class APISentryContract extends Contract {
   // https://docs.couchdb.org/en/3.2.2/api/database/find.html#find-selectors
   /*
       All fields:
-      email
+      entityID
       originServerId
       path
       verb
       endpointId
-      clientEmail
+      clientEntityID
       requestedBy
       approvedBy
       clientIds
       limit
       revoked
-      providerEmail
+      providerEntityID
       serverName
       host
    */
@@ -113,7 +113,7 @@ class APISentryContract extends Contract {
     _l('ClientHomepageData start');
     // sort: [{ time: 'asc' }]
     // what to hide: originServer host, eag that is not of requester
-    // fields: [  "email", "originServerId", "path", "verb", "endpointId", "clientEmail", "requestedBy", "approvedBy", "clientIds", "limit", "revoked", "providerEmail", "serverName" ]
+    // fields: [  "entityID", "originServerId", "path", "verb", "endpointId", "clientEntityID", "requestedBy", "approvedBy", "clientIds", "limit", "revoked", "providerEntityID", "serverName" ]
     const query_result = await query(ctx, {
       selector: {
         $or: [
@@ -131,7 +131,7 @@ class APISentryContract extends Contract {
           },
           {
             docType: ENDPOINT_ACCESS_GRANT_DOCTYPE,
-            requestedBy: parseEmail(ctx)
+            requestedBy: parseEntityID(ctx)
           },
         ]
       }

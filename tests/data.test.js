@@ -24,14 +24,14 @@ const {
   pingOriginServerFail
 } = require('./assert_requests')(backend);
 
-function makeEmail(pre) {
+function makeEntityID(pre) {
   return `${pre}_${randomstring.generate()}@org1.com`;
 }
 
 describe('minimal-proxy-case', function() {
-  const client1 = makeEmail('client');
-  const client2 = makeEmail('client');
-  const provider1 = makeEmail('provider');
+  const client1 = makeEntityID('client');
+  const client2 = makeEntityID('client');
+  const provider1 = makeEntityID('provider');
   let client1_wallet, client2_wallet, provider1_wallet;
   let server1, endpoint1, grant1;
   before(async function() {
@@ -41,12 +41,12 @@ describe('minimal-proxy-case', function() {
   });
   it('should get user provider', async() => {
     const p1 = await GetUser(provider1, provider1_wallet);
-    expect(p1.email).to.be.equal(provider1);
+    expect(p1.entityID).to.be.equal(provider1);
     expect(p1.docType).to.be.equal('ApiProvider');
   });
   it('should get user client', async() => {
     const c1 = await GetUser(client1, client1_wallet);
-    expect(c1.email).to.be.equal(client1);
+    expect(c1.entityID).to.be.equal(client1);
     expect(c1.docType).to.be.equal('Client');
   });
   it('should add origin server', async() => {
@@ -93,10 +93,10 @@ describe('minimal-proxy-case', function() {
 // one origin server can only be of one provider
 
 describe('UI-suite', function() {
-  const clientA = makeEmail('client');
-  const clientB = makeEmail('client');
-  const providerX = makeEmail('provider');
-  const providerY = makeEmail('provider');
+  const clientA = makeEntityID('client');
+  const clientB = makeEntityID('client');
+  const providerX = makeEntityID('provider');
+  const providerY = makeEntityID('provider');
 
   // NUMBER is endpoint
   // A or B is client

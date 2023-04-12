@@ -3,17 +3,17 @@ const LedgerEntity = require('./LedgerEntity');
 const DOCTYPE = 'ApiProvider';
 
 class ApiProvider extends LedgerEntity {
-  constructor(ctx, email) {
-    super(ctx, email, { email }, DOCTYPE);
+  constructor(ctx, entityID) {
+    super(ctx, entityID, { entityID }, DOCTYPE);
   }
 
   static construct(ctx, ledgerBlob) {
-    const {email} = ledgerBlob;
-    return new ApiProvider(ctx, email);
+    const {entityID} = ledgerBlob;
+    return new ApiProvider(ctx, entityID);
   }
 
-  static async get(ctx, email, opt={ failFast: false}) {
-    return await super._get(ctx, email, opt, DOCTYPE, ApiProvider);
+  static async get(ctx, entityID, opt={ failFast: false}) {
+    return await super._get(ctx, entityID, opt, DOCTYPE, ApiProvider);
   }
 
   static async getById(ctx, id, opt={ failFast: false}) {

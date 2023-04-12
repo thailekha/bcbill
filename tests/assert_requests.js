@@ -16,21 +16,21 @@ const ENDPOINTS = [
 
 module.exports = (backend) => {
 
-  async function AddEndpoints(email, wallet, originServerId) {
+  async function AddEndpoints(entityID, wallet, originServerId) {
     const added = [];
     for(const [ path, verb ] of ENDPOINTS) {
-      added.push(await AddEndpoint(email, wallet, originServerId, path, verb));
+      added.push(await AddEndpoint(entityID, wallet, originServerId, path, verb));
     }
     return added;
   }
 
-  async function register(email, isProvider) {
+  async function register(entityID, isProvider) {
     try {
       const {body: {walletContent}} = await request(backend)
         .post('/api/register')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           isProvider
         })
         .expect(200);
@@ -40,13 +40,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function GetUser(email, wallet) {
+  async function GetUser(entityID, wallet) {
     try {
       return (await request(backend)
         .post('/api/GetUser')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet
         })
         .expect(200)).body;
@@ -55,13 +55,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function AddOriginServer(email, wallet) {
+  async function AddOriginServer(entityID, wallet) {
     try {
       return (await request(backend)
         .post('/api/AddOriginServer')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet,
           serverName: ORIGIN_SERVERS[0][0],
           host: ORIGIN_SERVERS[0][1]
@@ -72,13 +72,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function AddOriginServer2(email, wallet) {
+  async function AddOriginServer2(entityID, wallet) {
     try {
       return (await request(backend)
         .post('/api/AddOriginServer')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet,
           serverName: ORIGIN_SERVERS[1][0],
           host: ORIGIN_SERVERS[1][1]
@@ -89,13 +89,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function AddEndpoint(email, wallet, originServerId, path, verb) {
+  async function AddEndpoint(entityID, wallet, originServerId, path, verb) {
     try {
       return (await request(backend)
         .post('/api/AddEndpoint')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet,
           originServerId,
           path,
@@ -107,13 +107,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function AddEndpointAccessGrant(email, wallet, endpointId) {
+  async function AddEndpointAccessGrant(entityID, wallet, endpointId) {
     try {
       return (await request(backend)
         .post('/api/AddEndpointAccessGrant')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet,
           endpointId
         })
@@ -123,13 +123,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function GetEndpointAccessGrant(email, wallet, endpointAccessGrantId) {
+  async function GetEndpointAccessGrant(entityID, wallet, endpointAccessGrantId) {
     try {
       return (await request(backend)
         .post('/api/GetEndpointAccessGrant')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet,
           endpointAccessGrantId
         })
@@ -139,16 +139,16 @@ module.exports = (backend) => {
     }
   }
 
-  async function ShareAccess(email, wallet, endpointAccessGrantId, otherClientEmail) {
+  async function ShareAccess(entityID, wallet, endpointAccessGrantId, otherClientEntityID) {
     try {
       return (await request(backend)
         .post('/api/ShareAccess')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet,
           endpointAccessGrantId,
-          otherClientEmail
+          otherClientEntityID
         })
         .expect(200)).body;
     } catch (err) {
@@ -156,13 +156,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function ClientHomepageData(email, wallet) {
+  async function ClientHomepageData(entityID, wallet) {
     try {
       return (await request(backend)
         .post('/api/ClientHomepageData')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet
         })
         .expect(200)).body;
@@ -171,13 +171,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function Approve(email, wallet, endpointAccessGrantId) {
+  async function Approve(entityID, wallet, endpointAccessGrantId) {
     try {
       return (await request(backend)
         .post('/api/Approve')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet,
           endpointAccessGrantId
         })
@@ -187,13 +187,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function Revoke(email, wallet, endpointAccessGrantId) {
+  async function Revoke(entityID, wallet, endpointAccessGrantId) {
     try {
       return (await request(backend)
         .post('/api/Revoke')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet,
           endpointAccessGrantId
         })
@@ -203,13 +203,13 @@ module.exports = (backend) => {
     }
   }
 
-  async function Enable(email, wallet, endpointAccessGrantId) {
+  async function Enable(entityID, wallet, endpointAccessGrantId) {
     try {
       return (await request(backend)
         .post('/api/Enable')
         .set(...CONTENT_JSON)
         .send({
-          email,
+          entityID,
           wallet,
           endpointAccessGrantId
         })
@@ -219,12 +219,12 @@ module.exports = (backend) => {
     }
   }
 
-  async function pingOriginServer(email, wallet, endpointAccessGrantId) {
+  async function pingOriginServer(entityID, wallet, endpointAccessGrantId) {
     try {
       await request(backend)
         .get('/api/origin-server/math/ping')
         .set({
-          auth: JSON.stringify({email, wallet, endpointAccessGrantId})
+          auth: JSON.stringify({entityID, wallet, endpointAccessGrantId})
         })
         .expect(200);
     } catch (err) {
@@ -232,12 +232,12 @@ module.exports = (backend) => {
     }
   }
 
-  async function pingOriginServerFail(email, wallet, endpointAccessGrantId) {
+  async function pingOriginServerFail(entityID, wallet, endpointAccessGrantId) {
     try {
       await request(backend)
         .get('/api/origin-server/math/ping')
         .set({
-          auth: JSON.stringify({email, wallet, endpointAccessGrantId})
+          auth: JSON.stringify({entityID, wallet, endpointAccessGrantId})
         })
         .expect(401);
     } catch (err) {

@@ -11,47 +11,47 @@ const moment = require('moment');
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
 
-exports.registerUser = async (email, isProvider) => {
-  const walletContent = await registerClient(email);
-  await executeContract({}, email, walletContent, isProvider || email.includes('provider') ? ACTIONS.AddProvider : ACTIONS.AddClient, email);
+exports.registerUser = async (entityID, isProvider) => {
+  const walletContent = await registerClient(entityID);
+  await executeContract({}, entityID, walletContent, isProvider || entityID.includes('provider') ? ACTIONS.AddProvider : ACTIONS.AddClient, entityID);
   return walletContent;
 };
 
-exports.GetUser = async (email, walletContent) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.GetUser);
+exports.GetUser = async (entityID, walletContent) => await executeContract(
+  {fast: true}, entityID, walletContent, ACTIONS.GetUser);
 
-exports.AddOriginServer = async (email, walletContent, serverName, host) => await executeContract(
-  {}, email, walletContent, ACTIONS.AddOriginServer, email, serverName, host);
+exports.AddOriginServer = async (entityID, walletContent, serverName, host) => await executeContract(
+  {}, entityID, walletContent, ACTIONS.AddOriginServer, entityID, serverName, host);
 
-exports.AddEndpoint = async (email, walletContent, originServerId, path, verb) => await executeContract(
-  {}, email, walletContent, ACTIONS.AddEndpoint, originServerId, path, verb);
+exports.AddEndpoint = async (entityID, walletContent, originServerId, path, verb) => await executeContract(
+  {}, entityID, walletContent, ACTIONS.AddEndpoint, originServerId, path, verb);
 
-exports.AddEndpointAccessGrant = async (email, walletContent, endpointId) => await executeContract(
-  {}, email, walletContent, ACTIONS.AddEndpointAccessGrant, endpointId);
+exports.AddEndpointAccessGrant = async (entityID, walletContent, endpointId) => await executeContract(
+  {}, entityID, walletContent, ACTIONS.AddEndpointAccessGrant, endpointId);
 
-exports.GetEndpointAccessGrant = async (email, walletContent, endpointAccessGrantId) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.GetEndpointAccessGrant, endpointAccessGrantId);
+exports.GetEndpointAccessGrant = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
+  {fast: true}, entityID, walletContent, ACTIONS.GetEndpointAccessGrant, endpointAccessGrantId);
 
-exports.ShareAccess = async (email, walletContent, endpointAccessGrantId, otherClientEmail) => await executeContract(
-  {}, email, walletContent, ACTIONS.ShareAccess, endpointAccessGrantId, otherClientEmail);
+exports.ShareAccess = async (entityID, walletContent, endpointAccessGrantId, otherClientEntityID) => await executeContract(
+  {}, entityID, walletContent, ACTIONS.ShareAccess, endpointAccessGrantId, otherClientEntityID);
 
-exports.Revoke = async (email, walletContent, endpointAccessGrantId) => await executeContract(
-  {}, email, walletContent, ACTIONS.Revoke, endpointAccessGrantId);
+exports.Revoke = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
+  {}, entityID, walletContent, ACTIONS.Revoke, endpointAccessGrantId);
 
-exports.Enable = async (email, walletContent, endpointAccessGrantId) => await executeContract(
-  {}, email, walletContent, ACTIONS.Enable, endpointAccessGrantId);
+exports.Enable = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
+  {}, entityID, walletContent, ACTIONS.Enable, endpointAccessGrantId);
 
-exports.GetOriginServerInfo = async (email, walletContent, endpointAccessGrantId) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.GetOriginServerInfo, endpointAccessGrantId);
+exports.GetOriginServerInfo = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
+  {fast: true}, entityID, walletContent, ACTIONS.GetOriginServerInfo, endpointAccessGrantId);
 
-exports.ClientHomepageData = async (email, walletContent) => await executeContract(
-  {fast: true}, email, walletContent, ACTIONS.ClientHomepageData);
+exports.ClientHomepageData = async (entityID, walletContent) => await executeContract(
+  {fast: true}, entityID, walletContent, ACTIONS.ClientHomepageData);
 
-exports.Approve = async (email, walletContent, endpointAccessGrantId) => await executeContract(
-  {}, email, walletContent, ACTIONS.Approve, endpointAccessGrantId);
+exports.Approve = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
+  {}, entityID, walletContent, ACTIONS.Approve, endpointAccessGrantId);
 
-exports.traverseHistory = async (email, walletContent, assetKey) => await getHistory(
-  {}, email, walletContent, hash(walletContent.credentials.certificate), assetKey);
+exports.traverseHistory = async (entityID, walletContent, assetKey) => await getHistory(
+  {}, entityID, walletContent, hash(walletContent.credentials.certificate), assetKey);
 
 async function getHistory(identity, walletContent, certHash, assetToCheck) {
   const profile = connectionProfile();
@@ -95,13 +95,13 @@ async function getHistory(identity, walletContent, certHash, assetToCheck) {
       for (const timestamp of timestamps) {
         const location = retrieveLocationOfAccess(user.logins, timestamp);
         //  does this override already existed entry?
-        if (!accessors[user.email]) {
-          accessors[user.email] = [{
+        if (!accessors[user.entityID]) {
+          accessors[user.entityID] = [{
             timestamp,
             location
           }];
         } else {
-          accessors[user.email].push({
+          accessors[user.entityID].push({
             timestamp,
             location
           });

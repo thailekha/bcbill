@@ -3,18 +3,18 @@ const { ClientIdentity } = require('fabric-shim');
 const CustomException = require('./CustomException');
 const _l = require('./logger');
 
-const fromProvider = (ctx, throwErr = true, returnProviderEmail = false) => {
+const fromProvider = (ctx, throwErr = true, returnProviderEntityID = false) => {
   const cid = new ClientIdentity(ctx.stub);
-  const email = parseCommonNameFromx509DistinguishedName(cid.getID());
-  const isProvider = email.includes('provider');
+  const entityID = parseCommonNameFromx509DistinguishedName(cid.getID());
+  const isProvider = entityID.includes('provider');
   if (!isProvider && throwErr) {
-    _l('Not provider: ', cid.getID(), email);
+    _l('Not provider: ', cid.getID(), entityID);
     throw new CustomException(status.FORBIDDEN);
   }
-  return returnProviderEmail ? email : isProvider;
+  return returnProviderEntityID ? entityID : isProvider;
 };
 
-const parseEmail = ctx => {
+const parseEntityID = ctx => {
   const cid = new ClientIdentity(ctx.stub);
   return parseCommonNameFromx509DistinguishedName(cid.getID());
 };
@@ -36,6 +36,6 @@ const parseCommonNameFromx509DistinguishedName = dn => {
 
 module.exports = {
   fromProvider,
-  parseEmail,
+  parseEntityID,
   parseCommonNameFromx509DistinguishedName
 };

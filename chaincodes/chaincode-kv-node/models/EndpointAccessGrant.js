@@ -2,13 +2,13 @@ const LedgerEntity = require('./LedgerEntity');
 const hash = require('object-hash');
 const _l = require('../lib/logger');
 const CustomException = require('../lib/CustomException');
-const {fromProvider, parseEmail} = require('../lib/contract-utils');
+const {fromProvider, parseEntityID} = require('../lib/contract-utils');
 const {Endpoint} = require('./Endpoint');
 const {OriginServer} = require('./OriginServer');
 const status = require('http-status-codes').StatusCodes;
 
-function makeEndpointAccessGrantId(endpointId, clientEmail) {
-  return hash({endpointId, clientEmail});
+function makeEndpointAccessGrantId(endpointId, clientEntityID) {
+  return hash({endpointId, clientEntityID});
 }
 
 const DOCTYPE = 'EndpointAccessGrant';
@@ -19,37 +19,37 @@ const DOCTYPE = 'EndpointAccessGrant';
  */
 class EndpointAccessGrant extends LedgerEntity {
   constructor(ctx,
-    endpointId, clientEmail,
-    requestedBy = clientEmail, approvedBy = null, clientIds = [], limit = 20, revoked= false
+    endpointId, clientEntityID,
+    requestedBy = clientEntityID, approvedBy = null, clientIds = [], limit = 20, revoked= false
   ) {
-    if (!clientEmail) {
-      throw new Error(`invalid clientEmail ${clientEmail}`);
+    if (!clientEntityID) {
+      throw new Error(`invalid clientEntityID ${clientEntityID}`);
     }
     super(ctx,
-      makeEndpointAccessGrantId(endpointId, clientEmail),
-      { endpointId, clientEmail, requestedBy, approvedBy, clientIds, limit, revoked },
+      makeEndpointAccessGrantId(endpointId, clientEntityID),
+      { endpointId, clientEntityID, requestedBy, approvedBy, clientIds, limit, revoked },
       DOCTYPE
     );
   }
 
   static construct(ctx, ledgerBlob) {
-    const { endpointId, clientEmail, requestedBy, approvedBy, clientIds, limit, revoked } = ledgerBlob;
-    return new EndpointAccessGrant(ctx, endpointId, clientEmail, requestedBy, approvedBy, clientIds, limit, revoked);
+    const { endpointId, clientEntityID, requestedBy, approvedBy, clientIds, limit, revoked } = ledgerBlob;
+    return new EndpointAccessGrant(ctx, endpointId, clientEntityID, requestedBy, approvedBy, clientIds, limit, revoked);
   }
 
   async approve() {
     _l('Approving');
-    const providerEmail = fromProvider(this.ctx, true, true);
-    this.value.approvedBy = providerEmail;
+    const providerEntityID = fromProvider(this.ctx, true, true);
+    this.value.approvedBy = providerEntityID;
     await this.update();
     _l('Approved');
   }
 
-  static async get(ctx, endpointId, clientEmail, opt={ failFast: false}) {
+  static async get(ctx, endpointId, clientEntityID, opt={ failFast: false}) {
     // check path exists
     // check mapping exists
     // check that state allows
-    const eag = await super._get(ctx, makeEndpointAccessGrantId(endpointId, clientEmail), opt, DOCTYPE, EndpointAccessGrant);
+    const eag = await super._get(ctx, makeEndpointAccessGrantId(endpointId, clientEntityID), opt, DOCTYPE, EndpointAccessGrant);
     if (eag === null) {
       throw new CustomException(status.FORBIDDEN);
     }
@@ -66,7 +66,7 @@ class EndpointAccessGrant extends LedgerEntity {
   }
 
   fullyGranted() {
-    const requestor = parseEmail(this.ctx);
+    const requestor = parseEntityID(this.ctx);
     const extraCondition = requestor === this.value.requestedBy ? true : this.value.clientIds.includes(requestor);
     return this.value.approvedBy
       && this.value.limit > 0
@@ -96,12 +96,12 @@ class EndpointAccessGrant extends LedgerEntity {
       - approved, has enough limit, and not revoked
       - otherClient exists
    */
-  shareWith(otherClientEmail) {
-    const requestor = parseEmail(this.ctx);
-    if (requestor === otherClientEmail || requestor !== this.value.requestedBy || !this.fullyGranted()) {
+  shareWith(otherClientEntityID) {
+    const requestor = parseEntityID(this.ctx);
+    if (requestor === otherClientEntityID || requestor !== this.value.requestedBy || !this.fullyGranted()) {
       throw new CustomException(status.FORBIDDEN);
     }
-    this.value.clientIds.push(otherClientEmail);
+    this.value.clientIds.push(otherClientEntityID);
     this.value.clientIds = [...new Set(this.value.clientIds)];
   }
 }

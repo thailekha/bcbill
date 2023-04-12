@@ -16,16 +16,16 @@ const caClient = () => {
 
 // wallet is just a folder that contains multiple creds
 const fsWallet = async () => await Wallets.newFileSystemWallet(process.env.WALLET_PATH);
-const inMemWallet = async (email, walletContent) => {
+const inMemWallet = async (entityID, walletContent) => {
   const wallet = await Wallets.newInMemoryWallet();
-  wallet.put(email, walletContent);
+  wallet.put(entityID, walletContent);
   return wallet;
 };
 
 /*
   For every new client: register -> get a secret -> use it to enroll -> get wallet content
  */
-const registerClient = async (email) => {
+const registerClient = async (entityID) => {
   const wallet = await fsWallet();
   const root = await wallet.get(process.env.FABRIC_ROOT_ID);
   const rootUser = await wallet
@@ -36,11 +36,11 @@ const registerClient = async (email) => {
   const ca = await caClient();
   const secret = await ca.register({
     affiliation: 'org1.department1',
-    enrollmentID: email,
+    enrollmentID: entityID,
     role: 'client'
   }, rootUser);
   const enrollment = await ca.enroll({
-    enrollmentID: email,
+    enrollmentID: entityID,
     enrollmentSecret: secret
   });
   const walletContent = {
