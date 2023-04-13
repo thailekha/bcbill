@@ -1,6 +1,6 @@
 extends layout
 
-block append content
+block append main_content
   +form_container("Login")
     form(action="/ui/login", method="post")
       +form_input("appname", "App name")

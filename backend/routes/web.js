@@ -73,10 +73,26 @@ router.post('/login', validator({ appname, username, wallet, isProviderCheckbox 
 
 router.get('/client', walletRequired, async (req, res) => {
   _l(...auth.creds(req));
+  const client = auth.creds(req)[0];
   const data = await sentry.ClientHomepageData(...auth.creds(req));
   _l(data);
 
-  res.render('client/home', { data });
+  const ulData = {
+    "ApiProviders": data.ApiProvider.map(provider => ({
+      ...provider,
+      "OriginServers": data.OriginServer.filter(server => server.providerEntityID === provider.entityID).map(server => ({
+        ...server,
+        "Endpoints": data.Endpoint.filter(endpoint => endpoint.originServerId === server.id).map(endpoint => ({
+          ...endpoint,
+          "EndpointAccessGrant": data.EndpointAccessGrant.filter(access => access.endpointId === endpoint.id && access.clientEntityID === client)
+        }))
+      }))
+    }))
+  }
+
+  _l(ulData);
+
+  res.render('client/home', { client: client, ulData: ulData });
 });
 
 

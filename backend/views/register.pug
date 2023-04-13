@@ -1,6 +1,6 @@
 extends layout
 
-block append content
+block append main_content
   +form_container("Register")
     form(action="/ui/register", method="post")
       +form_input("appname", "Your app name")
