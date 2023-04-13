@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node_modules/nodemon/bin/nodemon.js --watch . --ext js,pug --ignore node_modules/ bin/www"
+    "dev": "node_modules/nodemon/bin/nodemon.js --watch . --ext js,pug --ignore node_modules/ index.js"
   },
   "author": "",
   "license": "ISC",

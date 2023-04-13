@@ -36,6 +36,9 @@ app.set('view engine', 'pug');
 app.use('/ui', ui);
 app.use('/api', api);
 
+app.listen(9999, () => {
+  console.log('Sentry is listening on port 9999');
+});
 
 module.exports = app;
 
