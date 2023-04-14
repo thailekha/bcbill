@@ -3,6 +3,17 @@ const { ClientIdentity } = require('fabric-shim');
 const CustomException = require('./CustomException');
 const _l = require('./logger');
 
+const fromClient = (ctx, throwErr = true, returnClientEntityID = false) => {
+  const cid = new ClientIdentity(ctx.stub);
+  const entityID = parseCommonNameFromx509DistinguishedName(cid.getID());
+  const isClient = !entityID.includes('provider');
+  if (!isClient && throwErr) {
+    _l('Not client: ', cid.getID(), entityID);
+    throw new CustomException(status.FORBIDDEN);
+  }
+  return returnClientEntityID ? entityID : isClient;
+};
+
 const fromProvider = (ctx, throwErr = true, returnProviderEntityID = false) => {
   const cid = new ClientIdentity(ctx.stub);
   const entityID = parseCommonNameFromx509DistinguishedName(cid.getID());
@@ -35,6 +46,7 @@ const parseCommonNameFromx509DistinguishedName = dn => {
 };
 
 module.exports = {
+  fromClient,
   fromProvider,
   parseEntityID,
   parseCommonNameFromx509DistinguishedName

@@ -51,9 +51,9 @@ router.get('/login', (req, res) => {
 
 router.post('/login', validator({ appname, username, wallet, isProviderCheckbox }), async (req, res, next) => {
   try {
-    const {appname, username, wallet, isProviderCheckbox} = req.body;
+    const { appname, username, wallet, isProviderCheckbox } = req.body;
     const isProvider = checkIsProvider(isProviderCheckbox);
-    const entityID = makeEntityID(appname, username, isProvider)
+    const entityID = makeEntityID(appname, username, isProvider);
     const user = await sentry.GetUser(entityID, wallet);
     if (user.docType === 'Client') {
       auth.login(req, entityID, wallet);
@@ -76,23 +76,15 @@ router.get('/client', walletRequired, async (req, res) => {
   const client = auth.creds(req)[0];
   const data = await sentry.ClientHomepageData(...auth.creds(req));
   _l(data);
+  res.render('client/home', { client: client, ulData: data });
+});
 
-  const ulData = {
-    "ApiProviders": data.ApiProvider.map(provider => ({
-      ...provider,
-      "OriginServers": data.OriginServer.filter(server => server.providerEntityID === provider.entityID).map(server => ({
-        ...server,
-        "Endpoints": data.Endpoint.filter(endpoint => endpoint.originServerId === server.id).map(endpoint => ({
-          ...endpoint,
-          "EndpointAccessGrant": data.EndpointAccessGrant.filter(access => access.endpointId === endpoint.id && access.clientEntityID === client)
-        }))
-      }))
-    }))
-  }
-
-  _l(ulData);
-
-  res.render('client/home', { client: client, ulData: ulData });
+router.get('/provider', walletRequired, async (req, res) => {
+  _l(...auth.creds(req));
+  const provider = auth.creds(req)[0];
+  const data = await sentry.ApiProviderHomepageData(...auth.creds(req));
+  _l(data);
+  res.render('client/home', { provider: provider, ulData: data });
 });
 
 

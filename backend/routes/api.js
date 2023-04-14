@@ -107,6 +107,16 @@ router.post('/ShareAccess', async (req, res, next) => {
   }
 });
 
+router.post('/ApiProviderHomepageData', async (req, res, next) => {
+  try {
+    const {entityID, wallet} = req.body;
+    const result = await sentry.ApiProviderHomepageData(entityID, wallet);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/ClientHomepageData', async (req, res, next) => {
   try {
     const {entityID, wallet} = req.body;

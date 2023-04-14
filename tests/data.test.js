@@ -2,7 +2,7 @@
 
 const chai = require('chai');
 const expect = chai.expect;
-const backend = require('../backend/bin/www');
+const backend = require('../backend/index');
 const randomstring = require('randomstring');
 const jsonfile = require('jsonfile');
 
@@ -14,6 +14,7 @@ const {
   register,
   AddOriginServer,
   AddOriginServer2,
+  ApiProviderHomepageData,
   ClientHomepageData,
   Approve,
   AddEndpointAccessGrant,
@@ -120,6 +121,7 @@ describe('UI-suite', function() {
     serverY = await AddOriginServer2(providerY, providerX_wallet);
   });
   it('should add endpoints', async() => {
+    // there are actually 6 endpoints, here we just retrieve 5 for doing granting
     [endpoint1X, endpoint2X, endpoint3X, endpoint4X, endpoint5X] = await AddEndpoints(providerX, providerX_wallet, serverX.id);
     [endpoint1Y, endpoint2Y, endpoint3Y, endpoint4Y, endpoint5Y] = await AddEndpoints(providerY, providerY_wallet, serverY.id);
   });
@@ -151,11 +153,25 @@ describe('UI-suite', function() {
   });
   it('should fetch discovery data for client', async() => {
     const homepageData = await ClientHomepageData(clientA, clientA_wallet);
-    expect(homepageData.Client).to.have.lengthOf(2);
-    expect(homepageData.ApiProvider).to.have.lengthOf(2);
-    expect(homepageData.OriginServer).to.have.lengthOf(2);
-    expect(homepageData.Endpoint).to.have.lengthOf(12);
-    expect(homepageData.EndpointAccessGrant).to.have.lengthOf(4);
+    const x_provider = homepageData.ApiProviders.filter(p => p.entityID === providerX)[0];
+    expect(x_provider.OriginServers).to.have.lengthOf(1);
+    const x_server = x_provider.OriginServers.filter(s => s.id === serverX.id)[0];
+    expect(x_server.Endpoints).to.have.lengthOf(6);
+    const x1_endpoint =  x_server.Endpoints.filter(e => e.id === endpoint1X.id)[0];
+    expect(x1_endpoint.EndpointAccessGrant).to.have.lengthOf(1);
+    const x1_grant = x1_endpoint.EndpointAccessGrant.filter(g => g.requestedBy === clientA)[0];
+    expect(x1_grant.approvedBy).to.be.equal(providerX);
+  });
+  it('should fetch discovery data for api provider', async() => {
+    const homepageData = await ApiProviderHomepageData(providerX, providerX_wallet);
+    expect(homepageData.OriginServers).to.have.lengthOf(1);
+    const x_server = homepageData.OriginServers[0];
+    expect(x_server.id).to.equal(serverX.id);
+    expect(x_server.Endpoints).to.have.lengthOf(6);
+    const x1_endpoint =  x_server.Endpoints.filter(e => e.id === endpoint1X.id)[0];
+    expect(x1_endpoint.EndpointAccessGrant).to.have.lengthOf(1);
+    const x1_grant = x1_endpoint.EndpointAccessGrant.filter(g => g.approvedBy === providerX)[0];
+    expect(x1_grant.requestedBy).to.be.equal(clientA);
   });
   // MINIMAL INFO NEEDED TO grant access and test forward case
   /*

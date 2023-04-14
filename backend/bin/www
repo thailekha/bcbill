@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 
- var app = require('../index.js');
+ var app = require('../app.js');
  var debug = require('debug')('generated-server:server');
  var http = require('http');
  

@@ -156,6 +156,21 @@ module.exports = (backend) => {
     }
   }
 
+  async function ApiProviderHomepageData(entityID, wallet) {
+    try {
+      return (await request(backend)
+        .post('/api/ApiProviderHomepageData')
+        .set(...CONTENT_JSON)
+        .send({
+          entityID,
+          wallet
+        })
+        .expect(200)).body;
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async function ClientHomepageData(entityID, wallet) {
     try {
       return (await request(backend)
@@ -255,6 +270,7 @@ module.exports = (backend) => {
     AddOriginServer2,
     AddEndpoint,
     ClientHomepageData,
+    ApiProviderHomepageData,
     AddEndpointAccessGrant,
     GetEndpointAccessGrant,
     ShareAccess,

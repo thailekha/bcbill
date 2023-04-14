@@ -49,8 +49,36 @@ exports.Enable = async (entityID, walletContent, endpointAccessGrantId) => await
 exports.GetOriginServerInfo = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
   {fast: true}, entityID, walletContent, ACTIONS.GetOriginServerInfo, endpointAccessGrantId);
 
-exports.ClientHomepageData = async (entityID, walletContent) => await executeContract(
-  {fast: true}, entityID, walletContent, ACTIONS.ClientHomepageData);
+exports.ApiProviderHomepageData = async (entityID, walletContent) => {
+  const data = await executeContract(
+    {fast: true}, entityID, walletContent, ACTIONS.ApiProviderHomepageData);
+  return {
+    'OriginServers': data.OriginServer.filter(server => server.providerEntityID === entityID).map(server => ({
+      ...server,
+      'Endpoints': data.Endpoint.filter(endpoint => endpoint.originServerId === server.id).map(endpoint => ({
+        ...endpoint,
+        'EndpointAccessGrant': data.EndpointAccessGrant.filter(access => access.endpointId === endpoint.id)
+      }))
+    }))
+  };
+};
+
+exports.ClientHomepageData = async (entityID, walletContent) => {
+  const data = await executeContract(
+    {fast: true}, entityID, walletContent, ACTIONS.ClientHomepageData);
+  return {
+    'ApiProviders': data.ApiProvider.map(provider => ({
+      ...provider,
+      'OriginServers': data.OriginServer.filter(server => server.providerEntityID === provider.entityID).map(server => ({
+        ...server,
+        'Endpoints': data.Endpoint.filter(endpoint => endpoint.originServerId === server.id).map(endpoint => ({
+          ...endpoint,
+          'EndpointAccessGrant': data.EndpointAccessGrant.filter(access => access.endpointId === endpoint.id && access.clientEntityID === entityID)
+        }))
+      }))
+    }))
+  };
+};
 
 exports.Approve = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
   {}, entityID, walletContent, ACTIONS.Approve, endpointAccessGrantId);

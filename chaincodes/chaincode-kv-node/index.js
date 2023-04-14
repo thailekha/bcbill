@@ -6,7 +6,7 @@ const { OriginServer, DOCTYPE: ORIGIN_SERVER_DOCTYPE} = require('./models/Origin
 const { Endpoint, DOCTYPE: ENDPOINT_DOCTYPE}   = require('./models/Endpoint');
 const { EndpointAccessGrant, DOCTYPE: ENDPOINT_ACCESS_GRANT_DOCTYPE}  = require('./models/EndpointAccessGrant');
 const {query} = require('./lib/couchDbController');
-const {fromProvider, parseEntityID} = require('./lib/contract-utils');
+const {fromClient, fromProvider, parseEntityID} = require('./lib/contract-utils');
 
 class APISentryContract extends Contract {
   async AddClient(ctx, entityID) {
@@ -110,6 +110,8 @@ class APISentryContract extends Contract {
       host
    */
   async ClientHomepageData(ctx) {
+    // throw error if not client
+    fromClient(ctx);
     _l('ClientHomepageData start');
     // sort: [{ time: 'asc' }]
     // what to hide: originServer host, eag that is not of requester
@@ -137,6 +139,30 @@ class APISentryContract extends Contract {
       }
     });
     _l('ClientHomepageData finish', query_result);
+    return query_result;
+  }
+
+  async ApiProviderHomepageData(ctx) {
+    // throw error if not
+    fromProvider(ctx);
+    _l('ApiProviderHomepageData start');
+    const query_result = await query(ctx, {
+      selector: {
+        $or: [
+          {
+            docType: ORIGIN_SERVER_DOCTYPE,
+            providerEntityID: parseEntityID(ctx)
+          },
+          {
+            docType: ENDPOINT_DOCTYPE
+          },
+          {
+            docType: ENDPOINT_ACCESS_GRANT_DOCTYPE
+          },
+        ]
+      }
+    });
+    _l('ApiProviderHomepageData finish', query_result);
     return query_result;
   }
 }
