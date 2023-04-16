@@ -186,8 +186,12 @@ describe('UI-suite', function() {
     jsonfile.writeFileSync('ui-data.json', {
       clientA,
       clientB,
+      providerX,
+      providerY,
       clientA_wallet,
       clientB_wallet,
+      providerX_wallet,
+      providerY_wallet,
     }, { spaces: 4 });
   });
 });

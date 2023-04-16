@@ -3,7 +3,7 @@ const D3Node = require('d3-node');
 const sentry = require('../services/sentry');
 const _l = require('../services/logger');
 const auth = require('../services/auth');
-const { username, appname, wallet, validator, isProviderCheckbox} = require('./validator');
+const { username, appname, wallet, serverName, host, validator, isProviderCheckbox} = require('./validator');
 const jstr = (i) => JSON.stringify(i, null, 0);
 
 const PREFIX = '/ui';
@@ -26,7 +26,7 @@ router.get('/register', (req, res) => {
 });
 
 function makeEntityID(appname, username, isProvider) {
-  return isProvider ? 'provider_' + username : appname + '_' + username;
+  return isProvider ? username : appname + '_' + username;
 }
 
 function checkIsProvider(isProviderCheckbox) {
@@ -37,7 +37,7 @@ router.post('/register', validator({appname, username, isProviderCheckbox}), asy
   try {
     const {appname, username, isProviderCheckbox} = req.body;
     const isProvider = checkIsProvider(isProviderCheckbox);
-    const walletContent = await sentry.registerUser(makeEntityID(appname, username, isProvider), isProvider);
+    const walletContent = await sentry.registerUser(isProvider ? 'provider_' + username : appname + '_' + username, isProvider);
     req.flash('success', `Here is your password: ${walletContent}`);
     res.redirect(PREFIX + '/login');
   } catch (err) {
@@ -84,8 +84,15 @@ router.get('/provider', walletRequired, async (req, res) => {
   const provider = auth.creds(req)[0];
   const data = await sentry.ApiProviderHomepageData(...auth.creds(req));
   _l(data);
-  res.render('client/home', { provider: provider, ulData: data });
+  res.render('provider/home', { provider: provider, ulData: data });
 });
+
+router.post('/AddOriginServer', walletRequired, validator({ serverName, host }), async (req, res) => {
+  const { serverName, host} = req.body;
+  await sentry.AddOriginServer(...auth.creds(req), serverName, host);
+  return res.redirect(PREFIX + '/provider');
+});
+
 
 
 module.exports = router;

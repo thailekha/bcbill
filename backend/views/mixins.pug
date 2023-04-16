@@ -16,6 +16,15 @@ mixin form_container(header)
           h2.text-center.mb-4= header
           block
 
+mixin collapsible_card(accordion_id, card_id, heading)
+  .card
+    div(class="card-header" id="heading" + card_id)
+      h5.mb-0
+        button(class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse" + card_id aria-expanded="false" aria-controls="collapse" + card_id)= heading
+          | Server #{server.serverName} - #{server.host}
+    div(id="collapse" + card_id class="collapse show" aria-labelledby="heading" + card_id data-parent="#{accordion_id}")
+      block
+
 mixin flash_messages(messages, alertLevel)
   for message in messages
     div.alert(class=`alert-${alertLevel}`, role='alert', style='word-wrap: break-word;')

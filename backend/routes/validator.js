@@ -1,10 +1,11 @@
 const Joi = require('joi');
 
-const email = Joi.string().email().required();
-const appname = Joi.string().alphanum().min(3).max(30);
+const appname = Joi.string().allow(null, '');
 const username = Joi.string().alphanum().min(3).required();
 const isProviderCheckbox = Joi.boolean().default(false).truthy('on');
 const wallet = Joi.string().required();
+const serverName = Joi.string().alphanum().min(3).required();
+const host = Joi.string().required();
 
 function validator(schema) {
   return (req, res, next) => {
@@ -20,10 +21,11 @@ function validator(schema) {
 }
 
 module.exports = {
-  email,
   username,
   appname,
   isProviderCheckbox,
   wallet,
+  serverName,
+  host,
   validator
 };
