@@ -25,7 +25,8 @@ mixin collapsible_card(accordion_id, card_id, heading)
       h5.mb-0
         button(class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse" + card_id aria-expanded="false" aria-controls="collapse" + card_id)= heading
     div(id="collapse" + card_id class="collapse" aria-labelledby="heading" + card_id data-parent="#" + accordion_id)
-      block
+      .card-body
+        block
 
 mixin endpoint_verbs_dropdown(id)
   select.form-select(name=id)
