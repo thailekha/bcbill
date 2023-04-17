@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "node_modules/nodemon/bin/nodemon.js --watch . --ext js,pug --ignore node_modules/ index.js"
+    "dev": "node_modules/nodemon/bin/nodemon.js --watch . --ext js,pug --ignore node_modules/ index.js",
+    "lint": "node_modules/.bin/pug-lint views/**/*.pug"
   },
   "author": "",
   "license": "ISC",
@@ -24,6 +25,7 @@
     "http-status-codes": "^2.2.0",
     "joi": "^17.8.3",
     "jsonfile": "^6.1.0",
+    "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "morgan": "^1.10.0",
     "object-hash": "^3.0.0",
@@ -32,6 +34,7 @@
   },
   "devDependencies": {
     "kill-port": "^2.0.1",
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "pug-lint": "^2.7.0"
   }
 }

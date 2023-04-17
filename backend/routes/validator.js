@@ -1,11 +1,14 @@
 const Joi = require('joi');
+const auth = require("../services/auth");
 
-const appname = Joi.string().allow(null, '');
-const username = Joi.string().alphanum().min(3).required();
-const isProviderCheckbox = Joi.boolean().default(false).truthy('on');
-const wallet = Joi.string().required();
-const serverName = Joi.string().alphanum().min(3).required();
-const host = Joi.string().required();
+function walletRequired(req, res, next) {
+  if (!auth.isLoggedIn(req)) {
+    req.flash('danger', 'Please login first');
+    res.redirect(PREFIX + '/login');
+  } else {
+    next();
+  }
+}
 
 function validator(schema) {
   return (req, res, next) => {
@@ -21,11 +24,6 @@ function validator(schema) {
 }
 
 module.exports = {
-  username,
-  appname,
-  isProviderCheckbox,
-  wallet,
-  serverName,
-  host,
+  walletRequired,
   validator
 };

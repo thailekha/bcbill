@@ -16,14 +16,43 @@ mixin form_container(header)
           h2.text-center.mb-4= header
           block
 
+mixin grey_label(id, display)
+  label(for=id, style='color: #6f6f6f;')= display ? display : id.charAt(0).toUpperCase() + id.slice(1)
+
 mixin collapsible_card(accordion_id, card_id, heading)
   .card
     div(class="card-header" id="heading" + card_id)
       h5.mb-0
         button(class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse" + card_id aria-expanded="false" aria-controls="collapse" + card_id)= heading
-          | Server #{server.serverName} - #{server.host}
-    div(id="collapse" + card_id class="collapse show" aria-labelledby="heading" + card_id data-parent="#{accordion_id}")
+    div(id="collapse" + card_id class="collapse" aria-labelledby="heading" + card_id data-parent="#" + accordion_id)
       block
+
+mixin endpoint_verbs_dropdown(id)
+  select.form-select(name=id)
+    option(value='get') GET
+    option(value='post') POST
+    option(value='put') PUT
+    option(value='delete') DELETE
+
+mixin origin_server_input(server)
+  .form-group.mb-3
+    label.form-label.fw-bold(for="originServerId") Server
+    input.form-control(type=type, id="originServerId", name="originServerId", value=server, disabled)
+
+mixin provider_access_manager(endpoint)
+  h6.card-subtitle.mb-2(style='color: #6f6f6f;')= endpoint.verb.toUpperCase() + " /" + endpoint.path
+  ul.list-group.list-group-flush
+    each grant in endpoint.EndpointAccessGrant
+      li.list-group-item.d-flex.justify-content-between(style=`background-color: #D1D1E0;`)
+        h6(style='color: #6f6f6f;')= grant.requestedBy
+        // states: approve, revoke, re-enable
+        if grant.approvedBy
+          if grant.revoked
+            button.btn.btn-info(type="button") Restore
+          else
+            button.btn.btn-danger(type="button") Revoke
+        else
+          button.btn.btn-success(type="button") Approve
 
 mixin flash_messages(messages, alertLevel)
   for message in messages

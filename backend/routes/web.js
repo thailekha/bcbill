@@ -1,21 +1,33 @@
 const router = require('express').Router();
-const D3Node = require('d3-node');
 const sentry = require('../services/sentry');
 const _l = require('../services/logger');
 const auth = require('../services/auth');
-const { username, appname, wallet, serverName, host, validator, isProviderCheckbox} = require('./validator');
+const { walletRequired, validator } = require('./validator');
+const Joi = require("joi");
+const _ = require('lodash');
 const jstr = (i) => JSON.stringify(i, null, 0);
 
-const PREFIX = '/ui';
+//##############################
+// Joi start
+//##############################
 
-function walletRequired(req, res, next) {
-  if (!auth.isLoggedIn(req)) {
-    req.flash('danger', 'Please login first');
-    res.redirect(PREFIX + '/login');
-  } else {
-    next();
-  }
-}
+const appname = Joi.string().allow(null, '');
+const isProviderCheckbox = Joi.boolean().default(false).truthy('on');
+const [
+  username,
+  wallet,
+  serverName,
+  host,
+  originServerId,
+  path,
+  verb,
+] = _.range(7).map(j => Joi.string().required());
+
+//##############################
+// Joi end
+//##############################
+
+const PREFIX = '/ui';
 
 router.get('/demo', (req, res) => {
   res.render('demo');
@@ -93,6 +105,10 @@ router.post('/AddOriginServer', walletRequired, validator({ serverName, host }),
   return res.redirect(PREFIX + '/provider');
 });
 
-
+router.post('/AddEndpoint', walletRequired, validator({ originServerId, path, verb }), async (req, res) => {
+  const { originServerId, path, verb } = req.body;
+  await sentry.AddEndpoint(...auth.creds(req), originServerId, path, verb);
+  return res.redirect(PREFIX + '/provider');
+});
 
 module.exports = router;
