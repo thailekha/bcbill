@@ -25,20 +25,39 @@ mixin collapsible_card(accordion_id, card_id, heading)
       h5.mb-0
         button(class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse" + card_id aria-expanded="false" aria-controls="collapse" + card_id)= heading
     div(id="collapse" + card_id class="collapse" aria-labelledby="heading" + card_id data-parent="#" + accordion_id)
-      .card-body
-        block
+      block
 
 mixin endpoint_verbs_dropdown(id)
   select.form-select(name=id)
-    option(value='get') GET
-    option(value='post') POST
-    option(value='put') PUT
-    option(value='delete') DELETE
+    option(value='GET') GET
+    option(value='POST') POST
+    option(value='PUT') PUT
+    option(value='DELETE') DELETE
 
 mixin origin_server_input(server)
   .form-group.mb-3
     label.form-label.fw-bold(for="originServerId") Server
     input.form-control(type=type, id="originServerId", name="originServerId", value=server, disabled)
+
+mixin client_access_manager(endpoint)
+  .card.mb-3(style=`background-color: ${endpoint.verb === 'GET' ? '#D9EDF7' : endpoint.verb === 'POST' ? '#DFF0D8' : endpoint.verb === 'PUT' ? '#fdd187' : endpoint.verb === 'DELETE' ? '#ff8484' : '#FFFFFF'};`)
+    .card-body.d-flex.justify-content-between
+      h6.card-subtitle.mb-2(style='color: #6f6f6f;')= endpoint.verb.toUpperCase() + " /" + endpoint.path
+      // states: init, waiting for approval, revoked, granted
+      if endpoint.EndpointAccessGrant.length === 0
+        form(action="/ui/AddEndpointAccessGrant", method="post")
+          input(type="hidden", name="endpointId", value=endpoint.id)
+          button.btn.btn-primary(type='submit') Request
+      else if endpoint.EndpointAccessGrant.length === 1
+        - let grant = endpoint.EndpointAccessGrant[0]
+        unless grant.approvedBy
+          button.btn.btn-secondary(disabled) Waiting for approval
+        else if grant.revoked
+          button.btn.btn-danger(disabled) Revoked
+        else
+          button.btn.btn-success(disabled) Granted
+      else
+        h6.card-subtitle.mb-2(style='color: #6f6f6f;') Something went wrong, more than 1 EndpointAccessGrant
 
 mixin provider_access_manager(endpoint)
   h6.card-subtitle.mb-2(style='color: #6f6f6f;')= endpoint.verb.toUpperCase() + " /" + endpoint.path
@@ -49,11 +68,17 @@ mixin provider_access_manager(endpoint)
         // states: approve, revoke, re-enable
         if grant.approvedBy
           if grant.revoked
-            button.btn.btn-info(type="button") Restore
+            form(action="/ui/Enable", method="post")
+              input(type="hidden", name="endpointAccessGrantId", value=grant.id)
+              button.btn.btn-info(type='submit') Restore
           else
-            button.btn.btn-danger(type="button") Revoke
+            form(action="/ui/Revoke", method="post")
+              input(type="hidden", name="endpointAccessGrantId", value=grant.id)
+              button.btn.btn-danger(type='submit') Revoke
         else
-          button.btn.btn-success(type="button") Approve
+          form(action="/ui/Approve", method="post")
+            input(type="hidden", name="endpointAccessGrantId", value=grant.id)
+            button.btn.btn-success(type='submit') Approve
 
 mixin flash_messages(messages, alertLevel)
   for message in messages

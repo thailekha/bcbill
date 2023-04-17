@@ -2,6 +2,7 @@
 
 import traceback
 import json
+import sys
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -59,4 +60,9 @@ def provider():
 
 
 if __name__ == '__main__':
-    provider()
+    if len(sys.argv) > 1 and sys.argv[1] == 'pro':
+        provider()
+    elif len(sys.argv) > 1 and sys.argv[1] == 'cli':
+        client()
+    else:
+        print("Please provide an argument of 'cli' or 'pro'")

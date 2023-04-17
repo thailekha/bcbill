@@ -8,6 +8,7 @@ const { registerClient, inMemWallet, connectionProfile } = require('../../utils'
 const hash = require('object-hash');
 const moment = require('moment');
 const {decrypt, encrypt} = require('./crypt');
+const _l = require("./logger");
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
@@ -52,32 +53,56 @@ exports.GetOriginServerInfo = async (entityID, walletContent, endpointAccessGran
 exports.ApiProviderHomepageData = async (entityID, walletContent) => {
   const data = await executeContract(
     {fast: true}, entityID, walletContent, ACTIONS.ApiProviderHomepageData);
-  return {
-    'OriginServers': data.OriginServer.filter(server => server.providerEntityID === entityID).map(server => ({
-      ...server,
-      'Endpoints': data.Endpoint.filter(endpoint => endpoint.originServerId === server.id).map(endpoint => ({
-        ...endpoint,
-        'EndpointAccessGrant': data.EndpointAccessGrant.filter(access => access.endpointId === endpoint.id)
-      }))
-    }))
-  };
+  const transformedData = { OriginServers: [] };
+
+  if (data.OriginServer) {
+    transformedData.OriginServers = data.OriginServer.filter(server => server.providerEntityID === entityID).map(server => {
+      const serverWithEndpoints = { ...server, Endpoints: [] };
+      if (data.Endpoint) {
+        serverWithEndpoints.Endpoints = data.Endpoint.filter(endpoint => endpoint.originServerId === server.id).map(endpoint => {
+          const endpointWithAccess = { ...endpoint, EndpointAccessGrant: [] };
+          if (data.EndpointAccessGrant) {
+            endpointWithAccess.EndpointAccessGrant = data.EndpointAccessGrant.filter(access => access.endpointId === endpoint.id);
+          }
+          return endpointWithAccess;
+        });
+      }
+      return serverWithEndpoints;
+    });
+  }
+
+  return transformedData;
 };
 
 exports.ClientHomepageData = async (entityID, walletContent) => {
   const data = await executeContract(
     {fast: true}, entityID, walletContent, ACTIONS.ClientHomepageData);
-  return {
-    'ApiProviders': data.ApiProvider.map(provider => ({
-      ...provider,
-      'OriginServers': data.OriginServer.filter(server => server.providerEntityID === provider.entityID).map(server => ({
-        ...server,
-        'Endpoints': data.Endpoint.filter(endpoint => endpoint.originServerId === server.id).map(endpoint => ({
-          ...endpoint,
-          'EndpointAccessGrant': data.EndpointAccessGrant.filter(access => access.endpointId === endpoint.id && access.clientEntityID === entityID)
-        }))
-      }))
-    }))
-  };
+
+  const transformedData = { ApiProviders: [] };
+
+  if (data.ApiProvider) {
+    transformedData.ApiProviders = data.ApiProvider.map(provider => {
+      const providerWithServers = { ...provider, OriginServers: [] };
+      if (data.OriginServer) {
+        providerWithServers.OriginServers = data.OriginServer.filter(server => server.providerEntityID === provider.entityID).map(server => {
+          const serverWithEndpoints = { ...server, Endpoints: [] };
+          if (data.Endpoint) {
+            serverWithEndpoints.Endpoints = data.Endpoint.filter(endpoint => endpoint.originServerId === server.id).map(endpoint => {
+              const endpointWithAccess = { ...endpoint, EndpointAccessGrant: [] };
+              if (data.EndpointAccessGrant) {
+                endpointWithAccess.EndpointAccessGrant = data.EndpointAccessGrant.filter(access => access.endpointId === endpoint.id && access.clientEntityID === entityID);
+              }
+              return endpointWithAccess;
+            });
+          }
+          return serverWithEndpoints;
+        });
+      }
+      return providerWithServers;
+    });
+  }
+
+  return transformedData;
 };
 
 exports.Approve = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(

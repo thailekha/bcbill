@@ -196,3 +196,86 @@ describe('UI-suite', function() {
   });
 });
 
+describe('minimal-ui', function() {
+  const clientA = 'ios-gif-gen_tom7';
+  const providerX = 'provider_giphy7';
+
+  let clientA_wallet, providerX_wallet;
+  let serverX;
+  let endpoint1X;
+  let grant1XA;
+
+  before(async function() {
+    clientA_wallet = await register(clientA);
+    providerX_wallet = await register(providerX, true);
+  });
+  it('should add origin server', async() => {
+    serverX = await AddOriginServer(providerX, providerX_wallet);
+  });
+  it('should add endpoints', async() => {
+    endpoint1X = await AddEndpoint(providerX, providerX_wallet, serverX.id, "ping", "get");
+  });
+  it('should fetch discovery data for client', async() => {
+    const homepageData = await ClientHomepageData(clientA, clientA_wallet);
+    const x_provider = homepageData.ApiProviders.filter(p => p.entityID === providerX)[0];
+    expect(x_provider.OriginServers).to.have.lengthOf(1);
+    const x_server = x_provider.OriginServers.filter(s => s.id === serverX.id)[0];
+    expect(x_server.Endpoints).to.have.lengthOf(1);
+  });
+  it('should write data to file', async() => {
+    jsonfile.writeFileSync('ui-data.json', {
+      clientA,
+      providerX,
+      clientA_wallet,
+      providerX_wallet,
+    }, { spaces: 4 });
+  });
+});
+
+describe('prepare-loadtest', function() {
+  const clientA = makeEntityID('app1_tom');
+  const clientB = makeEntityID('app2_tom');
+  const providerX = makeEntityID('provider');
+  const providerY = makeEntityID('provider');
+
+  let clientA_wallet, clientB_wallet, providerX_wallet, providerY_wallet;
+  let serverX, serverY;
+  let endpoint1X;
+  let grant1XA;
+
+  before(async function() {
+    clientA_wallet = await register(clientA);
+    clientB_wallet = await register(clientB);
+    providerX_wallet = await register(providerX, true);
+    providerY_wallet = await register(providerY, true);
+  });
+  it('should add origin server', async() => {
+    serverX = await AddOriginServer(providerX, providerX_wallet);
+    serverY = await AddOriginServer2(providerY, providerX_wallet);
+  });
+  it('should add endpoint', async() => {
+    endpoint1X = await AddEndpoint(providerX, providerX_wallet, serverX.id, "ping", "get");
+  });
+  it('should request access', async() => {
+    // e.g. endpoint 1, server X, client A
+    grant1XA = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint1X.id);
+  });
+  it('should approve access', async() => {
+    grant1XA = await Approve(providerX, providerX_wallet, grant1XA.id);
+    expect(grant1XA.approvedBy).to.be.equal(providerX);
+  });
+  it('should write data to file', async() => {
+    jsonfile.writeFileSync('loadtest-data.json', {
+      clientA,
+      clientB,
+      providerX,
+      providerY,
+      clientA_wallet,
+      clientB_wallet,
+      providerX_wallet,
+      providerY_wallet,
+      grantId: grant1XA.id
+    }, { spaces: 4 });
+  });
+});
+

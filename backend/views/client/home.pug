@@ -4,24 +4,11 @@ block append main_content
 	h1 #{client} homepage
 	#accordion
 		each provider in ulData.ApiProviders
-			.card
-				div(class="card-header" id="heading" + provider.id)
-					h5.mb-0
-						button(class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse" + provider.id aria-expanded="false" aria-controls="collapse" + provider.id)
-							| #{provider.id}
-
-				div(id="collapse" + provider.id class="collapse show" aria-labelledby="heading" + provider.id data-parent="#accordion")
-					.card-body(style='background-color: #fafafa')
-						each server in provider.OriginServers
-							.card.mb-3(style='border: 1px solid #e5e5e5;')
-								.card-body
-									h6.card-subtitle.mb-2(style='color: #3d3d3d; font-weight: bold;')= server.serverName
-									each endpoint in server.Endpoints
-										.card.mb-3(style=`background-color: ${endpoint.verb === 'get' ? '#D9EDF7' : endpoint.verb === 'post' ? '#DFF0D8' : endpoint.verb === 'put' ? '#fdd187' : endpoint.verb === 'delete' ? '#ff8484' : '#FFFFFF'};`)
-											.card-body.d-flex.justify-content-between
-												h6.card-subtitle.mb-2(style='color: #6f6f6f;')= endpoint.verb.toUpperCase() + " /" + endpoint.path
-												if endpoint.EndpointAccessGrant.length === 0
-													button.btn.btn-info(type='button') Request
-												else if endpoint.EndpointAccessGrant.length === 1
-													- let grant = endpoint.EndpointAccessGrant[0]
-														button.btn.btn-success(type='button' disabled="disabled") Approved
+			+collapsible_card("accordion", provider.id, provider.id)
+				.card-body(style='background-color: #fafafa')
+					each server in provider.OriginServers
+						.card.mb-3(style='border: 1px solid #e5e5e5;')
+							.card-body
+								h6.card-subtitle.mb-2(style='color: #3d3d3d; font-weight: bold;')= server.serverName
+								each endpoint in server.Endpoints
+									+client_access_manager(endpoint)

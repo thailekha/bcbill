@@ -21,7 +21,9 @@ const [
   originServerId,
   path,
   verb,
-] = _.range(7).map(j => Joi.string().required());
+  endpointId,
+  endpointAccessGrantId,
+] = _.range(9).map(j => Joi.string().required());
 
 //##############################
 // Joi end
@@ -108,6 +110,30 @@ router.post('/AddOriginServer', walletRequired, validator({ serverName, host }),
 router.post('/AddEndpoint', walletRequired, validator({ originServerId, path, verb }), async (req, res) => {
   const { originServerId, path, verb } = req.body;
   await sentry.AddEndpoint(...auth.creds(req), originServerId, path, verb);
+  return res.redirect(PREFIX + '/provider');
+});
+
+router.post('/AddEndpointAccessGrant', walletRequired, validator({ endpointId }), async (req, res, next) => {
+  const { endpointId } = req.body;
+  await sentry.AddEndpointAccessGrant(...auth.creds(req), endpointId);
+  return res.redirect(PREFIX + '/client');
+});
+
+router.post('/Approve', walletRequired, validator({ endpointAccessGrantId }),async (req, res, next) => {
+  const {endpointAccessGrantId} = req.body;
+  await sentry.Approve(...auth.creds(req), endpointAccessGrantId);
+  return res.redirect(PREFIX + '/provider');
+});
+
+router.post('/Revoke', walletRequired, validator({ endpointAccessGrantId }),async (req, res, next) => {
+  const {endpointAccessGrantId} = req.body;
+  await sentry.Revoke(...auth.creds(req), endpointAccessGrantId);
+  return res.redirect(PREFIX + '/provider');
+});
+
+router.post('/Enable', walletRequired, validator({ endpointAccessGrantId }),async (req, res, next) => {
+  const {endpointAccessGrantId} = req.body;
+  await sentry.Enable(...auth.creds(req), endpointAccessGrantId);
   return res.redirect(PREFIX + '/provider');
 });
 

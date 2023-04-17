@@ -14,6 +14,24 @@ router.post('/register', async (req, res, next) => {
   }
 });
 
+router.all('/origin-server-no-fabric/*', async (req, res, next) => {
+  try {
+    const {target} = req.headers;
+    const { pathname, search } = url.parse(req.url);
+    const endpointPath = pathname.split('/').slice(2).join('/'); // extract everything after '/origin-server-no-fabric/'
+
+    req.url = `${endpointPath}${search || ''}`;
+    proxy.web(req, res, { target, changeOrigin: true }, (error) => {
+      // Handle errors that occur when forwarding the request
+      console.error(`Error forwarding request: ${error}`);
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end(`An error occurred: ${error}`);
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.all('/origin-server/*', async (req, res, next) => {
   try {
     const { pathname, search } = url.parse(req.url, true);
@@ -70,7 +88,7 @@ router.post('/AddOriginServer', async (req, res, next) => {
 router.post('/AddEndpoint', async (req, res, next) => {
   try {
     const {entityID, wallet, originServerId, path, verb} = req.body;
-    const endpoint = await sentry.AddEndpoint(entityID, wallet, originServerId, path, verb);
+    const endpoint = await sentry.AddEndpoint(entityID, wallet, originServerId, path, verb.toUpperCase());
     res.json(endpoint);
   } catch (err) {
     next(err);
