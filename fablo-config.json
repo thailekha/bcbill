@@ -2,10 +2,10 @@
   "$schema": "https://github.com/softwaremill/fablo/releases/download/1.0.2/schema.json",
   "global": {
     "fabricVersion": "2.3.0",
-    "tls": false,
+    "tls": true,
     "tools": {
       "explorer": false,
-      "fabloRest": true
+      "fabloRest": false
     }
   },
   "orgs": [
@@ -17,7 +17,7 @@
       "orderers": [
         {
           "groupName": "group1",
-          "type": "solo",
+          "type": "raft",
           "instances": 1
         }
       ]
@@ -28,7 +28,7 @@
         "domain": "org1.example.com"
       },
       "peer": {
-        "instances": 3,
+        "instances": 1,
         "db": "CouchDb"
       }
     },
@@ -40,7 +40,7 @@
         {
           "name": "Org1",
           "peers": [
-            "peer0", "peer1", "peer2"
+            "peer0"
           ]
         },
       ]
