@@ -14,15 +14,15 @@ export const options = {
         contacts: {
             executor: 'constant-vus',
             vus: 200,
-            duration: '20s',
+            duration: '100s',
             gracefulStop: '50s',
         },
     },
 };
 
 exports.default = function() {
-    // anywhere within 5s
-    // sleep(Math.random() * 5);
+    // anywhere within 10s
+    // sleep(Math.random() * 10);
 
     const entityID = data.clientA;
     const wallet = data.clientA_wallet;

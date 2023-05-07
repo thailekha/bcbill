@@ -1,6 +1,6 @@
 'use strict';
 
-const { Gateway } = require('fabric-network');
+const { Gateway, DefaultQueryHandlerStrategies} = require('fabric-network');
 const fabprotos = require('fabric-protos');
 const { BlockDecoder } = require('fabric-common');
 const ACTIONS =  require(`${__dirname}/actions`);
@@ -243,6 +243,9 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
         eventHandlerOptions: {
           commitTimeout: 10,
           strategy: null
+        },
+        queryHandlerOptions: {
+          strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
         }
       });
     }
@@ -251,7 +254,10 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
       await gateway.connect(profile, {
         wallet,
         identity,
-        discovery: { enabled: true, asLocalhost: true }
+        discovery: { enabled: true, asLocalhost: true },
+        queryHandlerOptions: {
+          strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
+        }
       });
     }
 
