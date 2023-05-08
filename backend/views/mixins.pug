@@ -8,10 +8,29 @@ mixin form_checkbox(id, label)
     input.form-check-input(type="checkbox", id=id, name=id)
     label.form-check-label(for=id)= label
 
+mixin disable_input_if_checkbox(input_id, checkbox_id)
+  script.
+    const inputField = document.getElementById("#{input_id}"); // Get the appname input field
+    document.addEventListener("DOMContentLoaded", function () {
+      if (document.getElementById("#{checkbox_id}").checked) {
+        inputField.value = ""; // Clear the appname input value
+        inputField.disabled = true; // Disable the appname input field
+      }
+    });
+    document.getElementById("#{checkbox_id}").addEventListener("change", function () {
+      if (this.checked) {
+        inputField.value = ""; // Clear the appname input value
+        inputField.disabled = true; // Disable the appname input field
+      } else {
+        inputField.disabled = false; // Enable the appname input field
+      }
+    });
+
+
 mixin form_container(header)
   .container.mt-5
     .row.justify-content-center
-      .col-lg-6
+      .col-lg-8
         .bg-light.p-4.mb-4
           h2.text-center.mb-4= header
           block

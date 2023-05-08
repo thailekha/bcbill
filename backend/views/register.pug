@@ -3,9 +3,10 @@ extends layout
 block append main_content
   +form_container("Register")
     form(action="/ui/register", method="post")
-      +form_input("appname", "Your app name")
+      +form_input("appname", "Your app name", false)
       +form_input("username", "Your name")
       +form_checkbox("isProviderCheckbox", "Are you an API provider?")
+      +disable_input_if_checkbox("appname", "isProviderCheckbox")
       .text-center
         button.btn.btn-primary(type="submit") Create Account
         .mt-3.form-check-label Already have an account?
