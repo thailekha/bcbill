@@ -40,7 +40,7 @@ router.get('/register', (req, res) => {
 });
 
 function makeEntityID(appname, username, isProvider) {
-  return isProvider ? username : appname + '_' + username;
+  return isProvider ? 'provider_' + username : appname + '_' + username;
 }
 
 function checkIsProvider(isProviderCheckbox) {
@@ -51,8 +51,9 @@ router.post('/register', validator({appname, username, isProviderCheckbox}), asy
   try {
     const {appname, username, isProviderCheckbox} = req.body;
     const isProvider = checkIsProvider(isProviderCheckbox);
-    const walletContent = await sentry.registerUser(isProvider ? 'provider_' + username : appname + '_' + username, isProvider);
-    req.flash('success', `Here is your password: ${walletContent}`);
+    const userId = makeEntityID(appname, username, isProvider);
+    const walletContent = await sentry.registerUser(userId, isProvider);
+    req.flash('success', `Here is your password, please copy it since it is shown only once: ${walletContent}`);
     res.redirect(PREFIX + '/login');
   } catch (err) {
     next(err);
@@ -112,7 +113,7 @@ router.get('/provider', walletRequired, async (req, res, next) => {
 router.post('/AddOriginServer', walletRequired, validator({ serverName, host }), async (req, res, next) => {
   try {
     const { serverName, host} = req.body;
-    await sentry.AddOriginServer(...auth.creds(req), serverName, host);
+    const originServer = await sentry.AddOriginServer(...auth.creds(req), serverName, host);
     return res.redirect(PREFIX + '/provider');
   } catch (err) {
     next(err);

@@ -279,3 +279,15 @@ describe('prepare-loadtest', function() {
   });
 });
 
+describe('debugging', function() {
+  const provider = "catinc1";
+  let providerWallet, serverX;
+
+  before(async function() {
+    providerWallet = await register(provider, true);
+  });
+  it('should add origin server', async() => {
+    serverX = await AddOriginServer(provider, providerWallet);
+    console.log();
+  });
+});
