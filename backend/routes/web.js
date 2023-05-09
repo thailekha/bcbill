@@ -170,6 +170,15 @@ router.post('/Enable', walletRequired, validator({ endpointAccessGrantId }),asyn
   }
 });
 
+router.get('/logout', async (req, res, next) => {
+  try {
+    auth.logout(req);
+    return res.redirect(PREFIX + '/login');
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.use(function (err, req, res, next) {
   if (err.statusCode) {
     res.status(err.statusCode).render('error', { message: err.message });

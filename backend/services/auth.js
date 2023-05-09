@@ -20,9 +20,9 @@ const auth = {
   // }
 
   logout: (req) => {
-    delete req.session.wallet;
-    delete req.session.username;    
     delete req.session.loggedIn;
+    delete req.session.entityID;
+    delete req.session.wallet;
   },
 
   getWallet: (req) => {
