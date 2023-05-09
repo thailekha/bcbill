@@ -85,56 +85,97 @@ router.post('/login', validator({ appname, username, wallet, isProviderCheckbox 
   }
 });
 
-router.get('/client', walletRequired, async (req, res) => {
-  _l(...auth.creds(req));
-  const client = auth.creds(req)[0];
-  const data = await sentry.ClientHomepageData(...auth.creds(req));
-  _l(data);
-  res.render('client/home', { client: client, ulData: data });
+router.get('/client', walletRequired, async (req, res, next) => {
+  try {
+    _l(...auth.creds(req));
+    const client = auth.creds(req)[0];
+    const data = await sentry.ClientHomepageData(...auth.creds(req));
+    _l(data);
+    res.render('client/home', { client: client, ulData: data });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get('/provider', walletRequired, async (req, res) => {
-  _l(...auth.creds(req));
-  const provider = auth.creds(req)[0];
-  const data = await sentry.ApiProviderHomepageData(...auth.creds(req));
-  _l(data);
-  res.render('provider/home', { provider: provider, ulData: data });
+router.get('/provider', walletRequired, async (req, res, next) => {
+  try {
+    _l(...auth.creds(req));
+    const provider = auth.creds(req)[0];
+    const data = await sentry.ApiProviderHomepageData(...auth.creds(req));
+    _l(data);
+    res.render('provider/home', { provider: provider, ulData: data });
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/AddOriginServer', walletRequired, validator({ serverName, host }), async (req, res) => {
-  const { serverName, host} = req.body;
-  await sentry.AddOriginServer(...auth.creds(req), serverName, host);
-  return res.redirect(PREFIX + '/provider');
+router.post('/AddOriginServer', walletRequired, validator({ serverName, host }), async (req, res, next) => {
+  try {
+    const { serverName, host} = req.body;
+    await sentry.AddOriginServer(...auth.creds(req), serverName, host);
+    return res.redirect(PREFIX + '/provider');
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.post('/AddEndpoint', walletRequired, validator({ originServerId, path, verb }), async (req, res) => {
-  const { originServerId, path, verb } = req.body;
-  await sentry.AddEndpoint(...auth.creds(req), originServerId, path, verb);
-  return res.redirect(PREFIX + '/provider');
+router.post('/AddEndpoint', walletRequired, validator({ originServerId, path, verb }), async (req, res, next) => {
+  try {
+    const { originServerId, path, verb } = req.body;
+    await sentry.AddEndpoint(...auth.creds(req), originServerId, path, verb);
+    return res.redirect(PREFIX + '/provider');
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.post('/AddEndpointAccessGrant', walletRequired, validator({ endpointId }), async (req, res, next) => {
-  const { endpointId } = req.body;
-  await sentry.AddEndpointAccessGrant(...auth.creds(req), endpointId);
-  return res.redirect(PREFIX + '/client');
+  try {
+    const { endpointId } = req.body;
+    await sentry.AddEndpointAccessGrant(...auth.creds(req), endpointId);
+    return res.redirect(PREFIX + '/client');
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.post('/Approve', walletRequired, validator({ endpointAccessGrantId }),async (req, res, next) => {
-  const {endpointAccessGrantId} = req.body;
-  await sentry.Approve(...auth.creds(req), endpointAccessGrantId);
-  return res.redirect(PREFIX + '/provider');
+  try {
+    const {endpointAccessGrantId} = req.body;
+    await sentry.Approve(...auth.creds(req), endpointAccessGrantId);
+    return res.redirect(PREFIX + '/provider');
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.post('/Revoke', walletRequired, validator({ endpointAccessGrantId }),async (req, res, next) => {
-  const {endpointAccessGrantId} = req.body;
-  await sentry.Revoke(...auth.creds(req), endpointAccessGrantId);
-  return res.redirect(PREFIX + '/provider');
+  try {
+    const {endpointAccessGrantId} = req.body;
+    await sentry.Revoke(...auth.creds(req), endpointAccessGrantId);
+    return res.redirect(PREFIX + '/provider');
+  } catch (err) {
+    next(err);
+  }
 });
 
 router.post('/Enable', walletRequired, validator({ endpointAccessGrantId }),async (req, res, next) => {
-  const {endpointAccessGrantId} = req.body;
-  await sentry.Enable(...auth.creds(req), endpointAccessGrantId);
-  return res.redirect(PREFIX + '/provider');
+  try {
+    const {endpointAccessGrantId} = req.body;
+    await sentry.Enable(...auth.creds(req), endpointAccessGrantId);
+    return res.redirect(PREFIX + '/provider');
+  } catch (err) {
+    next(err);
+  }
 });
+
+router.use(function (err, req, res, next) {
+  if (err.statusCode) {
+    res.status(err.statusCode).render('error', { message: err.message });
+  } else {
+    res.status(500).render('error', { message: err });
+  }
+});
+
 
 module.exports = router;
