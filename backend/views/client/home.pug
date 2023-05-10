@@ -4,11 +4,11 @@ block append main_content
 	h1 #{client} homepage
 	#accordion
 		each provider in ulData.ApiProviders
-			+collapsible_card("accordion", provider.id, provider.id)
+			+collapsible_card("accordion", provider.id, provider.id, provider.id)
 				.card-body(style='background-color: #fafafa')
 					each server in provider.OriginServers
 						.card.mb-3(style='border: 1px solid #e5e5e5;')
 							.card-body
 								h6.card-subtitle.mb-2(style='color: #3d3d3d; font-weight: bold;')= server.serverName
 								each endpoint in server.Endpoints
-									+client_access_manager(endpoint)
+									+client_access_manager(provider.entityID, server.serverName, endpoint)

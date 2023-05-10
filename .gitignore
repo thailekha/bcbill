@@ -27,3 +27,8 @@ web-second-instance
 **/chaincode-kv-ts/index.js
 
 **/.env
+**/.png
+**/screenshots
+**/wallet.txt
+**/purrfect.js
+**/data.json

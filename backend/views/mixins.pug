@@ -38,11 +38,11 @@ mixin form_container(header)
 mixin grey_label(id, display)
   label(for=id, style='color: #6f6f6f;')= display ? display : id.charAt(0).toUpperCase() + id.slice(1)
 
-mixin collapsible_card(accordion_id, card_id, heading)
+mixin collapsible_card(accordion_id, card_id, heading, seleniumID)
   .card
     div(class="card-header" id="heading" + card_id)
       h5.mb-0
-        button(class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse" + card_id aria-expanded="false" aria-controls="collapse" + card_id)= heading
+        button(class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapse" + card_id aria-expanded="false" aria-controls="collapse" + card_id, id=`${seleniumID}-btn`)= heading
     div(id="collapse" + card_id class="collapse" aria-labelledby="heading" + card_id data-parent="#" + accordion_id)
       block
 
@@ -58,7 +58,7 @@ mixin origin_server_input(server)
     label.form-label.fw-bold(for="originServerId") Server
     input.form-control(type=type, id="originServerId", name="originServerId", value=server, disabled)
 
-mixin client_access_manager(endpoint)
+mixin client_access_manager(providerName, serverName, endpoint)
   .card.mb-3(style=`background-color: ${endpoint.verb === 'GET' ? '#D9EDF7' : endpoint.verb === 'POST' ? '#DFF0D8' : endpoint.verb === 'PUT' ? '#fdd187' : endpoint.verb === 'DELETE' ? '#ff8484' : '#FFFFFF'};`)
     .card-body.d-flex.justify-content-between
       h6.card-subtitle.mb-2(style='color: #6f6f6f;')= endpoint.verb.toUpperCase() + " /" + endpoint.path
@@ -66,7 +66,7 @@ mixin client_access_manager(endpoint)
       if endpoint.EndpointAccessGrant.length === 0
         form(action="/ui/AddEndpointAccessGrant", method="post")
           input(type="hidden", name="endpointId", value=endpoint.id)
-          button.btn.btn-primary(type='submit') Request
+          button.btn.btn-primary(type='submit', id=`${providerName}-${serverName}-${endpoint.verb}-${endpoint.path}-btn`) Request
       else if endpoint.EndpointAccessGrant.length === 1
         - let grant = endpoint.EndpointAccessGrant[0]
         unless grant.approvedBy
@@ -74,6 +74,7 @@ mixin client_access_manager(endpoint)
         else if grant.revoked
           button.btn.btn-danger(disabled) Revoked
         else
+          h6.card-subtitle.mb-2(style='color: #6f6f6f;' id=`${providerName}-${serverName}-${endpoint.verb}-${endpoint.path}-grant-id`)= "(" + grant.id + ")"
           button.btn.btn-success(disabled) Granted
       else
         h6.card-subtitle.mb-2(style='color: #6f6f6f;') Something went wrong, more than 1 EndpointAccessGrant
