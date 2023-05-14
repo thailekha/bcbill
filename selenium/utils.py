@@ -15,15 +15,15 @@ PROVIDER_NAME = "cataas" + random_string
 CLIENT_NAME = "developer1" + random_string
 CLIENT_APP = "purrfect-zone" + random_string
 provider_wallet = ""
-SERVER_NAME = "test"
+SERVER_NAME = "cat-as-a-service"
 HOST_ADDR = "https://cataas.com"
-SERVER_BTN = "test-btn"
-ENDPOINT = "random-cat"
-ENDPOINT_WITH_VERB = "GET /random-cat"
+SERVER_BTN = f"{SERVER_NAME}-btn"
+ENDPOINT = "cat"
+ENDPOINT_WITH_VERB = f"GET /{ENDPOINT}"
 client_wallet = ""
 CLIENT_PROVIDER_BTN = f"provider_{PROVIDER_NAME}-btn"
-CLIENT_ENDPOINT_BTN = f"provider_{PROVIDER_NAME}-{SERVER_NAME}-GET-cat-btn"
-CLIENT_GRANT_ID = f"provider_{PROVIDER_NAME}-{SERVER_NAME}-GET-cat-grant-id"
+CLIENT_ENDPOINT_BTN = f"provider_{PROVIDER_NAME}-{SERVER_NAME}-GET-{ENDPOINT}-btn"
+CLIENT_GRANT_ID = f"provider_{PROVIDER_NAME}-{SERVER_NAME}-GET-{ENDPOINT}-grant-id"
 
 
 PURRFECT_SRC = "../purrfect-zone/index-template.js"
@@ -46,8 +46,8 @@ def wait_for_tags(driver, tag):
     )
 
 
-def driver(debug=False):
-    options = webdriver.ChromeOptions(size="window-size=1080,1080")
+def driver(debug=False, size="window-size=1080,1080"):
+    options = webdriver.ChromeOptions()
     options.add_argument("ignore-certificate-errors")
     options.add_argument("disable-extensions")
     options.add_argument("disable-gpu")
@@ -68,10 +68,14 @@ def delete_and_recreate_folder(folder_path):
     os.makedirs(folder_path)
 
 
-def replace_placeholders(input_file, output_file, entity_id, wallet, grant_id):
+def replace_placeholders(
+    input_file, output_file, server_name, endpoint, entity_id, wallet, grant_id
+):
     with open(input_file, "r") as input_file:
         content = input_file.read()
 
+    content = re.sub(r"SERVER_NAME_HERE", server_name, content)
+    content = re.sub(r"ENDPOINT_HERE", endpoint, content)
     content = re.sub(r"ENTITY_ID_HERE", entity_id, content)
     content = re.sub(r"WALLET_HERE", wallet, content)
     content = re.sub(r"GRANT_ID_HERE", grant_id, content)

@@ -11,6 +11,8 @@ from utils import (
     screenshot_code,
     PURRFECT_SRC,
     PURRFECT_DST,
+    SERVER_NAME,
+    ENDPOINT,
 )
 
 if __name__ == "__main__":
@@ -30,9 +32,11 @@ if __name__ == "__main__":
     replace_placeholders(
         PURRFECT_SRC,
         PURRFECT_DST,
+        SERVER_NAME,
+        ENDPOINT,
         f"{CLIENT_APP}_{CLIENT_NAME}",
         client_wallet,
         grant_id,
     )
     screenshot_code(ss, PURRFECT_DST)
-    client.launch_purrfect(driver("window-size=800,800"), ss)
+    client.launch_purrfect(driver(size="window-size=800,800"), ss)
