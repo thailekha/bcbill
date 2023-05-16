@@ -1,6 +1,6 @@
 class Screenshoter:
     def __init__(self):
-        self.counter = 0
+        self.counter = 10
 
     def save(self, driver, name):
         self.counter += 1
