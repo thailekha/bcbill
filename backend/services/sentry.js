@@ -9,6 +9,7 @@ const hash = require('object-hash');
 const moment = require('moment');
 const {decrypt, encrypt} = require('./crypt');
 const _l = require("./logger");
+const randomPeers = require("./queryHandler");
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
@@ -245,7 +246,7 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
           strategy: null
         },
         queryHandlerOptions: {
-          strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
+          strategy: randomPeers
         }
       });
     }
@@ -256,7 +257,7 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
         identity,
         discovery: { enabled: true, asLocalhost: true },
         queryHandlerOptions: {
-          strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
+          strategy: randomPeers
         }
       });
     }
