@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const auth = require("../services/auth");
+const auth = require('../services/auth');
 
 function walletRequired(req, res, next) {
   if (!auth.isLoggedIn(req)) {

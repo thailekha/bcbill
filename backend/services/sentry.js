@@ -8,8 +8,8 @@ const { registerClient, inMemWallet, connectionProfile } = require('../../utils'
 const hash = require('object-hash');
 const moment = require('moment');
 const {decrypt, encrypt} = require('./crypt');
-const _l = require("./logger");
-const randomPeers = require("./queryHandler");
+const _l = require('./logger');
+const randomPeers = require('./queryHandler');
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';

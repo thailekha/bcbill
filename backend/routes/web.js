@@ -3,7 +3,7 @@ const sentry = require('../services/sentry');
 const _l = require('../services/logger');
 const auth = require('../services/auth');
 const { walletRequired, validator } = require('./validator');
-const Joi = require("joi");
+const Joi = require('joi');
 const _ = require('lodash');
 const jstr = (i) => JSON.stringify(i, null, 0);
 
