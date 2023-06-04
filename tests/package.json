@@ -9,7 +9,7 @@
     "setup-for-min": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --grep 'minimal-ui' --timeout 6000000 --exit",
     "setup-for-load": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --grep 'prepare-loadtest' --timeout 6000000 --exit",
     "testping": "NODE_PATH=~/work/bcbill/tests/node_modules mocha --trace-warnings ./data.test.js --grep 'ping-contract' --timeout 60000 --exit",
-    "load-test": "./node_modules/.bin/k6 run --summary-trend-stats=\"min,avg,max\" load.test.js",
+    "load-test": "./node_modules/.bin/k6 run --summary-trend-stats=\\\"min,avg,max\\\" load.template.js",
     "debugging": "NODE_PATH=~/work/bcbill/tests/node_modules node ~/work/bcbill/tests/node_modules/mocha/bin/mocha --trace-warnings ./data.test.js --grep 'debugging' --timeout 6000000 --exit"
   },
   "author": "",

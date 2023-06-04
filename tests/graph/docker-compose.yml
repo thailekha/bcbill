@@ -1,0 +1,13 @@
+version: '3'
+services:
+  py:
+    image: python:3.10.11-slim-buster
+    volumes:
+      - .:/mnt
+    tty: true
+    entrypoint: >
+      sh -c '
+        adduser --disabled-password --gecos "" fabric;
+        chown -R fabric:fabric /mnt;
+        su -c "pip install -r /mnt/requirements.txt; cd /mnt; python3 plot.py" fabric
+      '

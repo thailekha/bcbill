@@ -32,3 +32,8 @@ web-second-instance
 **/wallet.txt
 **/purrfect.js
 **/data.json
+
+tests/graph/*csv
+tests/graph/*png
+tests/load.js
+tests/loadtest-data.json

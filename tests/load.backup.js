@@ -13,14 +13,14 @@ export const options = {
     scenarios: {
         contacts: {
             executor: 'constant-vus',
-            vus: 200,
-            duration: '100s',
-            gracefulStop: '50s',
+            vus: 10,
+            duration: '5s',
+            gracefulStop: '20s',
         },
     },
 };
 
-exports.default = function() {
+export default function () {
     // anywhere within 10s
     // sleep(Math.random() * 10);
 
@@ -48,5 +48,16 @@ exports.default = function() {
     } catch (err) {
         console.error(err);
     }
+}
+
+export function handleSummary(data) {
+  console.log("Test finished. Printing summary...");
+
+  // Access and print the custom metric
+  // const avgResponseTime = responseTime.avg;
+  // console.log("Average response time:", avgResponseTime);
+
+  // Print the full summary object
+  console.log(JSON.stringify(data, null, 2));
 }
 
