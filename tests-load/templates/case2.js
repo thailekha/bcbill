@@ -2,7 +2,7 @@ import http from 'k6/http';
 import { check } from 'k6';
 
 export function load(entityID, wallet, endpointAccessGrantId) {
-  const res = http.get('http://localhost:9999/api/origin-server-no-fabric/ping', {
+  const res = http.get('http://localhost:9999/api/origin-server-no-fabric/sample-get', {
     headers: { target:  "http://localhost:9998" }
   });
   check(res, {

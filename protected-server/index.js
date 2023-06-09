@@ -55,4 +55,28 @@ app.post('/average', cors(), (req, res) => {
   });
 });
 
+app.get('/sample-get', cors(), (req, res) => {
+  res.json({
+    answer: "sample"
+  });
+});
+
+app.post('/sample-post', cors(), (req, res) => {
+  res.json({
+    answer: "sample"
+  });
+});
+
+app.put('/sample-put', cors(), (req, res) => {
+  res.json({
+    answer: "sample"
+  });
+});
+
+app.delete('/sample-delete', cors(), (req, res) => {
+  res.json({
+    answer: "sample"
+  });
+});
+
 module.exports = app;

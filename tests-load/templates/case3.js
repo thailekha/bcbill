@@ -5,9 +5,9 @@ const preparedData = JSON.parse(open('../loadtest-data.json'));
 export function load() {
   const entityID = preparedData.clientA;
   const wallet = preparedData.clientA_wallet;
-  const endpointAccessGrantId = preparedData.grantId;
+  const endpointAccessGrantId = preparedData.grant_get;
 
-  const res = http.get('http://localhost:9999/api/origin-server/math/ping', {
+  const res = http.get('http://localhost:9999/api/origin-server/math/sample-get', {
     headers: { auth: JSON.stringify({ entityID, wallet, endpointAccessGrantId }) }
   });
   check(res, {

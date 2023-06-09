@@ -240,8 +240,14 @@ describe('prepare-loadtest', function() {
 
   let clientA_wallet, clientB_wallet, providerX_wallet, providerY_wallet;
   let serverX, serverY;
-  let endpoint1X;
-  let grant1XA;
+  let endpoint_get;
+  let endpoint_post;
+  let endpoint_put;
+  let endpoint_del;
+  let grant_get;
+  let grant_post;
+  let grant_put;
+  let grant_del;
 
   before(async function() {
     clientA_wallet = await register(clientA);
@@ -254,15 +260,27 @@ describe('prepare-loadtest', function() {
     serverY = await AddOriginServer2(providerY, providerX_wallet);
   });
   it('should add endpoint', async() => {
-    endpoint1X = await AddEndpoint(providerX, providerX_wallet, serverX.id, "ping", "get");
+    endpoint_get = await AddEndpoint(providerX, providerX_wallet, serverX.id, "sample-get", "get");
+    endpoint_post = await AddEndpoint(providerX, providerX_wallet, serverX.id, "sample-post", "post");
+    endpoint_put = await AddEndpoint(providerX, providerX_wallet, serverX.id, "sample-put", "put");
+    endpoint_del = await AddEndpoint(providerX, providerX_wallet, serverX.id, "sample-delete", "delete");
   });
   it('should request access', async() => {
     // e.g. endpoint 1, server X, client A
-    grant1XA = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint1X.id);
+    grant_get = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint_get.id);
+    grant_post = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint_post.id);
+    grant_put = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint_put.id);
+    grant_del = await AddEndpointAccessGrant(clientA, clientA_wallet, endpoint_del.id);
   });
   it('should approve access', async() => {
-    grant1XA = await Approve(providerX, providerX_wallet, grant1XA.id);
-    expect(grant1XA.approvedBy).to.be.equal(providerX);
+    grant_get = await Approve(providerX, providerX_wallet, grant_get.id);
+    grant_post = await Approve(providerX, providerX_wallet, grant_post.id);
+    grant_put = await Approve(providerX, providerX_wallet, grant_put.id);
+    grant_del = await Approve(providerX, providerX_wallet, grant_del.id);
+    expect(grant_get.approvedBy).to.be.equal(providerX);
+    expect(grant_post.approvedBy).to.be.equal(providerX);
+    expect(grant_put.approvedBy).to.be.equal(providerX);
+    expect(grant_del.approvedBy).to.be.equal(providerX);
   });
   it('should write data to file', async() => {
     jsonfile.writeFileSync('../tests-load/loadtest-data.json', {
@@ -274,7 +292,10 @@ describe('prepare-loadtest', function() {
       clientB_wallet,
       providerX_wallet,
       providerY_wallet,
-      grantId: grant1XA.id
+      grant_get: grant_get.id,
+      grant_post: grant_post.id,
+      grant_put: grant_put.id,
+      grant_del: grant_del.id,
     }, { spaces: 4 });
   });
 });
