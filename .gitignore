@@ -33,7 +33,8 @@ web-second-instance
 **/purrfect.js
 **/data.json
 
-tests/graph/*csv
-tests/graph/*png
-tests/load.js
-tests/loadtest-data.json
+tests-load/graph/*csv
+tests-load/graph/*png
+tests-load/load.js
+tests-load/loadtest-data.json
+tests-load/graph/plot
