@@ -7,23 +7,20 @@ def plot_data(df, scenario_name):
     plt.plot(clients, avg, label=scenario_name)
 
 # Read the CSV file into a pandas DataFrame
-df_merged = pd.read_csv('plot/data.csv')
+df_merged = pd.read_csv('data.csv')
 
-# Extract data for each scenario
-scenarios = {
-    'No access control': 'No access control',
-    'With dummy proxy': 'With dummy proxy',
-    'Blockchain access control': 'Blockchain access control'
-}
+# Get unique scenario names
+scenario_names = df_merged['Scenario'].unique()
 
-for scenario_name, scenario_label in scenarios.items():
-    df_scenario = df_merged[df_merged['Scenario'] == scenario_label]
+# Iterate over the unique scenario names and plot the data
+for scenario_name in scenario_names:
+    df_scenario = df_merged[df_merged['Scenario'] == scenario_name]
     plot_data(df_scenario, scenario_name)
 
-plt.title('Average Response Time')
-plt.xlabel('Clients')
-plt.ylabel('Average')
+# plt.title('Average Response Time')
+plt.xlabel('Number of Clients')
+plt.ylabel('Average response time')
 
 plt.legend()
-plt.savefig('plot/line_graph.png')
+plt.savefig('line_graph.png')
 plt.show()

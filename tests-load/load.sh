@@ -8,40 +8,63 @@ cleanup() {
   rm load.js
 }
 
+function build_img() {
+  docker build -t eng-docker-registry.eng.at.caliangroup.com/library/fabric:latest -f graph/Dockerfile graph
+}
+
 function csv_row() {
-  local CASE_NO=$1
-  local CLIENT_NO=$2
-  local CSV_FILE=$3
-  cp $script_dir/templates/load.template.js $script_dir/load.js
-  sed -i "s/<CASE_NO>/${CASE_NO}/g; s/<CLIENT_NO>/${CLIENT_NO}/g" $script_dir/load.js
-  std_out=$(k6 run $script_dir/load.js 2>&1)
+  local SCENARIO_FILE="$1"
+  local CLIENT_NO="$2"
+  local CSV_FILE="$3"
+
+  cp load.template.js load.js
+  sed -i "s|<SCENARIO_FILE>|${SCENARIO_FILE}|g; s|<CLIENT_NO>|${CLIENT_NO}|g" load.js
+  std_out=$(k6 run load.js 2>&1)
   value=$(echo "$std_out" | grep -oE 'msg="[^"]+"')
   value=${value#msg=\"}
   value=${value%\"}
-  echo "$value" >> graph/plot/$CSV_FILE
+  echo "$value" >> $CSV_FILE
 }
 
-function load() {
-  rm -rf graph/plot/* || true
-  mkdir -p graph/plot || true
-  echo "Scenario,Clients,Avg" > graph/plot/data.csv
-  cases=(1 2 3)
-  for case_no in "${cases[@]}"; do
-    # client_numbers=(1 20 40 80 100 120 140 180 200 220 240 280 300)
-    # client_numbers=(1 20 40 80 100 120 140 180 200 220)
-    client_numbers=(1 2)
-    for client_no in "${client_numbers[@]}"; do
-      csv_row "$case_no" "$client_no" "data.csv"
+function csv_files() {
+  client_numbers=(1 20 40 60 80 100)
+  for _case_dir in "cases"/*; do
+    if [[ ! -d "$_case_dir" ]]; then
+      continue
+    fi
+
+    local case_dir=$(basename $_case_dir)
+    echo $case_dir
+
+    local PLOT_DIR="graph/plot/$case_dir"
+    rm -rf $PLOT_DIR || true
+    mkdir -p $PLOT_DIR || true
+    echo "Scenario,Clients,Avg" > $PLOT_DIR/data.csv
+
+    for _scenario_file in "cases/$case_dir"/*; do
+      if [[ ! -f "$_scenario_file" ]]; then
+        continue
+      fi
+
+      for client_no in "${client_numbers[@]}"; do
+        echo $client_no
+        csv_row "$(realpath $_scenario_file)" "$client_no" "$PLOT_DIR/data.csv"
+      done
     done
+
+    cp graph/plot.py $PLOT_DIR/.
+    cp graph/docker-compose.yml $PLOT_DIR/.
+    cd $PLOT_DIR
+    docker-compose up &> /dev/null
+    docker-compose down &> /dev/null
+    cd -
   done
-  cat graph/plot/data.csv
-  cd graph
-  docker-compose up
-  nautilus .
+
+  nautilus graph/plot
 }
 
-build_img() {
-  docker build -t eng-docker-registry.eng.at.caliangroup.com/library/fabric:latest -f graph/Dockerfile graph
+function plot() {
+  csv_files
 }
 
 "$@"

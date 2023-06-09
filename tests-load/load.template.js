@@ -1,7 +1,6 @@
 const http = require('k6/http');
 const { check, sleep } = require('k6');
-const preparedData = JSON.parse(open('./loadtest-data.json'));
-const theCase = require('./templates/case<CASE_NO>.js');
+const scene = require('<SCENARIO_FILE>');
 
 // export const options = {
 //     discardResponseBodies: true,
@@ -32,12 +31,12 @@ export let options = {
 
 export function accessEndpoint(data) {
   try {
-    theCase.load();
+    scene.load();
   } catch (err) {
     console.error(err);
   }
 }
 
 module.exports.handleSummary = function (data) {
-  console.log(`${theCase.name()},<CLIENT_NO>,${data.metrics['http_req_duration{scenario:<CLIENT_NO>_client}'].values.avg}`);
+  console.log(`${scene.name()},<CLIENT_NO>,${data.metrics['http_req_duration{scenario:<CLIENT_NO>_client}'].values.avg}`);
 }
