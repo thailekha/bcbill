@@ -1,0 +1,14 @@
+version: '3'
+services:
+  py:
+    # image: python:3.10.11-slim-buster
+    image: eng-docker-registry.eng.at.caliangroup.com/library/fabric:latest
+    volumes:
+      - .:/mnt
+    tty: true
+    entrypoint: >
+      sh -c '
+        adduser --disabled-password --gecos "" fabric;
+        chown -R fabric:fabric /mnt;
+        su -c "cd /mnt; python3 process.py; python3 plot.py" fabric
+      '

@@ -283,7 +283,7 @@ describe('prepare-loadtest', function() {
     expect(grant_del.approvedBy).to.be.equal(providerX);
   });
   it('should write data to file', async() => {
-    jsonfile.writeFileSync('../tests-load/loadtest-data.json', {
+    jsonfile.writeFileSync('./loadtest-data.json', {
       clientA,
       clientB,
       providerX,
