@@ -6,6 +6,8 @@ export function load(entityID, wallet, endpointAccessGrantId) {
   check(res, {
     'status was 200': (r) => r.status === 200
   });
+  const responseTime = res.timings.duration;
+  console.log(`Response time for VU ${__VU}: ${responseTime} ms`);
 }
 
 export function name() {

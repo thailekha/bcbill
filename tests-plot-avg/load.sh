@@ -20,6 +20,7 @@ function csv_row() {
   cp load.template.js load.js
   sed -i "s|<SCENARIO_FILE>|${SCENARIO_FILE}|g; s|<CLIENT_NO>|${CLIENT_NO}|g" load.js
   std_out=$(k6 run load.js 2>&1)
+  echo $std_out | grep -oE 'Response time for VU [0-9]+: [0-9]+\.[0-9]+' | awk '{print "VU " substr($5, 1, length($5)-1) "," $6}' | sed 's/ms//'
   value=$(echo "$std_out" | grep -oE 'msg="[^"]+"')
   value=${value#msg=\"}
   value=${value%\"}
@@ -52,12 +53,12 @@ function csv_files() {
       done
     done
 
-    cp graph/plot.py $PLOT_DIR/.
-    cp graph/docker-compose.yml $PLOT_DIR/.
-    cd $PLOT_DIR
-    docker-compose up &> /dev/null
-    docker-compose down &> /dev/null
-    cd -
+    # cp graph/plot.py $PLOT_DIR/.
+    # cp graph/docker-compose.yml $PLOT_DIR/.
+    # cd $PLOT_DIR
+    # docker-compose up &> /dev/null
+    # docker-compose down &> /dev/null
+    # cd -
   done
 
   nautilus graph/plot
