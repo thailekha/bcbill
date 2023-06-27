@@ -1,46 +1,63 @@
-const { Network, Query, QueryHandler, QueryHandlerFactory } = require('fabric-network');
-const { ChannelPeer } = require('fabric-client');
-const util = require('util');
-
-class SampleQueryHandler extends QueryHandler {
-  constructor(peers) {
-    super();
-    this.peers = peers;
-  }
-
-  async evaluate(query) {
-    const errorMessages = [];
-
-    for (const peer of this.peers) {
-      const results = await query.evaluate([peer]);
-      const result = results[peer.getName()];
-
-      if (!(result instanceof Error)) {
-        return result;
-      }
-      if (result.isProposalResponse) {
-        throw result;
-      }
-      errorMessages.push(result.message);
-    }
-
-    const message = util.format('Evaluate failed with the following errors: %j', errorMessages);
-    throw new Error(message);
-  }
-}
-
-function filterQueryablePeers(peers) {
-  return peers.filter((peer) => peer.isInRole('chaincodeQuery'));
-}
-
-const createQueryHandler = (network) => {
-  const channel = network.getChannel();
-  const orgPeers = filterQueryablePeers(channel.getPeersForOrg());
-  const networkPeers = filterQueryablePeers(channel.getChannelPeers())
-    .filter((peer) => !orgPeers.includes(peer));
-
-  const allPeers = orgPeers.concat(networkPeers);
-  return new SampleQueryHandler(allPeers);
-};
-
-module.exports = createQueryHandler;
+// const { QueryHandler } = require('fabric-network');
+// const util = require('util');
+// const _ = require('lodash');
+// const _l = require("./logger");
+//
+// class RandomPeersQueryHandler {
+//   constructor(peers) {
+//     this.shuffledPeers = _.shuffle(peers);
+//     this.currentIndex = 0;
+//   }
+//
+//   async evaluate(query) {
+//     const errorMessages = [];
+//     throw new Error("fuck");
+//     for (let i = 0; i < this.shuffledPeers.length; i++) {
+//       const peer = this.shuffledPeers[this.currentIndex];
+//       this.currentIndex = (this.currentIndex + 1) % this.shuffledPeers.length;
+//
+//       try {
+//         const results = await query.evaluate([peer]);
+//         const result = results[peer.name];
+//
+//         if (result instanceof Error) {
+//           errorMessages.push(result.toString());
+//         } else {
+//           if (result.isEndorsed) {
+//             return result.payload;
+//           } else {
+//             const responseError = Object.assign(new Error(result.message), result);
+//             throw responseError;
+//           }
+//         }
+//       } catch (error) {
+//         errorMessages.push(error.toString());
+//       }
+//     }
+//
+//     const message = `Query failed. Errors: ${errorMessages.join(', ')}`;
+//     throw new Error(message);
+//   }
+// }
+//
+// function filterQueryablePeers(peers) {
+//   return peers.filter((peer) => peer.isInRole('chaincodeQuery'));
+// }
+//
+// function getOrganizationPeers(network) {
+//   const mspId = network.getGateway().getIdentity().mspId;
+//   return network.getChannel().getEndorsers(mspId);
+// }
+// function getNetworkPeers(network) {
+//   return network.getChannel().getEndorsers();
+// }
+//
+// const createQueryHandler = (theNetwork) => {
+//   let peers = getOrganizationPeers(theNetwork);
+//   if (peers.length === 0) {
+//     peers = getNetworkPeers(theNetwork);
+//   }
+//   return new RandomPeersQueryHandler(peers);
+// };
+//
+// module.exports = createQueryHandler;

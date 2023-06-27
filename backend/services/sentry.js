@@ -9,7 +9,7 @@ const hash = require('object-hash');
 const moment = require('moment');
 const {decrypt, encrypt} = require('./crypt');
 const _l = require('./logger');
-const randomPeers = require('./queryHandler');
+const _ = require('lodash');
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
@@ -240,13 +240,12 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
       await gateway.connect(profile, {
         wallet,
         identity,
-        discovery: { enabled: true, asLocalhost: true },
         eventHandlerOptions: {
           commitTimeout: 10,
           strategy: null
         },
         queryHandlerOptions: {
-          strategy: randomPeers
+          strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
         }
       });
     }
@@ -255,9 +254,8 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
       await gateway.connect(profile, {
         wallet,
         identity,
-        discovery: { enabled: true, asLocalhost: true },
         queryHandlerOptions: {
-          strategy: randomPeers
+          strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
         }
       });
     }
@@ -266,7 +264,7 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
     const contract = network.getContract(CHAINCODE);
     const result = await contract
       .createTransaction(action)
-      // .setEndorsingPeers(endorsingPeers)
+      // .setEndorsingPeers(getEndorsingPeers(network))
       .submit(...args);
 
     // result is a buffer, gotta call toString then parse
@@ -275,5 +273,27 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
   finally {
     gateway.disconnect();
   }
+}
+
+function getEndorsingPeers(theNetwork) {
+  let peers = getOrganizationPeers(theNetwork);
+  if (peers.length === 0) {
+    peers = getNetworkPeers(theNetwork);
+  }
+  const subsetSize = Math.ceil(peers.length * 0.1);
+  if (peers.length <= subsetSize) {
+    return peers;
+  }
+  const randomSubset = _.shuffle(peers).slice(0, subsetSize);
+  return randomSubset;
+}
+
+
+function getOrganizationPeers(network) {
+  const mspId = network.getGateway().getIdentity().mspId;
+  return network.getChannel().getEndorsers(mspId);
+}
+function getNetworkPeers(network) {
+  return network.getChannel().getEndorsers();
 }
 
