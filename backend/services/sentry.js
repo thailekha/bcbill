@@ -8,7 +8,8 @@ const { registerClient, inMemWallet, connectionProfile } = require('../../utils'
 const hash = require('object-hash');
 const moment = require('moment');
 const {decrypt, encrypt} = require('./crypt');
-const _l = require("./logger");
+const _l = require('./logger');
+const ConnectionPool = require('./ConnectionPool');
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
@@ -47,7 +48,7 @@ exports.Revoke = async (entityID, walletContent, endpointAccessGrantId) => await
 exports.Enable = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
   {}, entityID, walletContent, ACTIONS.Enable, endpointAccessGrantId);
 
-exports.GetOriginServerInfo = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
+exports.GetOriginServerInfo = async (entityID, walletContent, endpointAccessGrantId) => await queryContract(
   {fast: true}, entityID, walletContent, ACTIONS.GetOriginServerInfo, endpointAccessGrantId);
 
 exports.ApiProviderHomepageData = async (entityID, walletContent) => {
@@ -244,9 +245,9 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
           commitTimeout: 10,
           strategy: null
         },
-        queryHandlerOptions: {
-          strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
-        }
+        // queryHandlerOptions: {
+        //   strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
+        // }
       });
     }
     // safe
@@ -273,6 +274,43 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
   }
   finally {
     gateway.disconnect();
+  }
+}
+
+async function createConnection(identity, walletContent) {
+  console.log('Making gateway');
+  const wallet = await inMemWallet(identity, typeof walletContent === 'string' ? JSON.parse(decrypt(walletContent)) : walletContent);
+  const gateway = new Gateway();
+  const profile = connectionProfile();
+  await gateway.connect(profile, {
+    wallet,
+    identity,
+    discovery: { enabled: true, asLocalhost: true },
+  });
+  console.log('Made gateway');
+  return gateway;
+}
+
+function destroyConnection(connection) {
+  connection.disconnect();
+}
+
+const gatewayPool = new ConnectionPool(10, createConnection, destroyConnection);
+
+async function queryContract(opts, identity, walletContent, action, ...args) {
+  console.log('Query started');
+  const gateway = await gatewayPool.acquire(identity, walletContent);
+  console.log('Gateway acquired');
+  try {
+    const network = await gateway.getNetwork(CHANNEL);
+    const contract = network.getContract(CHAINCODE);
+    console.log('About to query contract');
+    const result = await contract.evaluateTransaction(action, ...args);
+    // result is a buffer, gotta call toString then parse
+    return JSON.parse(result.toString());
+  }
+  finally {
+    gatewayPool.release(gateway);
   }
 }
 
