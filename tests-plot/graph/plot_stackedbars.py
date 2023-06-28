@@ -12,6 +12,9 @@ categories = data['VU']
 # dummy_proxy = data['dummy proxy']
 blockchain = data['blockchain']
 
+# Calculate the maximum value from the dataset
+max_value = max(blockchain)
+
 # Set the positions of the bars on the x-axis
 bar_positions = range(len(categories))
 
@@ -33,6 +36,9 @@ plt.legend()
 
 # Customize the x-axis tick labels
 plt.xticks(bar_positions, categories, rotation=90)
+
+# Set the upper limit of the y-axis dynamically based on the maximum value
+plt.ylim(0, max_value + 500)
 
 # Save the plot as an image file
 plt.tight_layout()

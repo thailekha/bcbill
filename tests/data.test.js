@@ -213,7 +213,7 @@ describe('minimal-ui', function() {
     serverX = await AddOriginServer(providerX, providerX_wallet);
   });
   it('should add endpoints', async() => {
-    endpoint1X = await AddEndpoint(providerX, providerX_wallet, serverX.id, "ping", "get");
+    endpoint1X = await AddEndpoint(providerX, providerX_wallet, serverX.id, 'ping', 'get');
   });
   it('should fetch discovery data for client', async() => {
     const homepageData = await ClientHomepageData(clientA, clientA_wallet);
@@ -260,10 +260,10 @@ describe('prepare-loadtest', function() {
     serverY = await AddOriginServer2(providerY, providerX_wallet);
   });
   it('should add endpoint', async() => {
-    endpoint_get = await AddEndpoint(providerX, providerX_wallet, serverX.id, "sample-get", "get");
-    endpoint_post = await AddEndpoint(providerX, providerX_wallet, serverX.id, "sample-post", "post");
-    endpoint_put = await AddEndpoint(providerX, providerX_wallet, serverX.id, "sample-put", "put");
-    endpoint_del = await AddEndpoint(providerX, providerX_wallet, serverX.id, "sample-delete", "delete");
+    endpoint_get = await AddEndpoint(providerX, providerX_wallet, serverX.id, 'sample-get', 'get');
+    endpoint_post = await AddEndpoint(providerX, providerX_wallet, serverX.id, 'sample-post', 'post');
+    endpoint_put = await AddEndpoint(providerX, providerX_wallet, serverX.id, 'sample-put', 'put');
+    endpoint_del = await AddEndpoint(providerX, providerX_wallet, serverX.id, 'sample-delete', 'delete');
   });
   it('should request access', async() => {
     // e.g. endpoint 1, server X, client A
@@ -301,7 +301,7 @@ describe('prepare-loadtest', function() {
 });
 
 describe('debugging', function() {
-  const provider = "catinc1";
+  const provider = 'catinc1';
   let providerWallet, serverX;
 
   before(async function() {

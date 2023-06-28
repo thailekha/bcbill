@@ -28,7 +28,7 @@
         "domain": "org1.example.com"
       },
       "peer": {
-        "instances": 1,
+        "instances": 9,
         "db": "CouchDb"
       }
     },
@@ -40,7 +40,15 @@
         {
           "name": "Org1",
           "peers": [
-            "peer0"
+            "peer0",
+            "peer1",
+            "peer2",
+            "peer3",
+            "peer4",
+            "peer5",
+            "peer6",
+            "peer7",
+            "peer8",
           ]
         },
       ]

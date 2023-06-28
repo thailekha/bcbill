@@ -43,3 +43,6 @@ tests-plot/graph/*csv
 tests-plot/graph/*png
 tests-plot/loadtest-data.json
 tests-plot/graph/plot
+tests-plot/k6_load.js
+
+fablo-config.json
