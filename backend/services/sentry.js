@@ -51,6 +51,9 @@ exports.Enable = async (entityID, walletContent, endpointAccessGrantId) => await
 exports.GetOriginServerInfo = async (entityID, walletContent, endpointAccessGrantId) => await queryContract(
   {fast: true}, entityID, walletContent, ACTIONS.GetOriginServerInfo, endpointAccessGrantId);
 
+exports.GetOriginServerInfoLimited = async (entityID, walletContent, endpointAccessGrantId) => await queryContract(
+  {fast: true}, entityID, walletContent, ACTIONS.GetOriginServerInfoLimited, endpointAccessGrantId);
+
 exports.ApiProviderHomepageData = async (entityID, walletContent) => {
   const data = await executeContract(
     {fast: true}, entityID, walletContent, ACTIONS.ApiProviderHomepageData);
@@ -235,32 +238,14 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
 
     // https://stackoverflow.com/questions/56936560/why-do-i-take-more-than-2-seconds-to-just-do-a-transaction
     // https://hyperledger-fabric.readthedocs.io/en/release-2.2/developapps/connectionoptions.html
-    // fast
-    if (opts.fast) {
-      await gateway.connect(profile, {
-        wallet,
-        identity,
-        discovery: { enabled: true, asLocalhost: true },
-        eventHandlerOptions: {
-          commitTimeout: 10,
-          strategy: null
-        },
-        // queryHandlerOptions: {
-        //   strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
-        // }
-      });
-    }
-    // safe
-    else {
-      await gateway.connect(profile, {
-        wallet,
-        identity,
-        discovery: { enabled: true, asLocalhost: true },
-        queryHandlerOptions: {
-          strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
-        }
-      });
-    }
+    await gateway.connect(profile, {
+      wallet,
+      identity,
+      discovery: { enabled: true, asLocalhost: true },
+      queryHandlerOptions: {
+        strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
+      }
+    });
 
     const network = await gateway.getNetwork(CHANNEL);
     const contract = network.getContract(CHAINCODE);
@@ -277,17 +262,24 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
   }
 }
 
+
+/*
+  Note: if the same request from the same client comes in while the gateway is being created, createConnection will be called again
+ */
 async function createConnection(identity, walletContent) {
-  console.log('Making gateway');
+  console.log('Creating gateway');
   const wallet = await inMemWallet(identity, typeof walletContent === 'string' ? JSON.parse(decrypt(walletContent)) : walletContent);
   const gateway = new Gateway();
   const profile = connectionProfile();
+  _l(process.env.ROUND_ROBIN ? 'ROUND ROBIN' : 'SINGLE PEER QUERY');
   await gateway.connect(profile, {
     wallet,
     identity,
     discovery: { enabled: true, asLocalhost: true },
+    queryHandlerOptions: {
+      strategy: process.env.ROUND_ROBIN ? DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN : DefaultQueryHandlerStrategies.MSPID_SCOPE_SINGLE
+    }
   });
-  console.log('Made gateway');
   return gateway;
 }
 
@@ -298,19 +290,10 @@ function destroyConnection(connection) {
 const gatewayPool = new ConnectionPool(10, createConnection, destroyConnection);
 
 async function queryContract(opts, identity, walletContent, action, ...args) {
-  console.log('Query started');
   const gateway = await gatewayPool.acquire(identity, walletContent);
-  console.log('Gateway acquired');
-  try {
-    const network = await gateway.getNetwork(CHANNEL);
-    const contract = network.getContract(CHAINCODE);
-    console.log('About to query contract');
-    const result = await contract.evaluateTransaction(action, ...args);
-    // result is a buffer, gotta call toString then parse
-    return JSON.parse(result.toString());
-  }
-  finally {
-    gatewayPool.release(gateway);
-  }
+  const network = await gateway.getNetwork(CHANNEL);
+  const contract = network.getContract(CHAINCODE);
+  const result = await contract.evaluateTransaction(action, ...args);
+  return JSON.parse(result.toString());
 }
 

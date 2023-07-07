@@ -237,7 +237,7 @@ module.exports = (backend) => {
   async function pingOriginServer(entityID, wallet, endpointAccessGrantId) {
     try {
       await request(backend)
-        .get('/api/origin-server/math/ping')
+        .get('/api/origin-server-unlimited/math/ping')
         .set({
           auth: JSON.stringify({entityID, wallet, endpointAccessGrantId})
         })
@@ -250,7 +250,7 @@ module.exports = (backend) => {
   async function pingOriginServerFail(entityID, wallet, endpointAccessGrantId) {
     try {
       await request(backend)
-        .get('/api/origin-server/math/ping')
+        .get('/api/origin-server-unlimited/math/ping')
         .set({
           auth: JSON.stringify({entityID, wallet, endpointAccessGrantId})
         })

@@ -20,7 +20,7 @@ const DOCTYPE = 'EndpointAccessGrant';
 class EndpointAccessGrant extends LedgerEntity {
   constructor(ctx,
     endpointId, clientEntityID,
-    requestedBy = clientEntityID, approvedBy = null, clientIds = [], limit = 20, revoked= false
+    requestedBy = clientEntityID, approvedBy = null, clientIds = [], limit = 5, revoked= false
   ) {
     if (!clientEntityID) {
       throw new Error(`invalid clientEntityID ${clientEntityID}`);
@@ -87,6 +87,18 @@ class EndpointAccessGrant extends LedgerEntity {
       path: endpoint.value.path,
       verb: endpoint.value.verb
     };
+  }
+
+  async decreaseLimit() {
+    if (this.value.limit === 0) {
+      this.value.revoked = true;
+    } else {
+      this.value.limit -= 1;
+      if (this.value.limit === 0) {
+        this.value.revoked = true;
+      }
+    }
+    await this.update();
   }
 
   /*

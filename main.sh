@@ -10,12 +10,56 @@ trap cleanup EXIT
 
 SENTRY_CONF_PATH=$(realpath ~)/.apisentry
 
-############################
-# Empty network (start)
-############################
+shlint() {
+    docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/mnt" -w /mnt mvdan/shfmt:latest -w -i 4 main.sh
+}
 
 ############################
-# Empty network (end)
+# Load test (start)
+############################
+
+function exec_remote() {
+    sshpass -p fabric ssh fabric@172.29.1.230 "$1"
+}
+
+remote_load() {
+    exec_remote "cd /home/fabric/work/bcbill && bash main.sh load"
+}
+
+load1() {
+    1peer
+    clean
+    cd tests
+    kill_port 9999
+    npm run setup-for-load
+    cd -
+    backend
+    sleep 1
+    protected_server
+    sleep 1
+    cd tests-plot
+    ./load.sh run "1peer"
+    cd -
+}
+
+load9() {
+    9peer
+    clean
+    cd tests
+    kill_port 9999
+    npm run setup-for-load
+    cd -
+    backend_roundrobin
+    sleep 1
+    protected_server
+    sleep 1
+    cd tests-plot
+    ./load.sh run "9peer"
+    cd -
+}
+
+############################
+# Load test (end)
 ############################
 
 ############################
@@ -50,7 +94,7 @@ start_components() {
 pretest_setup() {
     clean
     protected_server
-#    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com"
+    #    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com"
 }
 
 test() {
@@ -79,23 +123,37 @@ rerun_test() {
 
 # the react instance created from the "web" folder can be used for breakpoint debugging
 frontend_main() {
-  ROLE=$1
-  terminal_tab "cd web && PORT=3000 npm run $ROLE"
+    ROLE=$1
+    terminal_tab "cd web && PORT=3000 npm run $ROLE"
 }
 
 frontend_second() {
-  ROLE=$1
-  rm -rf web-second-instance || true
-  cp -rf web web-second-instance
-  terminal_tab "cd web-second-instance && PORT=3001 npm run $ROLE"
+    ROLE=$1
+    rm -rf web-second-instance || true
+    cp -rf web web-second-instance
+    terminal_tab "cd web-second-instance && PORT=3001 npm run $ROLE"
+}
+
+kill_port() {
+  PORT=$1
+  if lsof -i :$PORT >/dev/null; then
+    kill $(lsof -t -i :$PORT)
+  fi
 }
 
 backend() {
+    kill_port 9999
     terminal_tab "cd backend && npm run dev"
 }
 
+backend_roundrobin() {
+    kill_port 9999
+    terminal_tab "cd backend && ROUND_ROBIN=true npm run dev"
+}
+
 protected_server() {
-    terminal_tab "cd /home/vagrant/work/bcbill/protected-server && node bin/www"
+    kill_port 9998
+    terminal_tab "cd /home/fabric/work/bcbill/protected-server && node bin/www"
 }
 
 ############################
@@ -106,13 +164,21 @@ protected_server() {
 # Hyperledger stuff (start)
 ############################
 
+1peer() {
+    cp fabloconfigs/1peer.json fablo-config.json
+}
+
+9peer() {
+    cp fabloconfigs/9peers.json fablo-config.json
+}
+
 clean() {
     clear_conf
     rm deployed-contract-version.json || true
     ./fablo recreate
     sleep 5
     setup_conf
-    echo '{"version":1}' > deployed-contract-version.json
+    echo '{"version":1}' >deployed-contract-version.json
 }
 
 setup_conf() {
@@ -122,12 +188,12 @@ setup_conf() {
     ls $SENTRY_CONF_PATH
 
     rm -rf .env || true
-    echo "FABRIC_CONNECTION_PROFILE=$SENTRY_CONF_PATH/connection-profile-org1.json" >> .env
-    echo "WALLET_PATH=$SENTRY_CONF_PATH/wallet" >> .env
-    echo "FABRIC_ROOT_ID=admin" >> .env
-    echo "FABRIC_ROOT_PW=adminpw" >> .env
-    echo "FABRIC_MSP=Org1MSP" >> .env
-    echo "FABRIC_CA_HOST=ca.org1.example.com" >> .env
+    echo "FABRIC_CONNECTION_PROFILE=$SENTRY_CONF_PATH/connection-profile-org1.json" >>.env
+    echo "WALLET_PATH=$SENTRY_CONF_PATH/wallet" >>.env
+    echo "FABRIC_ROOT_ID=admin" >>.env
+    echo "FABRIC_ROOT_PW=adminpw" >>.env
+    echo "FABRIC_MSP=Org1MSP" >>.env
+    echo "FABRIC_CA_HOST=ca.org1.example.com" >>.env
 
     node utils/rootCredentials.js
 }
@@ -148,7 +214,7 @@ increment_version() {
 
 log() {
     terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer0.org1.example.com"
-#    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer1.org1.example.com"
+    #    terminal_window "cd /home/vagrant/work/bcbill/fablo-target/fabric-docker && docker-compose logs -f peer1.org1.example.com"
 }
 
 ############################
@@ -201,8 +267,8 @@ expose() {
 # start protected server
 
 playground() {
-  protected_server
-  terminal_tab "cd /home/vagrant/work/bcbill/playground-scripts/js-scripts && node proxy.js"
+    protected_server
+    terminal_tab "cd /home/vagrant/work/bcbill/playground-scripts/js-scripts && node proxy.js"
 }
 
 ############################
@@ -224,7 +290,7 @@ terminal_window() {
 }
 
 browser() {
-#    sleep 8
+    #    sleep 8
     firefox "localhost:3000/#/login" &
     firefox "localhost:3001/#/login" --private-window &
 }

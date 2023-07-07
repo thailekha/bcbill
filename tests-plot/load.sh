@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -Eeuo pipefail
+set -Eeuox pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
 function scp_from_remote() {
@@ -39,24 +39,31 @@ function get_wallets() {
   scp_from_remote "/home/fabric/work/bcbill/tests/loadtest-data.json" "/tmp/loadtest-data.json"
 }
 
+function get_wallets_local() {
+  cp -rf "/home/fabric/work/bcbill/tests/loadtest-data.json" "/tmp/loadtest-data.json"
+}
+
 function build_img() {
   docker build -t eng-docker-registry.eng.at.caliangroup.com/library/fabric:latest -f graph/Dockerfile graph
 }
 
 function load() {
-  get_wallets
-  monitor_memory_thread &
-  monitor_pid=$!
-  echo pid $monitor_pid
+  local VU_NUM=$1
+  cp k6_load.template.js k6_load.js
+  sed -i "s/<VU_NUM_HERE>/$VU_NUM/g" k6_load.js
+  get_wallets_local
+#  monitor_memory_thread &
+#  monitor_pid=$!
+#  echo pid $monitor_pid
+#  trap "kill $monitor_pid" RETURN
   std_out=$(k6 run --quiet --no-summary --no-vu-connection-reuse k6_load.js 2>&1)
   echo $std_out
   echo $std_out | grep -oE 'VU[0-9]+_[a-zA-Z]+:[0-9.]+' | awk -F ':' '{ print $1 "," $2 }' > graph/stackedbars.csv
-  kill $monitor_pid
 }
 
 function clean() {
-  rm graph/*.csv
-  rm graph/*.png
+  rm graph/*.csv || true
+  rm graph/*.png || true
 }
 
 function test() {
@@ -70,9 +77,30 @@ function plot() {
   cd -
 }
 
-function run() {
-  load
+function commit_vu_case() {
+  local case_name=$1
+  rm -rf $case_name || true
+  mkdir $case_name
+  mv graph/*.csv $case_name/.
+  mv graph/*.png $case_name/.
+}
+
+function run_vu_case() {
+  local VU_NUM=$1
+  clean
+  load "$VU_NUM"
   plot
+  commit_vu_case "vu_$VU_NUM"
+}
+
+function run() {
+  PEER_CASE=$1
+  mkdir $PEER_CASE
+  for num in 10 50 100 130 150 170 ; do
+    run_vu_case "$num"
+    sleep 5
+  done
+  mv vu_* $PEER_CASE/.
 }
 
 "$@"

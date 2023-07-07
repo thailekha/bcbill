@@ -32,38 +32,44 @@ router.all('/origin-server-no-fabric/*', async (req, res, next) => {
   }
 });
 
-router.all('/origin-server/*', async (req, res, next) => {
-  try {
-    const { pathname, search } = url.parse(req.url, true);
-    const { entityID, wallet, endpointAccessGrantId } = JSON.parse(req.headers.auth);
-    const originServerInfo = await sentry.GetOriginServerInfo(entityID, wallet, endpointAccessGrantId);
-    if (!originServerInfo) {
-      const err = new Error('Unauthorized');
-      err.statusCode = 401;
-      return next(err);
+function forwardToOriginHandler(limited) {
+  return (async function forwardToOrigin(req, res, next) {
+    try {
+      const { pathname, search } = url.parse(req.url, true);
+      const { entityID, wallet, endpointAccessGrantId } = JSON.parse(req.headers.auth);
+      const originServerInfo = limited ? await sentry.GetOriginServerInfoLimited(entityID, wallet, endpointAccessGrantId) : await sentry.GetOriginServerInfo(entityID, wallet, endpointAccessGrantId);
+      if (!originServerInfo) {
+        const err = new Error('Unauthorized');
+        err.statusCode = 401;
+        return next(err);
+      }
+      const { host: originServerHost, path: authorizedPath, verb: authorizedVerb } = originServerInfo;
+      const [originServerName, ...endpointPath] = pathname.slice('/origin-server/'.length).split('/');
+      const finalAuthorizedCheck = authorizedPath === endpointPath.join('/') && authorizedVerb.toUpperCase() === req.method;
+
+      if (!finalAuthorizedCheck) {
+        const err = new Error('Bad path / verb');
+        err.statusCode = 400;
+        return next(err);
+      }
+
+      req.url = '/' + endpointPath.join('/') + (search ? search : '');
+
+      proxy.web(req, res, { target: originServerHost, changeOrigin: true }, (error) => {
+        // Handle errors that occur when forwarding the request
+        console.error(`Error forwarding request: ${error}`);
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end(`An error occurred: ${error}`);
+      });
+    } catch (err) {
+      next(err);
     }
-    const { host: originServerHost, path: authorizedPath, verb: authorizedVerb } = originServerInfo;
-    const [originServerName, ...endpointPath] = pathname.slice('/origin-server/'.length).split('/');
-    const finalAuthorizedCheck = authorizedPath === endpointPath.join('/') && authorizedVerb.toUpperCase() === req.method;
+  });
+}
 
-    if (!finalAuthorizedCheck) {
-      const err = new Error('Bad path / verb');
-      err.statusCode = 400;
-      return next(err);
-    }
+router.all('/origin-server/*', forwardToOriginHandler(true));
 
-    req.url = '/' + endpointPath.join('/') + (search ? search : '');
-
-    proxy.web(req, res, { target: originServerHost, changeOrigin: true }, (error) => {
-      // Handle errors that occur when forwarding the request
-      console.error(`Error forwarding request: ${error}`);
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end(`An error occurred: ${error}`);
-    });
-  } catch (err) {
-    next(err);
-  }
-});
+router.all('/origin-server-unlimited/*', forwardToOriginHandler(false));
 
 router.post('/GetUser', async (req, res, next) => {
   try {

@@ -72,6 +72,7 @@ class APISentryContract extends Contract {
 
   async Enable(ctx, endpointAccessGrantId) {
     const eag = await EndpointAccessGrant.getByIdForProvider(ctx, endpointAccessGrantId);
+    eag.value.limit = 5;
     eag.value.revoked = false;
     await eag.update();
     return eag.getCopy();
@@ -81,6 +82,14 @@ class APISentryContract extends Contract {
     _l('GetOriginServerInfo start');
     const endpointAccessGrant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
     _l('GetOriginServerInfo finish');
+    return endpointAccessGrant.getOriginServerInfo();
+  }
+
+  async GetOriginServerInfoLimited(ctx, endpointAccessGrantId) {
+    _l('GetOriginServerInfoLimited start');
+    const endpointAccessGrant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
+    await endpointAccessGrant.decreaseLimit();
+    _l('GetOriginServerInfoLimited finish');
     return endpointAccessGrant.getOriginServerInfo();
   }
 

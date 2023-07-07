@@ -16,7 +16,7 @@ async function fetchCatPictures(count) {
   const catUrls = [];
   for (let i = 0; i < count; i++) {
     const response = await request
-      .get('http://localhost:9999/api/origin-server/SERVER_NAME_HERE/ENDPOINT_HERE')
+      .get('http://localhost:9999/api/origin-server-unlimited/SERVER_NAME_HERE/ENDPOINT_HERE')
       .set({
         auth: JSON.stringify({
 

@@ -18,7 +18,7 @@
         {
           "groupName": "group1",
           "type": "raft",
-          "instances": 2
+          "instances": 1
         }
       ]
     },

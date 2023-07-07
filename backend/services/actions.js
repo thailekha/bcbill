@@ -8,6 +8,7 @@ module.exports = {
   Revoke: 'Revoke',
   Enable: 'Enable',
   GetOriginServerInfo: 'GetOriginServerInfo',
+  GetOriginServerInfoLimited: 'GetOriginServerInfoLimited',
   ApiProviderHomepageData: 'ApiProviderHomepageData',
   ClientHomepageData: 'ClientHomepageData',
   Approve: 'Approve',
