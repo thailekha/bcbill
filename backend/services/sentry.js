@@ -10,6 +10,7 @@ const moment = require('moment');
 const {decrypt, encrypt} = require('./crypt');
 const _l = require('./logger');
 const ConnectionPool = require('./ConnectionPool');
+const createQueryHandler = require('./createQueryHandler');
 
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
@@ -277,7 +278,7 @@ async function createConnection(identity, walletContent) {
     identity,
     discovery: { enabled: true, asLocalhost: true },
     queryHandlerOptions: {
-      strategy: process.env.ROUND_ROBIN ? DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN : DefaultQueryHandlerStrategies.MSPID_SCOPE_SINGLE
+      strategy: process.env.ROUND_ROBIN ? createQueryHandler : DefaultQueryHandlerStrategies.MSPID_SCOPE_SINGLE
     }
   });
   return gateway;

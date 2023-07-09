@@ -33,16 +33,16 @@ web-second-instance
 **/purrfect.js
 **/data.json
 
-tests-plot-avg/graph/*csv
-tests-plot-avg/graph/*png
+**/*.csv
+**/*.png
+
 tests-plot-avg/load.js
 tests-plot-avg/loadtest-data.json
 tests-plot-avg/graph/plot
 
-tests-plot/graph/*csv
-tests-plot/graph/*png
 tests-plot/loadtest-data.json
 tests-plot/graph/plot
 tests-plot/k6_load.js
+tests-plot/**/*.txt
 
 fablo-config.json

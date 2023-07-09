@@ -247,6 +247,19 @@ module.exports = (backend) => {
     }
   }
 
+  async function callSampleGetOriginServer(entityID, wallet, endpointAccessGrantId) {
+    try {
+      await request(backend)
+        .get('/api/origin-server-unlimited/math/sample-get')
+        .set({
+          auth: JSON.stringify({entityID, wallet, endpointAccessGrantId})
+        })
+        .expect(200);
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async function pingOriginServerFail(entityID, wallet, endpointAccessGrantId) {
     try {
       await request(backend)
@@ -278,7 +291,8 @@ module.exports = (backend) => {
     Revoke,
     Enable,
     pingOriginServer,
-    pingOriginServerFail
+    pingOriginServerFail,
+    callSampleGetOriginServer
   };
 };
 

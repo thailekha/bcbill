@@ -22,7 +22,8 @@ const {
   Revoke,
   Enable,
   pingOriginServer,
-  pingOriginServerFail
+  pingOriginServerFail,
+  callSampleGetOriginServer
 } = require('./assert_requests')(backend);
 
 function makeEntityID(pre) {
@@ -281,6 +282,9 @@ describe('prepare-loadtest', function() {
     expect(grant_post.approvedBy).to.be.equal(providerX);
     expect(grant_put.approvedBy).to.be.equal(providerX);
     expect(grant_del.approvedBy).to.be.equal(providerX);
+  });
+  it('should call origin server', async() => {
+    await callSampleGetOriginServer(clientA, clientA_wallet, grant_get.id);
   });
   it('should write data to file', async() => {
     jsonfile.writeFileSync('./loadtest-data.json', {

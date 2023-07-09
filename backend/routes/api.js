@@ -44,7 +44,7 @@ function forwardToOriginHandler(limited) {
         return next(err);
       }
       const { host: originServerHost, path: authorizedPath, verb: authorizedVerb } = originServerInfo;
-      const [originServerName, ...endpointPath] = pathname.slice('/origin-server/'.length).split('/');
+      const [originServerName, ...endpointPath] = limited ? pathname.slice('/origin-server/'.length).split('/') : pathname.slice('/origin-server-unlimited/'.length).split('/');
       const finalAuthorizedCheck = authorizedPath === endpointPath.join('/') && authorizedVerb.toUpperCase() === req.method;
 
       if (!finalAuthorizedCheck) {
