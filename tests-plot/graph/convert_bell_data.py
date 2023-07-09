@@ -1,4 +1,4 @@
-input_file = 'stackedbars.csv'
+input_file = 'bars.csv'
 output_file = 'bell.csv'
 
 # Read data from CSV file

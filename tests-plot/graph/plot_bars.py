@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Read the data from the CSV file
-data = pd.read_csv('stackedbars_processed.csv')
+data = pd.read_csv('bars_processed.csv')
 
 # Extract the category names
 categories = data['VU']
@@ -18,7 +18,7 @@ max_value = max(blockchain)
 # Set the positions of the bars on the x-axis
 bar_positions = range(len(categories))
 
-# Plot the stacked bar graph
+# Plot the  bar graph
 # plt.bar(bar_positions, no_proxy, label='No Proxy')
 # plt.bar(bar_positions, dummy_proxy, bottom=no_proxy, label='Dummy Proxy')
 # plt.bar(bar_positions, blockchain, bottom=no_proxy + dummy_proxy, label='Blockchain')
@@ -42,7 +42,7 @@ plt.ylim(0, max_value + 500)
 
 # Save the plot as an image file
 plt.tight_layout()
-plt.savefig('stackedbars.png')
+plt.savefig('bars.png')
 
 # Display the plot
 plt.show()

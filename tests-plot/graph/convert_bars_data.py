@@ -22,8 +22,8 @@ def convert_data(input_data):
     return output_data
 
 
-input_file = 'stackedbars.csv'
-output_file = 'stackedbars_processed.csv'
+input_file = 'bars.csv'
+output_file = 'bars_processed.csv'
 
 # Read data from CSV file
 with open(input_file, 'r') as file:
