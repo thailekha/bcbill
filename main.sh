@@ -14,43 +14,56 @@ shlint() {
     docker run --rm -u "$(id -u):$(id -g)" -v "$PWD:/mnt" -w /mnt mvdan/shfmt:latest -w -i 4 main.sh
 }
 
+code_push() {
+    git add -u && git commit --amend --no-edit && git push origin api-management -f
+}
+
+code_pull() {
+    git fetch -v && git reset --hard origin/api-management
+}
+
 ############################
 # Load test (start)
 ############################
 
 function exec_remote() {
-    sshpass -p fabric ssh fabric@172.29.1.230 "$1"
+    sshpass -p fabric ssh fabric@172.29.1.230 "export PATH=$PATH:/usr/local/bin && cd /home/fabric/work/bcbill && $1"
 }
 
-remote_load() {
-    exec_remote "cd /home/fabric/work/bcbill && bash main.sh load"
-}
-
-load1_local() {
+load1_setup() {
     1peer
     clean
-    protected_server
+    protected_server_bg
     cd tests
+    kill_port 9999
     npm run setup-for-load
     cd -
-    backend
+    backend_bg
     sleep 3
-    cd tests-plot
-    ./load.sh run "9peer-rr"
-    cd -
+    cat /tmp/backend.log
 }
 
-load9_rr_local() {
+load9_rr_setup() {
     9peer
     clean
-    protected_server
+    protected_server_bg
     cd tests
+    kill_port 9999
     npm run setup-for-load
     cd -
-    backend_roundrobin
+    backend_roundrobin_bg
     sleep 3
+    cat /tmp/backend.log
+}
+
+load() {
+    # exec_remote "./main.sh load1_setup"
+    # cd tests-plot
+    # ./load.sh run "1peer"
+    # cd -
+    exec_remote "./main.sh load9_rr_setup"
     cd tests-plot
-    ./load.sh run "9peer-rr"
+    ./load.sh run "9peer"
     cd -
 }
 
@@ -152,6 +165,28 @@ protected_server() {
     terminal_tab "cd /home/fabric/work/bcbill/protected-server && node bin/www"
 }
 
+backend_bg() {
+    kill_port 9999
+    cd /home/fabric/work/bcbill/backend
+    nohup npm run dev > /tmp/backend.log 2>&1 &
+    cd -
+}
+
+backend_roundrobin_bg() {
+    kill_port 9999
+    cd /home/fabric/work/bcbill/backend
+    export ROUND_ROBIN=true
+    nohup npm run dev > /tmp/backend.log 2>&1 &
+    cd -
+}
+
+protected_server_bg() {
+    kill_port 9998
+    cd /home/fabric/work/bcbill/protected-server
+    nohup node bin/www > /dev/null 2>&1 &
+    cd -
+}
+
 ############################
 # Servers (end)
 ############################
@@ -171,6 +206,8 @@ protected_server() {
 clean() {
     clear_conf
     rm deployed-contract-version.json || true
+    ./fablo prune
+    docker volume prune -f
     ./fablo recreate
     sleep 5
     setup_conf

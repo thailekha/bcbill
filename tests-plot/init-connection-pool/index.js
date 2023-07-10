@@ -8,7 +8,7 @@ async function accessEndpoint() {
     const endpointAccessGrantId = preparedData.grant_get;
 
     const response = await request
-      .get('http://localhost:9999/api/origin-server-skip-proxy/math/sample-get')
+      .get(`http://${process.env.ADDRESS ? process.env.ADDRESS : 'localhost'}:9999/api/origin-server-skip-proxy/math/sample-get`)
       .set('auth', JSON.stringify({ entityID, wallet, endpointAccessGrantId }));
 
     if (response.status !== 200) {

@@ -15,6 +15,8 @@ const createQueryHandler = require('./createQueryHandler');
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
 
+_l(`Roundrobin mode: ${process.env.ROUND_ROBIN}`);
+
 exports.registerUser = async (entityID, isProvider) => {
   if (isProvider !== entityID.includes('provider')) {
     const error = isProvider ? 'Provider must have "provider" in their username' : 'Client must not have "provider" in their username';

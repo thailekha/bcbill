@@ -2,6 +2,9 @@
 set -Eeuox pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
+TARGET_ADDRESS="172.29.1.230"
+# TARGET_ADDRESS="localhost"
+
 function scp_from_remote() {
   sshpass -p fabric scp -r fabric@172.29.1.230:"$1" "$2"
 }
@@ -137,11 +140,14 @@ function run_break_load() {
   echo "VU,rate" > graph/error_rates.csv
   cp k6_break.template.js k6_load.js
   sed -i "s/<VU_NUM_HERE>/1/g" k6_load.js
+  sed -i "s/<ADDRESS_HERE>/$TARGET_ADDRESS/g" k6_load.js
   k6 run k6_load.js 2>&1
-  for num in 5000 6000 7000 8000 9000 10000 15000 ; do
+  for num in 5 10 15 20 25 30 ; do
+    num=$((num * 1000))
     echo $num
     cp k6_break.template.js k6_load.js
     sed -i "s/<VU_NUM_HERE>/$num/g" k6_load.js
+    sed -i "s/<ADDRESS_HERE>/$TARGET_ADDRESS/g" k6_load.js
     rate=$(k6 run k6_load.js 2>&1 | grep -oP 'rate:\K[\d.]*' || true)
     echo "${num},${rate}" >> graph/error_rates.csv
     sleep 5
@@ -152,8 +158,8 @@ function run_break_load() {
 }
 
 function run() {
-  get_wallets_local
-  node init-connection-pool/index.js
+  get_wallets
+  ADDRESS=$TARGET_ADDRESS node init-connection-pool/index.js
   PEER_CASE=$1
   rm -rf $PEER_CASE || true
   # run_iteration_based $PEER_CASE

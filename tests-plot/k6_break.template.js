@@ -8,7 +8,7 @@ export const options = {
     contacts: {
       executor: 'constant-vus',
       vus: '<VU_NUM_HERE>',
-      duration: '180s',
+      duration: '80s',
       gracefulStop: '20s',
       exec: 'accessEndpoint',
     },
@@ -28,7 +28,7 @@ export function accessEndpoint(data) {
     const wallet = preparedData.clientA_wallet;
     const endpointAccessGrantId = preparedData.grant_get;
 
-    const bc_res = http.get('http://localhost:9999/api/origin-server-skip-proxy/math/sample-get', {
+    const bc_res = http.get('http://<ADDRESS_HERE>:9999/api/origin-server-skip-proxy/math/sample-get', {
       headers: { auth: JSON.stringify({ entityID, wallet, endpointAccessGrantId }) }
     });
     check(bc_res, {
