@@ -9,7 +9,7 @@ function noproxy() {
 
 function dummyProxy() {
   const dummyproxy_res = http.get('http://localhost:9999/api/origin-server-no-fabric/sample-get', {
-    headers: { target:  "http://localhost:9998" }
+    headers: { target:  'http://localhost:9998' }
   });
   check(dummyproxy_res, {
     'status was 200': r => r.status == 200

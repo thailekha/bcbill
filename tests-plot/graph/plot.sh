@@ -9,6 +9,11 @@ if [ -f "lines.csv" ]; then
     python3 plot_lines.py || true
 fi
 
+if [ -f "error_rates.csv" ]; then
+    echo "error_rates.csv file found..."
+    python3 plot_error_rates.py || true
+fi
+
 #python3 convert_bell_data.py
 #python3 plot_bell.py || true
 #python3 plot_memory.py

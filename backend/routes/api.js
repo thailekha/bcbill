@@ -2,7 +2,10 @@ const router = require('express').Router();
 const sentry = require('../services/sentry');
 const url = require('url');
 const httpProxy = require('http-proxy');
-const proxy = httpProxy.createProxyServer();
+const proxy = httpProxy.createProxyServer({
+  proxyTimeout: 60000,
+  timeout: 60000
+});
 
 router.post('/register', async (req, res, next) => {
   try {
@@ -32,7 +35,7 @@ router.all('/origin-server-no-fabric/*', async (req, res, next) => {
   }
 });
 
-function forwardToOriginHandler(limited) {
+function originServerHandler(limited, skipProxy = false) {
   return (async function forwardToOrigin(req, res, next) {
     try {
       const { pathname, search } = url.parse(req.url, true);
@@ -44,13 +47,21 @@ function forwardToOriginHandler(limited) {
         return next(err);
       }
       const { host: originServerHost, path: authorizedPath, verb: authorizedVerb } = originServerInfo;
-      const [originServerName, ...endpointPath] = limited ? pathname.slice('/origin-server/'.length).split('/') : pathname.slice('/origin-server-unlimited/'.length).split('/');
+      const [originServerName, ...endpointPath] = limited ? 
+        pathname.slice('/origin-server/'.length).split('/') : (skipProxy ? pathname.slice('/origin-server-skip-proxy/'.length).split('/') : pathname.slice('/origin-server-unlimited/'.length).split('/'));
       const finalAuthorizedCheck = authorizedPath === endpointPath.join('/') && authorizedVerb.toUpperCase() === req.method;
+
+      // console.log(authorizedPath, endpointPath.join('/'), authorizedVerb.toUpperCase(), req.method);
 
       if (!finalAuthorizedCheck) {
         const err = new Error('Bad path / verb');
         err.statusCode = 400;
         return next(err);
+      }
+
+      if (skipProxy) {
+        // For load test
+        return res.sendStatus(200);
       }
 
       req.url = '/' + endpointPath.join('/') + (search ? search : '');
@@ -67,9 +78,11 @@ function forwardToOriginHandler(limited) {
   });
 }
 
-router.all('/origin-server/*', forwardToOriginHandler(true));
+router.all('/origin-server/*', originServerHandler(true));
 
-router.all('/origin-server-unlimited/*', forwardToOriginHandler(false));
+router.all('/origin-server-unlimited/*', originServerHandler(false));
+
+router.all('/origin-server-skip-proxy/*', originServerHandler(false, true));
 
 router.post('/GetUser', async (req, res, next) => {
   try {

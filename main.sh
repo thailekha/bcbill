@@ -26,35 +26,31 @@ remote_load() {
     exec_remote "cd /home/fabric/work/bcbill && bash main.sh load"
 }
 
-load1() {
+load1_local() {
     1peer
     clean
+    protected_server
     cd tests
-    kill_port 9999
     npm run setup-for-load
     cd -
     backend
-    sleep 1
-    protected_server
-    sleep 1
+    sleep 3
     cd tests-plot
-    ./load.sh run "1peer"
+    ./load.sh run "9peer-rr"
     cd -
 }
 
-load9() {
+load9_rr_local() {
     9peer
     clean
+    protected_server
     cd tests
-    kill_port 9999
     npm run setup-for-load
     cd -
     backend_roundrobin
-    sleep 1
-    protected_server
-    sleep 1
+    sleep 3
     cd tests-plot
-    ./load.sh run "9peer"
+    ./load.sh run "9peer-rr"
     cd -
 }
 
@@ -135,10 +131,10 @@ frontend_second() {
 }
 
 kill_port() {
-  PORT=$1
-  if lsof -i :$PORT >/dev/null; then
-    kill $(lsof -t -i :$PORT)
-  fi
+    PORT=$1
+    if lsof -i :$PORT >/dev/null; then
+        kill $(lsof -t -i :$PORT)
+    fi
 }
 
 backend() {
@@ -238,7 +234,7 @@ npm_install() {
 
 lint() {
     which eslint || npm i -g eslint
-    eslint protected-server backend chaincodes utils tests --fix --ext .js --config eslintrc.json
+    eslint protected-server backend chaincodes utils tests tests-plot --fix --ext .js --config eslintrc.json
 }
 
 ############################

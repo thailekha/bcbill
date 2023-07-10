@@ -3,16 +3,16 @@ const { check } = require('k6');
 const preparedData = JSON.parse(open('/tmp/loadtest-data.json'));
 
 export const options = {
-    discardResponseBodies: true,
-    scenarios: {
-        contacts: {
-            executor: 'constant-vus',
-            vus: '<VU_NUM_HERE>',
-            duration: '120s',
-            gracefulStop: '20s',
-            exec: 'accessEndpoint',
-        },
+  discardResponseBodies: true,
+  scenarios: {
+    contacts: {
+      executor: 'constant-vus',
+      vus: '<VU_NUM_HERE>',
+      duration: '120s',
+      gracefulStop: '20s',
+      exec: 'accessEndpoint',
     },
+  },
 };
 
 export function accessEndpoint(data) {
