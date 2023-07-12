@@ -30,6 +30,18 @@ function exec_remote() {
     sshpass -p fabric ssh fabric@172.29.1.230 "export PATH=$PATH:/usr/local/bin && cd /home/fabric/work/bcbill && $1"
 }
 
+TARGET_ADDRESS="172.29.1.230"
+# TARGET_ADDRESS="localhost"
+DIRECT_API_URL="http://$TARGET_ADDRESS:9998/sample-get"
+PROXY_NO_FABRIC_URL="http://$TARGET_ADDRESS:9999/api/origin-server-no-fabric/math/sample-get"
+PROXY_FABRIC_URL="http://$TARGET_ADDRESS:9999/api/origin-server-unlimited/math/sample-get"
+FABRIC_FOCUS_URL="http://$TARGET_ADDRESS:9999/api/origin-server-skip-proxy/math/sample-get"
+
+VUS_direct_api="1 10"
+VUS_load1_disable_connection_pool="50 100 200 300 500 900 1000 3000 5000"
+VUS_load1="50 100 200 300 500 900 1000 3000 5000"
+VUS_load9="5000 7000 9000 11000 13000 15000 17000 19000 21000"
+
 load1_setup() {
     1peer
     clean
@@ -81,13 +93,8 @@ load9_random_setup() {
 }
 
 direct_api_setup() {
-    1peer
-    clean
     protected_server_bg
-    setup_data_for_load
-    backend_single_bg
     sleep 3
-    cat /tmp/backend.log
 }
 
 setup_data_for_load() {
@@ -101,13 +108,14 @@ load() {
     # exec_remote "./main.sh load1_setup_disable_connection_pool"
     # do_load "1peer-no-pool"
     exec_remote "./main.sh direct_api_setup"
-    # do_load "1peer-no-pool"
+    do_load "run_steady_load 1-direct-api '$VUS_direct_api' '$DIRECT_API_URL' false"
+    # do_load "run_break_load 1peer-no-pool"
 }
 
 do_load() {
-    CASE_NAME=$1
+    CMD=$1
     cd tests-plot
-    ./load.sh run $CASE_NAME
+    ./load.sh "$CMD"
     cd -
 }
 

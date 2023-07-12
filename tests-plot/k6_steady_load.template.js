@@ -1,6 +1,6 @@
 const http = require('k6/http');
 const { check } = require('k6');
-const preparedData = JSON.parse(open('/tmp/loadtest-data.json'));
+const preparedData = <NEED_WALLET> ? JSON.parse(open('/tmp/loadtest-data.json')) : {};
 
 export const options = {
   discardResponseBodies: true,
@@ -8,7 +8,7 @@ export const options = {
     contacts: {
       executor: 'constant-vus',
       vus: '<VU_NUM_HERE>',
-      duration: '120s',
+      duration: '60s',
       gracefulStop: '20s',
       exec: 'accessEndpoint',
     },
@@ -21,8 +21,11 @@ export function accessEndpoint(data) {
     const wallet = preparedData.clientA_wallet;
     const endpointAccessGrantId = preparedData.grant_get;
 
-    const bc_res = http.get('http://localhost:9999/api/origin-server/math/sample-get', {
-      headers: { auth: JSON.stringify({ entityID, wallet, endpointAccessGrantId }) }
+    const bc_res = http.get('<URL_HERE>', {
+      headers: { 
+        auth: <NEED_WALLET> ? JSON.stringify({ entityID, wallet, endpointAccessGrantId }) : {},
+        target: "http://localhost:9998"
+      }
     });
     check(bc_res, {
       'status was 200': (r) => r.status === 200

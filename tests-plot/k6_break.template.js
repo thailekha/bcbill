@@ -28,8 +28,11 @@ export function accessEndpoint(data) {
     const wallet = preparedData.clientA_wallet;
     const endpointAccessGrantId = preparedData.grant_get;
 
-    const bc_res = http.get('http://<ADDRESS_HERE>:9999/api/origin-server-skip-proxy/math/sample-get', {
-      headers: { auth: JSON.stringify({ entityID, wallet, endpointAccessGrantId }) }
+    const bc_res = http.get('<URL_HERE>', {
+      headers: { 
+        auth: JSON.stringify({ entityID, wallet, endpointAccessGrantId }),
+        target: "http://localhost:9998"
+      }
     });
     check(bc_res, {
       'status was 200': (r) => r.status === 200

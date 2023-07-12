@@ -2,9 +2,6 @@
 set -Eeuox pipefail
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
-TARGET_ADDRESS="172.29.1.230"
-# TARGET_ADDRESS="localhost"
-
 function scp_from_remote() {
   sshpass -p fabric scp -r fabric@172.29.1.230:"$1" "$2"
 }
@@ -70,7 +67,7 @@ function plot() {
   cd -
 }
 
-function commit_vu_case() {
+function commit_case() {
   local case_name=$1
   rm -rf $case_name || true
   mkdir $case_name
@@ -88,10 +85,15 @@ function run_vu_case() {
     load_steady "$VU_NUM"
   fi
   plot
-  commit_vu_case "vu_$VU_NUM"
+  commit_case "vu_$VU_NUM"
 }
 
 # ===========================================================
+
+function load_prerequisite() {
+  get_wallets
+  ADDRESS=$TARGET_ADDRESS node init-connection-pool/index.js
+}
 
 function load_iteration_based() {
   local VU_NUM=$1
@@ -113,75 +115,56 @@ function run_iteration_based() {
   mv vu_* $ITER_CASE/.
 }
 
-function load_steady() {
-  local VU_NUM=$1
-  cp k6_steady_load.template.js k6_load.js
-  sed -i "s/<VU_NUM_HERE>/$VU_NUM/g" k6_load.js
-  echo "VU,iteration,latency" > graph/lines.csv
-  std_out=$(k6 run --quiet --no-summary --no-vu-connection-reuse k6_load.js 2>&1)
-  echo $std_out | grep -Eo 'VU([0-9]+)_([0-9]+):([0-9.]+)' | awk -F '[_:]' '{ printf "%s,%s,%s\n", substr($1, 3), $2, $3 }' >> graph/lines.csv
-}
-
 function run_steady_load() {
-  PEER_CASE=$1
-  STEADY_CASE="$PEER_CASE/steady-load"
-  mkdir -p $STEADY_CASE
-  for num in 100 ; do
-    run_vu_case "$num" false
+  local CASE_NAME=$1
+  local VU_RANGE=$2
+  local TARGET_URL=$3
+  local NEED_WALLET =$4
+  
+  $NEED_WALLET && load_prerequisite
+
+  # each VU value results in a new graph
+  for num in $VU_RANGE ; do
+    echo $num
+    cp k6_steady_load.template.js k6_load.js
+    sed -i "s/<NEED_WALLET>/$NEED_WALLET/g" k6_load.js
+    sed -i "s/<VU_NUM_HERE>/$num/g" k6_load.js
+    sed -i "s/<URL_HERE>/$TARGET_URL/g" k6_load.js
+
+    echo "VU,iteration,latency" > graph/lines.csv
+    std_out=$(k6 run --quiet --no-summary --no-vu-connection-reuse k6_load.js 2>&1)
+    echo $std_out | grep -Eo 'VU([0-9]+)_([0-9]+):([0-9.]+)' | awk -F '[_:]' '{ printf "%s,%s,%s\n", substr($1, 3), $2, $3 }' >> graph/lines.csv
     sleep 5
+    plot
+    commit_case "vu_$num"
   done
-  mv vu_* $STEADY_CASE/.
+  mv vu_* $CASE_NAME/.
 }
-
-
-VUS_direct_api="10000 20000 30000 40000 50000 60000"
-# VUS_without_bc=
-VUS_load1_disable_connection_pool="50 100 200 300 500 900 1000 3000 5000"
-VUS_load1="50 100 200 300 500 900 1000 3000 5000"
-VUS_load9="5000 7000 9000 11000 13000 15000 17000 19000 21000"
-
 
 function run_break_load() {
-  PEER_CASE=$1
-  BREAK_CASE="$PEER_CASE/break-load"
-  mkdir -p $BREAK_CASE
-  echo "VU,rate" > graph/error_rates.csv
+  local CASE_NAME=$1
+  local VU_RANGE=$2
+  local TARGET_URL=$3
+  load_prerequisite
   cp k6_break.template.js k6_load.js
   sed -i "s/<VU_NUM_HERE>/1/g" k6_load.js
-  sed -i "s/<ADDRESS_HERE>/$TARGET_ADDRESS/g" k6_load.js
+  sed -i "s/<URL_HERE>/$TARGET_URL/g" k6_load.js
   k6 run k6_load.js 2>&1
 
-  # before scale
-  # for num in 50 100 200 300 500 900 1000 3000 5000 ; do
-
-  # after scale
-  # for num in 5 7 9 11 13 15 17 19 21 ; do
-  #   num=$((num * 1000))
-
-  # direct to API
-  for num in 50 100 200 300 500 900 1000 3000 5000 ; do
-
+  echo "VU,rate" > graph/error_rates.csv
+  # all VU values result in one graph
+  for num in $VU_RANGE ; do
     echo $num
     cp k6_break.template.js k6_load.js
     sed -i "s/<VU_NUM_HERE>/$num/g" k6_load.js
-    sed -i "s/<ADDRESS_HERE>/$TARGET_ADDRESS/g" k6_load.js
+    sed -i "s/<URL_HERE>/$TARGET_URL/g" k6_load.js
+
     rate=$(k6 run k6_load.js 2>&1 | grep -oP 'rate:\K[\d.]*' || true)
     echo "${num},${rate}" >> graph/error_rates.csv
     sleep 5
   done
   plot
-  mv graph/*.csv $BREAK_CASE/.
-  mv graph/*.png $BREAK_CASE/.
-}
-
-function run() {
-  get_wallets
-  ADDRESS=$TARGET_ADDRESS node init-connection-pool/index.js
-  PEER_CASE=$1
-  rm -rf $PEER_CASE || true
-  # run_iteration_based $PEER_CASE
-  # run_steady_load $PEER_CASE
-  run_break_load $PEER_CASE
+  commit_case $CASE_NAME
 }
 
 function test() {
