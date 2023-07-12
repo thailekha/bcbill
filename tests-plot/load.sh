@@ -67,12 +67,12 @@ function plot() {
   cd -
 }
 
-function commit_case() {
-  local case_name=$1
-  rm -rf $case_name || true
-  mkdir $case_name
-  mv graph/*.csv $case_name/.
-  mv graph/*.png $case_name/.
+function commit_data_and_graph() {
+  local dir_name=$1
+  rm -rf $dir_name || true
+  mkdir $dir_name
+  mv graph/*.csv $dir_name/.
+  mv graph/*.png $dir_name/.
 }
 
 function run_vu_case() {
@@ -85,14 +85,15 @@ function run_vu_case() {
     load_steady "$VU_NUM"
   fi
   plot
-  commit_case "vu_$VU_NUM"
+  commit_data_and_graph "vu_$VU_NUM"
 }
 
 # ===========================================================
 
 function load_prerequisite() {
   get_wallets
-  ADDRESS=$TARGET_ADDRESS node init-connection-pool/index.js
+  local TARGET_URL="$1"
+  ADDRESS="$TARGET_URL" node init-connection-pool/index.js
 }
 
 function load_iteration_based() {
@@ -119,9 +120,9 @@ function run_steady_load() {
   local CASE_NAME=$1
   local VU_RANGE=$2
   local TARGET_URL=$3
-  local NEED_WALLET =$4
+  local NEED_WALLET=$4
   
-  $NEED_WALLET && load_prerequisite
+  $NEED_WALLET && load_prerequisite "$TARGET_URL"
 
   # each VU value results in a new graph
   for num in $VU_RANGE ; do
@@ -129,15 +130,19 @@ function run_steady_load() {
     cp k6_steady_load.template.js k6_load.js
     sed -i "s/<NEED_WALLET>/$NEED_WALLET/g" k6_load.js
     sed -i "s/<VU_NUM_HERE>/$num/g" k6_load.js
-    sed -i "s/<URL_HERE>/$TARGET_URL/g" k6_load.js
+    sed -i "s/<DURATION_HERE>/60s/g" k6_load.js
+    sed -i "s|<URL_HERE>|$TARGET_URL|" k6_load.js
 
     echo "VU,iteration,latency" > graph/lines.csv
     std_out=$(k6 run --quiet --no-summary --no-vu-connection-reuse k6_load.js 2>&1)
     echo $std_out | grep -Eo 'VU([0-9]+)_([0-9]+):([0-9.]+)' | awk -F '[_:]' '{ printf "%s,%s,%s\n", substr($1, 3), $2, $3 }' >> graph/lines.csv
     sleep 5
     plot
-    commit_case "vu_$num"
+    commit_data_and_graph "vu_$num"
   done
+
+  # rm -rf $CASE_NAME || true
+  mkdir -p $CASE_NAME
   mv vu_* $CASE_NAME/.
 }
 
@@ -145,10 +150,15 @@ function run_break_load() {
   local CASE_NAME=$1
   local VU_RANGE=$2
   local TARGET_URL=$3
-  load_prerequisite
+  local NEED_WALLET=$4
+  
+  $NEED_WALLET && load_prerequisite "$TARGET_URL"
+
   cp k6_break.template.js k6_load.js
+  sed -i "s/<NEED_WALLET>/$NEED_WALLET/g" k6_load.js
   sed -i "s/<VU_NUM_HERE>/1/g" k6_load.js
-  sed -i "s/<URL_HERE>/$TARGET_URL/g" k6_load.js
+  sed -i "s/<DURATION_HERE>/10s/g" k6_load.js
+  sed -i "s|<URL_HERE>|$TARGET_URL|" k6_load.js
   k6 run k6_load.js 2>&1
 
   echo "VU,rate" > graph/error_rates.csv
@@ -156,15 +166,20 @@ function run_break_load() {
   for num in $VU_RANGE ; do
     echo $num
     cp k6_break.template.js k6_load.js
+    sed -i "s/<NEED_WALLET>/$NEED_WALLET/g" k6_load.js
     sed -i "s/<VU_NUM_HERE>/$num/g" k6_load.js
-    sed -i "s/<URL_HERE>/$TARGET_URL/g" k6_load.js
+    sed -i "s/<DURATION_HERE>/60s/g" k6_load.js
+    sed -i "s|<URL_HERE>|$TARGET_URL|" k6_load.js
 
     rate=$(k6 run k6_load.js 2>&1 | grep -oP 'rate:\K[\d.]*' || true)
     echo "${num},${rate}" >> graph/error_rates.csv
     sleep 5
   done
   plot
-  commit_case $CASE_NAME
+
+  commit_data_and_graph "break-load"
+  mkdir -p "$CASE_NAME" || true
+  mv break-load "$CASE_NAME"/.
 }
 
 function test() {

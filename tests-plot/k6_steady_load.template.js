@@ -8,7 +8,7 @@ export const options = {
     contacts: {
       executor: 'constant-vus',
       vus: '<VU_NUM_HERE>',
-      duration: '60s',
+      duration: '<DURATION_HERE>',
       gracefulStop: '20s',
       exec: 'accessEndpoint',
     },
@@ -28,10 +28,17 @@ export function accessEndpoint(data) {
       }
     });
     check(bc_res, {
-      'status was 200': (r) => r.status === 200
+      'status was 200': (r) => {
+        if (r.status === 200) {
+          const bc_duration = bc_res.timings.duration;
+          console.log(`VU${__VU}_${__ITER}:${bc_duration}`);
+          return true;
+        }
+        return false;
+      }
     });
-    const bc_duration = bc_res.timings.duration;
-    console.log(`VU${__VU}_${__ITER}:${bc_duration}`);
+    // const bc_duration = bc_res.timings.duration;
+    // console.log(`VU${__VU}_${__ITER}:${bc_duration}`);
   } catch (err) {
     console.error(err);
   }

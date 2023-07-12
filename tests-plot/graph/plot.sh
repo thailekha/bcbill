@@ -5,7 +5,7 @@ if [ -f "bars.csv" ]; then
 fi
 
 if [ -f "lines.csv" ]; then
-    echo "lines.csv file found. Running convert_lines_data.py..."
+    echo "lines.csv file found. Running plot_lines.py..."
     python3 plot_lines.py || true
 fi
 

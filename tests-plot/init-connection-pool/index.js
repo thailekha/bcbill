@@ -8,7 +8,7 @@ async function accessEndpoint() {
     const endpointAccessGrantId = preparedData.grant_get;
 
     const response = await request
-      .get(`http://${process.env.ADDRESS ? process.env.ADDRESS : 'localhost'}:9999/api/origin-server-skip-proxy/math/sample-get`)
+      .get(process.env.ADDRESS)
       .set('auth', JSON.stringify({ entityID, wallet, endpointAccessGrantId }));
 
     if (response.status !== 200) {
@@ -16,7 +16,7 @@ async function accessEndpoint() {
       process.exit(1);
     }
 
-    console.log('Connection pool initiated');
+    // console.log('Connection pool initiated');
 
   } catch (err) {
     console.error(err);
