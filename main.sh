@@ -34,36 +34,80 @@ load1_setup() {
     1peer
     clean
     protected_server_bg
-    cd tests
-    kill_port 9999
-    npm run setup-for-load
-    cd -
-    backend_bg
+    setup_data_for_load
+    backend_single_bg
     sleep 3
     cat /tmp/backend.log
 }
 
-load9_rr_setup() {
+load1_disable_connection_pool_setup() {
+    1peer
+    clean
+    protected_server_bg
+    setup_data_for_load
+    backend_single_disable_connection_pool_bg
+    sleep 3
+    cat /tmp/backend.log
+}
+
+load9_roundrobin_setup() {
     9peer
     clean
     protected_server_bg
-    cd tests
-    kill_port 9999
-    npm run setup-for-load
-    cd -
+    setup_data_for_load
     backend_roundrobin_bg
     sleep 3
     cat /tmp/backend.log
 }
 
+load9_single_setup() {
+    9peer
+    clean
+    protected_server_bg
+    setup_data_for_load
+    backend_single_bg
+    sleep 3
+    cat /tmp/backend.log
+}
+
+load9_random_setup() {
+    9peer
+    clean
+    protected_server_bg
+    setup_data_for_load
+    backend_random_bg
+    sleep 3
+    cat /tmp/backend.log
+}
+
+direct_api_setup() {
+    1peer
+    clean
+    protected_server_bg
+    setup_data_for_load
+    backend_single_bg
+    sleep 3
+    cat /tmp/backend.log
+}
+
+setup_data_for_load() {
+    cd tests
+    kill_port 9999
+    PEER_SELECT='SINGLE' npm run setup-for-load
+    cd -
+}
+
 load() {
-    # exec_remote "./main.sh load1_setup"
-    # cd tests-plot
-    # ./load.sh run "1peer"
-    # cd -
-    exec_remote "./main.sh load9_rr_setup"
+    # exec_remote "./main.sh load1_setup_disable_connection_pool"
+    # do_load "1peer-no-pool"
+    exec_remote "./main.sh direct_api_setup"
+    # do_load "1peer-no-pool"
+}
+
+do_load() {
+    CASE_NAME=$1
     cd tests-plot
-    ./load.sh run "9peer"
+    ./load.sh run $CASE_NAME
     cd -
 }
 
@@ -78,15 +122,13 @@ load() {
 dev() {
     clean
     cd tests
-    npm run setup-for-dev
+    PEER_SELECT='SINGLE' npm run setup-for-dev
     cd -
-    # start_components
-    cd backend && npm run dev
 }
 
 start_components() {
     protected_server
-    backend
+    backend_single
     frontend_main "customer"
     frontend_second "staff"
     # expose
@@ -111,14 +153,14 @@ test() {
     protected_server
     log
     cd tests
-    npm run test
+    PEER_SELECT='SINGLE' npm run test
     cd -
 }
 
 rerun_test() {
     newcontr
     cd tests
-    npm run test
+    PEER_SELECT='SINGLE' npm run test
     cd -
 }
 
@@ -150,24 +192,39 @@ kill_port() {
     fi
 }
 
-backend() {
+backend_single() {
     kill_port 9999
-    terminal_tab "cd backend && npm run dev"
+    terminal_tab "cd backend && PEER_SELECT='SINGLE' npm run dev"
+}
+
+backend_single_disable_connection_pool() {
+    kill_port 9999
+    terminal_tab "cd backend && PEER_SELECT='SINGLE' DISABLE_GATEWAY_CONNECTION_POOL=true npm run dev"
 }
 
 backend_roundrobin() {
     kill_port 9999
-    terminal_tab "cd backend && ROUND_ROBIN=true npm run dev"
+    terminal_tab "cd backend && PEER_SELECT='ROUND_ROBIN' npm run dev"
 }
 
-protected_server() {
-    kill_port 9998
-    terminal_tab "cd /home/fabric/work/bcbill/protected-server && node bin/www"
+backend_random() {
+    kill_port 9999
+    terminal_tab "cd backend && PEER_SELECT='RANDOM' npm run dev"
 }
 
-backend_bg() {
+backend_single_bg() {
     kill_port 9999
     cd /home/fabric/work/bcbill/backend
+    export PEER_SELECT='SINGLE'
+    nohup npm run dev > /tmp/backend.log 2>&1 &
+    cd -
+}
+
+backend_single_disable_connection_pool_bg() {
+    kill_port 9999
+    cd /home/fabric/work/bcbill/backend
+    export PEER_SELECT='SINGLE'
+    export DISABLE_GATEWAY_CONNECTION_POOL=true
     nohup npm run dev > /tmp/backend.log 2>&1 &
     cd -
 }
@@ -175,9 +232,22 @@ backend_bg() {
 backend_roundrobin_bg() {
     kill_port 9999
     cd /home/fabric/work/bcbill/backend
-    export ROUND_ROBIN=true
+    export PEER_SELECT='ROUND_ROBIN'
     nohup npm run dev > /tmp/backend.log 2>&1 &
     cd -
+}
+
+backend_random_bg() {
+    kill_port 9999
+    cd /home/fabric/work/bcbill/backend
+    export PEER_SELECT='RANDOM'
+    nohup npm run dev > /tmp/backend.log 2>&1 &
+    cd -
+}
+
+protected_server() {
+    kill_port 9998
+    terminal_tab "cd /home/fabric/work/bcbill/protected-server && node bin/www"
 }
 
 protected_server_bg() {

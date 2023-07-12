@@ -102,15 +102,6 @@ function load_iteration_based() {
   echo $std_out | grep -oE 'VU[0-9]+_[a-zA-Z]+:[0-9.]+' | awk -F ':' '{ print $1 "," $2 }' > graph/bars.csv
 }
 
-function load_steady() {
-  local VU_NUM=$1
-  cp k6_steady_load.template.js k6_load.js
-  sed -i "s/<VU_NUM_HERE>/$VU_NUM/g" k6_load.js
-  echo "VU,iteration,latency" > graph/lines.csv
-  std_out=$(k6 run --quiet --no-summary --no-vu-connection-reuse k6_load.js 2>&1)
-  echo $std_out | grep -Eo 'VU([0-9]+)_([0-9]+):([0-9.]+)' | awk -F '[_:]' '{ printf "%s,%s,%s\n", substr($1, 3), $2, $3 }' >> graph/lines.csv
-}
-
 function run_iteration_based() {
   PEER_CASE=$1
   ITER_CASE="$PEER_CASE/iteration-based"
@@ -120,6 +111,15 @@ function run_iteration_based() {
     sleep 5
   done
   mv vu_* $ITER_CASE/.
+}
+
+function load_steady() {
+  local VU_NUM=$1
+  cp k6_steady_load.template.js k6_load.js
+  sed -i "s/<VU_NUM_HERE>/$VU_NUM/g" k6_load.js
+  echo "VU,iteration,latency" > graph/lines.csv
+  std_out=$(k6 run --quiet --no-summary --no-vu-connection-reuse k6_load.js 2>&1)
+  echo $std_out | grep -Eo 'VU([0-9]+)_([0-9]+):([0-9.]+)' | awk -F '[_:]' '{ printf "%s,%s,%s\n", substr($1, 3), $2, $3 }' >> graph/lines.csv
 }
 
 function run_steady_load() {
@@ -133,6 +133,14 @@ function run_steady_load() {
   mv vu_* $STEADY_CASE/.
 }
 
+
+VUS_direct_api="10000 20000 30000 40000 50000 60000"
+# VUS_without_bc=
+VUS_load1_disable_connection_pool="50 100 200 300 500 900 1000 3000 5000"
+VUS_load1="50 100 200 300 500 900 1000 3000 5000"
+VUS_load9="5000 7000 9000 11000 13000 15000 17000 19000 21000"
+
+
 function run_break_load() {
   PEER_CASE=$1
   BREAK_CASE="$PEER_CASE/break-load"
@@ -142,8 +150,17 @@ function run_break_load() {
   sed -i "s/<VU_NUM_HERE>/1/g" k6_load.js
   sed -i "s/<ADDRESS_HERE>/$TARGET_ADDRESS/g" k6_load.js
   k6 run k6_load.js 2>&1
-  for num in 5 10 15 20 25 30 ; do
-    num=$((num * 1000))
+
+  # before scale
+  # for num in 50 100 200 300 500 900 1000 3000 5000 ; do
+
+  # after scale
+  # for num in 5 7 9 11 13 15 17 19 21 ; do
+  #   num=$((num * 1000))
+
+  # direct to API
+  for num in 50 100 200 300 500 900 1000 3000 5000 ; do
+
     echo $num
     cp k6_break.template.js k6_load.js
     sed -i "s/<VU_NUM_HERE>/$num/g" k6_load.js

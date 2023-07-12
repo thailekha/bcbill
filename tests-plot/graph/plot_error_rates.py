@@ -9,19 +9,23 @@ data = pd.read_csv('error_rates.csv')
 vu = data['VU']
 rate = data['rate']
 
+# Define evenly spaced x-axis values
+x_values = np.arange(len(vu))
+
 # Calculate the width of each bar
-bar_width = np.min(np.diff(vu)) * 0.8
+# bar_width = 0.8
+bar_width = 6 / len(vu)
 
 # Plot the bar graph
-plt.bar(vu, rate, width=bar_width)
+plt.bar(x_values, rate, width=bar_width)
 
 # Add labels and title
 plt.xlabel('App instances')
 plt.ylabel('Error rate')
 plt.title('Error Rates')
 
-# Set x-axis tick labels as integers
-plt.xticks(vu, map(int, vu))
+# Set x-axis tick labels
+plt.xticks(x_values, vu)
 
 # Set the minimum and maximum values for y-axis
 y_min = rate.min() - 5

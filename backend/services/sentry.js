@@ -15,7 +15,8 @@ const createQueryHandler = require('./createQueryHandler');
 const CHANNEL = 'mychannel';
 const CHAINCODE = 'chaincode1';
 
-_l(`Roundrobin mode: ${process.env.ROUND_ROBIN}`);
+_l(`Peer selecting mode: ${process.env.PEER_SELECT}`);
+_l(`Disable gateway connection pool: ${process.env.DISABLE_GATEWAY_CONNECTION_POOL}`);
 
 exports.registerUser = async (entityID, isProvider) => {
   if (isProvider !== entityID.includes('provider')) {
@@ -51,10 +52,12 @@ exports.Revoke = async (entityID, walletContent, endpointAccessGrantId) => await
 exports.Enable = async (entityID, walletContent, endpointAccessGrantId) => await executeContract(
   {}, entityID, walletContent, ACTIONS.Enable, endpointAccessGrantId);
 
-exports.GetOriginServerInfo = async (entityID, walletContent, endpointAccessGrantId) => await queryContract(
+exports.GetOriginServerInfo = async (entityID, walletContent, endpointAccessGrantId) => process.env.DISABLE_GATEWAY_CONNECTION_POOL ? await queryContractNoConnectionPool(
+  {fast: true}, entityID, walletContent, ACTIONS.GetOriginServerInfo, endpointAccessGrantId) : await queryContract(
   {fast: true}, entityID, walletContent, ACTIONS.GetOriginServerInfo, endpointAccessGrantId);
 
-exports.GetOriginServerInfoLimited = async (entityID, walletContent, endpointAccessGrantId) => await queryContract(
+exports.GetOriginServerInfoLimited = async (entityID, walletContent, endpointAccessGrantId) => process.env.DISABLE_GATEWAY_CONNECTION_POOL ? await queryContractNoConnectionPool(
+  {fast: true}, entityID, walletContent, ACTIONS.GetOriginServerInfoLimited, endpointAccessGrantId) : await queryContract(
   {fast: true}, entityID, walletContent, ACTIONS.GetOriginServerInfoLimited, endpointAccessGrantId);
 
 exports.ApiProviderHomepageData = async (entityID, walletContent) => {
@@ -233,6 +236,11 @@ function processBlock(block, assetToCheck, ownerIdHash, accessors) {
   }
 }
 
+const PEER_STRATEGY = process.env.PEER_SELECT === 'ROUND_ROBIN' ? DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN :
+  process.env.PEER_SELECT === 'SINGLE' ? DefaultQueryHandlerStrategies.MSPID_SCOPE_SINGLE :
+    process.env.PEER_SELECT === 'RANDOM' ? createQueryHandler :
+      'Invalid peer selecting mode';
+
 async function executeContract(opts, identity, walletContent, action, ...args) {
   const profile = connectionProfile();
   const wallet = await inMemWallet(identity, typeof walletContent === 'string' ? JSON.parse(decrypt(walletContent)): walletContent);
@@ -245,9 +253,6 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
       wallet,
       identity,
       discovery: { enabled: true, asLocalhost: true },
-      queryHandlerOptions: {
-        strategy: DefaultQueryHandlerStrategies.MSPID_SCOPE_ROUND_ROBIN
-      }
     });
 
     const network = await gateway.getNetwork(CHANNEL);
@@ -265,7 +270,6 @@ async function executeContract(opts, identity, walletContent, action, ...args) {
   }
 }
 
-
 /*
   Note: if the same request from the same client comes in while the gateway is being created, createConnection will be called again
  */
@@ -274,14 +278,12 @@ async function createConnection(identity, walletContent) {
   const wallet = await inMemWallet(identity, typeof walletContent === 'string' ? JSON.parse(decrypt(walletContent)) : walletContent);
   const gateway = new Gateway();
   const profile = connectionProfile();
-  _l(process.env.ROUND_ROBIN ? 'ROUND ROBIN' : 'SINGLE PEER QUERY');
+  _l('Peer strategy', process.env.PEER_SELECT);
   await gateway.connect(profile, {
     wallet,
     identity,
     discovery: { enabled: true, asLocalhost: true },
-    queryHandlerOptions: {
-      strategy: process.env.ROUND_ROBIN ? createQueryHandler : DefaultQueryHandlerStrategies.MSPID_SCOPE_SINGLE
-    }
+    queryHandlerOptions: { strategy: PEER_STRATEGY }
   });
   return gateway;
 }
@@ -300,3 +302,27 @@ async function queryContract(opts, identity, walletContent, action, ...args) {
   return JSON.parse(result.toString());
 }
 
+async function queryContractNoConnectionPool(opts, identity, walletContent, action, ...args) {
+  const profile = connectionProfile();
+  const wallet = await inMemWallet(identity, typeof walletContent === 'string' ? JSON.parse(decrypt(walletContent)): walletContent);
+  const gateway = new Gateway();
+  try {
+
+    // https://stackoverflow.com/questions/56936560/why-do-i-take-more-than-2-seconds-to-just-do-a-transaction
+    // https://hyperledger-fabric.readthedocs.io/en/release-2.2/developapps/connectionoptions.html
+    await gateway.connect(profile, {
+      wallet,
+      identity,
+      discovery: { enabled: true, asLocalhost: true },
+      queryHandlerOptions: { strategy: PEER_STRATEGY }
+    });
+
+    const network = await gateway.getNetwork(CHANNEL);
+    const contract = network.getContract(CHAINCODE);
+    const result = await contract.evaluateTransaction(action, ...args);
+    return JSON.parse((result.toString()));
+  }
+  finally {
+    gateway.disconnect();
+  }
+}

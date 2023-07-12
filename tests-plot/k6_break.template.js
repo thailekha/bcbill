@@ -8,7 +8,7 @@ export const options = {
     contacts: {
       executor: 'constant-vus',
       vus: '<VU_NUM_HERE>',
-      duration: '80s',
+      duration: '60s',
       gracefulStop: '20s',
       exec: 'accessEndpoint',
     },
