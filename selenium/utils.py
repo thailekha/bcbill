@@ -9,16 +9,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-# random_string = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-random_string = ""
-PROVIDER_NAME = "cataas" + random_string
+random_string = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+# random_string = ""
+PROVIDER_NAME = "sample-provider" + random_string
 CLIENT_NAME = "developer1" + random_string
-CLIENT_APP = "purrfect-zone" + random_string
+CLIENT_APP = "sample-app" + random_string
 provider_wallet = ""
-SERVER_NAME = "cat-as-a-service"
-HOST_ADDR = "https://cataas.com"
+SERVER_NAME = "sample-server"
+HOST_ADDR = "http://localhost:9998"
 SERVER_BTN = f"{SERVER_NAME}-btn"
-ENDPOINT = "cat"
+ENDPOINT = "sample-endpoint"
 ENDPOINT_WITH_VERB = f"GET /{ENDPOINT}"
 client_wallet = ""
 CLIENT_PROVIDER_BTN = f"provider_{PROVIDER_NAME}-btn"

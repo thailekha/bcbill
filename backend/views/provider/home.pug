@@ -1,0 +1,47 @@
+extends ../layout
+
+block append main_content
+	h1 #{provider} homepage
+	#accordion
+		//- List of servers
+		each server in ulData.OriginServers
+			+collapsible_card("accordion", server.id, "Server " + server.serverName + " - " + server.host, server.serverName)
+				each endpoint in server.Endpoints
+					.card(style=`background-color: ${endpoint.verb === 'get' ? '#D9EDF7' : endpoint.verb === 'post' ? '#DFF0D8' : endpoint.verb === 'put' ? '#fdd187' : endpoint.verb === 'delete' ? '#ff8484' : '#FFFFFF'};`)
+						.card-body
+							+provider_access_manager(endpoint)
+				.card
+					.card-body
+						h6.card-subtitle.mb-2(style='color: #6f6f6f;') Add Endpoint
+						form(action="/ui/AddEndpoint", method="post")
+							.row.g-3.bg-light.p-3
+								input(type="hidden", name="originServerId", value=server.id)
+								.col-md-3
+									+grey_label("verb")
+									select.form-select(name='verb', id='verb', required)
+										option(value='GET') GET
+										option(value='POST') POST
+										option(value='PUT') PUT
+										option(value='DELETE') DELETE
+								.col-md-7
+									+grey_label("path")
+									input.form-control(type='text', placeholder="e.g. helloworld", id='path', name='path', required)
+								.col-md-2.text-end
+									button.btn.btn-primary(type='submit') Submit
+
+
+		//- FORM to add server
+		+collapsible_card("accordion", "add-server", "Add Server", "add-server")
+			.card-body
+				form(action="/ui/AddOriginServer", method="post")
+					.row.g-3.bg-light.p-3
+						.col-md-6
+							+grey_label("serverName", "Server Name")
+							input.form-control(type='text', id='serverName', name='serverName', required)
+						.col-md-6
+							+grey_label("host")
+							input.form-control(type='text', placeholder='e.g. http://10.0.0.1', id='host', name='host', required)
+						.col-md-12.text-end
+							button.btn.btn-primary(type='submit') Submit
+
+

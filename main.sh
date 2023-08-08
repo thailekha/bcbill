@@ -23,6 +23,23 @@ code_pull() {
 }
 
 ############################
+# Demo screenshot (start)
+############################
+
+demo_ss_setup() {
+    1peer
+    clean
+    protected_server
+    backend_single
+    # frontend_main "customer"
+    # frontend_second "staff"
+}
+
+############################
+# Demo screenshot (end)
+############################
+
+############################
 # Load test (start)
 ############################
 
