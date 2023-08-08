@@ -30,8 +30,8 @@ function exec_remote() {
     sshpass -p fabric ssh fabric@172.29.1.230 "export PATH=$PATH:/usr/local/bin && cd /home/fabric/work/bcbill && $1"
 }
 
-TARGET_ADDRESS="172.29.1.230"
-# TARGET_ADDRESS="localhost"
+# TARGET_ADDRESS="172.29.1.230"
+TARGET_ADDRESS="localhost"
 DIRECT_API_URL="http://$TARGET_ADDRESS:9998/sample-get"
 PROXY_NO_FABRIC_URL="http://$TARGET_ADDRESS:9999/api/origin-server-no-fabric/sample-get"
 PROXY_FABRIC_URL="http://$TARGET_ADDRESS:9999/api/origin-server-unlimited/math/sample-get"
@@ -40,6 +40,13 @@ FABRIC_FOCUS_URL="http://$TARGET_ADDRESS:9999/api/origin-server-skip-proxy/math/
 VUS_steady_load="1 10"
 VUS_break_dataset1="50 100 200 300 500 900 1000 3000 5000"
 VUS_break_dataset2="5000 7000 9000 11000 13000 15000 17000 19000 21000"
+
+explorer_setup() {
+    1peer
+    clean
+    protected_server_bg
+    setup_data_for_load
+} 
 
 load1_setup() {
     1peer
