@@ -15,7 +15,7 @@ from utils import (
     CLIENT_PROVIDER_BTN,
     CLIENT_ENDPOINT_BTN,
     CLIENT_GRANT_ID,
-    PURRFECT_DST,
+    CLIENT_APP_DST,
     wait_for_tags,
 )
 
@@ -89,16 +89,16 @@ def kill_process_on_port(port):
 def start_nodejs_file(file_path):
     file_directory = os.path.dirname(file_path)
     subprocess.Popen(
-        ["/home/vagrant/.nvm/versions/node/v14.19.3/bin/node", file_path],
+        ["/home/fabric/.nvm/versions/node/v14.19.3/bin/node", file_path],
         cwd=file_directory,
     )
 
 
-def launch_purrfect(c, ss):
+def launch_client_app(c, ss):
     kill_process_on_port(3000)
-    start_nodejs_file(PURRFECT_DST)
+    start_nodejs_file(CLIENT_APP_DST)
     time.sleep(1)
     c.get("http://localhost:3000")
-    wait_for_tags(c, "img")
+    # wait_for_tags(c, "img")
     time.sleep(2)
-    ss.save(c, "purrfect-zone")
+    ss.save(c, "client-app-working")

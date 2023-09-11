@@ -31,8 +31,6 @@ demo_ss_setup() {
     clean
     protected_server
     backend_single
-    # frontend_main "customer"
-    # frontend_second "staff"
 }
 
 ############################

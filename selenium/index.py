@@ -9,18 +9,18 @@ from utils import (
     CLIENT_APP,
     CLIENT_NAME,
     screenshot_code,
-    PURRFECT_SRC,
-    PURRFECT_DST,
+    CLIENT_APP_SRC,
+    CLIENT_APP_DST,
     SERVER_NAME,
     ENDPOINT,
 )
 
 if __name__ == "__main__":
     delete_and_recreate_folder("screenshots")
-    c = driver(debug=True)
-    p = driver(debug=True)
-    # c = driver()
-    # p = driver()
+    # c = driver(debug=True)
+    # p = driver(debug=True)
+    c = driver()
+    p = driver()
     ss = Screenshoter()
     provider.onboarding(p, ss)
     print("provider onboarded")
@@ -30,16 +30,16 @@ if __name__ == "__main__":
     print("provider approved")
     grant_id = client.view_approved(c, ss)
 
-    # generate Purfect zone client app
-    # 
-    # replace_placeholders(
-    #     PURRFECT_SRC,
-    #     PURRFECT_DST,
-    #     SERVER_NAME,
-    #     ENDPOINT,
-    #     f"{CLIENT_APP}_{CLIENT_NAME}",
-    #     client_wallet,
-    #     grant_id,
-    # )
-    # screenshot_code(ss, PURRFECT_DST)
-    # client.launch_purrfect(driver(size="window-size=800,800"), ss)
+    # generate client app
+
+    replace_placeholders(
+        CLIENT_APP_SRC,
+        CLIENT_APP_DST,
+        SERVER_NAME,
+        ENDPOINT,
+        f"{CLIENT_APP}_{CLIENT_NAME}",
+        client_wallet,
+        grant_id,
+    )
+    screenshot_code(ss, CLIENT_APP_DST)
+    client.launch_client_app(driver(size="window-size=800,800"), ss)

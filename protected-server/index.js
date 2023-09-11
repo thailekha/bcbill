@@ -57,7 +57,7 @@ app.post('/average', cors(), (req, res) => {
 
 app.get('/sample-get', cors(), (req, res) => {
   res.json({
-    answer: 'sample'
+    answer: 'This is sample GET endpoint'
   });
 });
 

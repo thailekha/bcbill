@@ -9,16 +9,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-random_string = "".join(random.choices(string.ascii_letters + string.digits, k=10))
-# random_string = ""
-PROVIDER_NAME = "sample-provider" + random_string
-CLIENT_NAME = "developer1" + random_string
+# random_string = "".join(random.choices(string.ascii_letters + string.digits, k=10))
+random_string = ""
+PROVIDER_NAME = "sample-api" + random_string
+CLIENT_NAME = "developer2" + random_string
 CLIENT_APP = "sample-app" + random_string
 provider_wallet = ""
 SERVER_NAME = "sample-server"
 HOST_ADDR = "http://localhost:9998"
 SERVER_BTN = f"{SERVER_NAME}-btn"
-ENDPOINT = "sample-endpoint"
+ENDPOINT = "sample-get"
 ENDPOINT_WITH_VERB = f"GET /{ENDPOINT}"
 client_wallet = ""
 CLIENT_PROVIDER_BTN = f"provider_{PROVIDER_NAME}-btn"
@@ -26,8 +26,8 @@ CLIENT_ENDPOINT_BTN = f"provider_{PROVIDER_NAME}-{SERVER_NAME}-GET-{ENDPOINT}-bt
 CLIENT_GRANT_ID = f"provider_{PROVIDER_NAME}-{SERVER_NAME}-GET-{ENDPOINT}-grant-id"
 
 
-PURRFECT_SRC = "../purrfect-zone/index-template.js"
-PURRFECT_DST = "../purrfect-zone/purrfect.js"
+CLIENT_APP_SRC = "../sample-client/index-template.js"
+CLIENT_APP_DST = "../sample-client/index.js"
 
 
 def wait_for_xpath(driver, path):
@@ -88,5 +88,5 @@ def screenshot_code(ss, file):
     absolute_path = os.path.abspath(file)
     d = driver()
     d.get("file://" + absolute_path)
-    ss.save(d, "purrfect_code")
+    ss.save(d, "client_app_code")
     # d.quit()
