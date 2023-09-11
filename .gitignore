@@ -46,3 +46,5 @@ tests-plot/k6_load.js
 tests-plot/**/*.txt
 
 fablo-config.json
+
+sample-client/index.js
