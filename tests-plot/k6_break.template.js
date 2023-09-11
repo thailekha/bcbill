@@ -9,7 +9,7 @@ export const options = {
       executor: 'constant-vus',
       vus: '<VU_NUM_HERE>',
       duration: '<DURATION_HERE>',
-      gracefulStop: '20s',
+      gracefulStop: '3s',
       exec: 'accessEndpoint',
     },
   },

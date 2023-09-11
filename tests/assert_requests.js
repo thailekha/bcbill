@@ -2,7 +2,7 @@ const request = require('supertest');
 
 const CONTENT_JSON = ['Content-Type', 'application/json'];
 const ORIGIN_SERVERS = [
-  ['math', 'http://localhost:9998'],
+  ['math', 'http://172.29.2.33:9998'],
   ['dumb', 'http://localhost:9997'],
 ];
 const ENDPOINTS = [

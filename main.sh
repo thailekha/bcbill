@@ -45,16 +45,18 @@ function exec_remote() {
     sshpass -p fabric ssh fabric@172.29.1.230 "export PATH=$PATH:/usr/local/bin && cd /home/fabric/work/bcbill && $1"
 }
 
-# TARGET_ADDRESS="172.29.1.230"
-TARGET_ADDRESS="localhost"
-DIRECT_API_URL="http://$TARGET_ADDRESS:9998/sample-get"
+TARGET_ADDRESS="172.29.1.230"
+EXPRESS_ADDRESS="172.29.2.33"
+# TARGET_ADDRESS="localhost"
+DIRECT_API_URL="http://$EXPRESS_ADDRESS:9998/sample-get"
 PROXY_NO_FABRIC_URL="http://$TARGET_ADDRESS:9999/api/origin-server-no-fabric/sample-get"
 PROXY_FABRIC_URL="http://$TARGET_ADDRESS:9999/api/origin-server-unlimited/math/sample-get"
 FABRIC_FOCUS_URL="http://$TARGET_ADDRESS:9999/api/origin-server-skip-proxy/math/sample-get"
 
 VUS_steady_load="1 10"
-VUS_break_dataset1="50 100 200 300 500 900 1000 3000 5000"
-VUS_break_dataset2="5000 7000 9000 11000 13000 15000 17000 19000 21000"
+VUS_break_dataset1="50 100 150 200 250 300 350 400 450 500"
+VUS_break_dataset2="500 1000 1500 2000 2500 3000 3500 4000 4500 5000 5500 6000 6500 7000 7500 8000 8500 9000 9500 10000 10500 11000 11500 12000 12500 13000 13500 14000 14500 15000 15500 16000 16500 17000 17500 18000 18500 19000 19500 20000 20500 21000"
+VUS_break_dataset3="500 1000 1500 2000 2500 3000 3500 4000 4500 5000 5500 6000 6500 7000 7500 8000 8500 9000 9500 10000 10500 11000 11500 12000 12500 13000 13500 14000 14500 15000 15500 16000 16500 17000 17500 18000 18500 19000 19500 20000 20500 21000 21500 22000 22500 23000 23500 24000 24500 25000 25500 26000 26500 27000 27500 28000 28500 29000 29500 30000"
 
 explorer_setup() {
     1peer
@@ -63,6 +65,7 @@ explorer_setup() {
     setup_data_for_load
 } 
 
+# this does have pool
 load1_setup() {
     1peer
     clean
@@ -230,8 +233,49 @@ load9_random_setup() {
     cd -
 }
 
+
+# ==============================================
+# Experiments v2
+# ==============================================
+
+expv2_1peer_setup() {
+    1peer
+    clean || clean
+    setup_data_for_load
+    backend_single_bg
+    sleep 3
+    cat /tmp/backend.log
+}
+
+expv2_9peer_setup() {
+    9peer
+    clean || clean
+    setup_data_for_load
+    backend_random_bg
+    sleep 3
+    cat /tmp/backend.log
+}
+
+expv2_case1_errorrate_1peer() {
+    local RUN_NO=$1
+
+    curl "$DIRECT_API_URL"
+    cd tests-plot
+    ./load.sh run_break_load expv2_case1_errorrate_1peer_run$RUN_NO "$VUS_break_dataset3" "$PROXY_FABRIC_URL" true
+    cd -
+}
+
+expv2_case1_errorrate_9peer() {
+    local RUN_NO=$1
+
+    curl "$DIRECT_API_URL"
+    cd tests-plot
+    ./load.sh run_break_load expv2_case1_errorrate_9peer_run$RUN_NO "$VUS_break_dataset3" "$PROXY_FABRIC_URL" true
+    cd -
+}
+
 load() {
-    # exec_remote "./main.sh load1_setup_disable_connection_pool"
+    # exec_remote "./main.sh load1_disable_connection_pool_setup"
     # do_load "1peer-no-pool"
     # exec_remote "./main.sh 1_direct_api_setup"
     # 1_direct_api_load
@@ -239,6 +283,10 @@ load() {
     # 2_proxy_no_fabric_load
     # exec_remote "./main.sh 3_proxy_fabric_setup"
     # 3_proxy_fabric_load
+
+    # exec_remote "./main.sh 3a_fabric_focus_1peer_single_no_pool_setup"
+    # 3a_fabric_focus_1peer_single_no_pool_load
+
     # exec_remote "./main.sh 4_fabric_focus_9peer_roundrobin_no_pool_setup"
     # 4_fabric_focus_9peer_roundrobin_no_pool_load
     # exec_remote "./main.sh 5_fabric_focus_9peer_roundrobin_with_pool_setup"
@@ -246,8 +294,22 @@ load() {
     # exec_remote "./main.sh 6_fabric_focus_9peer_random_with_pool_setup"
     # 6_fabric_focus_9peer_random_with_pool_load
 
-    exec_remote "./main.sh 3a_fabric_focus_1peer_single_no_pool_setup"
-    3a_fabric_focus_1peer_single_no_pool_load
+
+    # exp v2    
+
+    exec_remote "./main.sh expv2_9peer_setup"
+    expv2_case1_errorrate_9peer "1"
+    exec_remote "./main.sh expv2_9peer_setup"
+    expv2_case1_errorrate_9peer "2"
+    exec_remote "./main.sh expv2_9peer_setup"
+    expv2_case1_errorrate_9peer "3"
+
+    exec_remote "./main.sh expv2_1peer_setup"
+    expv2_case1_errorrate_1peer "1"
+    exec_remote "./main.sh expv2_1peer_setup"
+    expv2_case1_errorrate_1peer "2"
+    exec_remote "./main.sh expv2_1peer_setup"
+    expv2_case1_errorrate_1peer "3"
 }
 
 setup_data_for_load() {
@@ -434,7 +496,7 @@ clean() {
     ./fablo prune
     docker volume prune -f
     ./fablo recreate
-    sleep 5
+    sleep 10
     setup_conf
     echo '{"version":1}' >deployed-contract-version.json
 }

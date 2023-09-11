@@ -4,7 +4,7 @@
     "fabricVersion": "2.3.0",
     "tls": true,
     "tools": {
-      "explorer": true,
+      "explorer": false,
       "fabloRest": false
     }
   },
