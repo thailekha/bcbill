@@ -9,7 +9,7 @@ export const options = {
       executor: 'constant-vus',
       vus: '<VU_NUM_HERE>',
       duration: '<DURATION_HERE>',
-      gracefulStop: '20s',
+      gracefulStop: '120s',
       exec: 'accessEndpoint',
     },
   },
@@ -24,6 +24,8 @@ export function accessEndpoint(data) {
     const bc_res = http.get('<URL_HERE>', {
       headers: { 
         auth: <NEED_WALLET> ? JSON.stringify({ entityID, wallet, endpointAccessGrantId }) : {},
+
+        // target is for origin-server-no-fabric
         target: "http://localhost:9998"
       }
     });

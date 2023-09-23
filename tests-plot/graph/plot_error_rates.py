@@ -13,7 +13,10 @@ rate = data['rate']
 x_values = np.arange(len(vu))
 
 # Calculate the width of each bar
-bar_width = 0.8  # You can adjust the width as needed
+bar_width = 0.85  # You can adjust the width as needed
+
+# Calculate the new x-axis positions for the labels (centered on ticks)
+x_positions = np.arange(len(vu)) + bar_width / 2
 
 # Increase figure size
 plt.figure(figsize=(12, 6))  # Adjust the figure size as needed
@@ -23,20 +26,19 @@ for y_value in np.arange(10, rate.max() + 1, 10):  # Start at 10 to skip the lin
     plt.axhline(y=y_value, color='gray', linestyle='-', linewidth=1)
 
 # Plot the bar graph in grayscale
-bars = plt.bar(x_values, rate, width=bar_width, color='gray', label='Error Rate (%)', zorder=2)  # Set the color to grayscale and use zorder to bring bars to the front
+bars = plt.bar(x_positions, rate, width=bar_width, color='gray', label='Error Rate (%)', zorder=2)  # Set the color to grayscale and use zorder to bring bars to the front
 
-# Add labels and title
-plt.xlabel('Client app instances')
-plt.ylabel('Value')
-plt.title('Error Rates')
+# Add labels and title with increased font size
+plt.xlabel('Client app instances', fontsize=14)
+plt.ylabel('Error rate (%)', fontsize=14)
+plt.title('Error Rates', fontsize=16)
 
-# Set x-axis tick labels with rotation
-plt.xticks(x_values, vu, rotation=60, ha='right')  # Rotate the labels by 45 degrees and align to the right
+# Set x-axis tick positions and labels with rotation and increased font size
+plt.xticks(x_positions, vu, rotation=80, ha='center', fontsize=13)  # Center labels on ticks and increase font size
 
-# Set the lower y-axis limit to 0
-y_min = 0
-y_max = rate.max() + 5
-plt.ylim(y_min, y_max)
+# Set custom y-axis tick positions
+custom_y_ticks = np.arange(0, 101, 10)  # 0, 10, 20, 30, ..., 100
+plt.yticks(custom_y_ticks, fontsize=12)  # Set custom y-axis tick positions and increase font size
 
 # Add values on top of bars except for 0 values
 # for bar, value in zip(bars, rate):
