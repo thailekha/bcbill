@@ -141,7 +141,7 @@ function run_steady_load() {
     commit_data_and_graph "vu_$num"
   done
 
-  # rm -rf $CASE_NAME || true
+  rm -rf $CASE_NAME || true
   mkdir -p $CASE_NAME
   mv vu_* $CASE_NAME/.
 }

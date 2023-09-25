@@ -54,7 +54,7 @@ PROXY_FABRIC_URL="http://$TARGET_ADDRESS:9999/api/origin-server-unlimited/math/s
 FABRIC_FOCUS_URL="http://$TARGET_ADDRESS:9999/api/origin-server-skip-proxy/math/sample-get"
 
 # VUS_steady_load="1 5120"
-VUS_steady_load="1 20 40 80 160 320 640 1280 2560 5120"
+VUS_steady_load="20 40 80 160 320 640 1280 2560 5120"
 VUS_break_dataset1="50 100 150 200 250 300 350 400 450 500"
 VUS_break_dataset2="500 1000 1500 2000 2500 3000 3500 4000 4500 5000 5500 6000 6500 7000 7500 8000 8500 9000 9500 10000 10500 11000 11500 12000 12500 13000 13500 14000 14500 15000 15500 16000 16500 17000 17500 18000 18500 19000 19500 20000 20500 21000"
 VUS_break_dataset3="500 1000 1500 2000 2500 3000 3500 4000 4500 5000 5500 6000 6500 7000 7500 8000 8500 9000 9500 10000 10500 11000 11500 12000 12500 13000 13500 14000 14500 15000 15500 16000 16500 17000 17500 18000 18500 19000 19500 20000 20500 21000 21500 22000 22500 23000 23500 24000 24500 25000 25500 26000 26500 27000 27500 28000 28500 29000 29500 30000"
@@ -280,7 +280,7 @@ expv2_case2_latency_1peer() {
 
     curl "$DIRECT_API_URL"
     cd tests-plot
-    ./load.sh run_steady_load expv2_case2_latency_1peer_run$RUN_NO "$VUS_steady_load" "$PROXY_FABRIC_URL" true
+    ./load.sh run_steady_load expv2_case2_latency_ramping_1peer_run$RUN_NO "$VUS_steady_load" "$PROXY_FABRIC_URL" true
     cd -
 }
 
@@ -289,7 +289,7 @@ expv2_case2_latency_9peer() {
 
     curl "$DIRECT_API_URL"
     cd tests-plot
-    ./load.sh run_steady_load expv2_case2_latency_9peer_run$RUN_NO "$VUS_steady_load" "$PROXY_FABRIC_URL" true
+    ./load.sh run_steady_load expv2_case2_latency_ramping_9peer_16cpu_run$RUN_NO "$VUS_steady_load" "$PROXY_FABRIC_URL" true
     cd -
 }
 
@@ -329,8 +329,8 @@ load() {
     # exec_remote "./main.sh expv2_9peer_rr_setup"
     # expv2_case1_errorrate_9peer "3"
 
-    exec_remote "./main.sh expv2_1peer_setup"
-    expv2_case2_latency_1peer "1"
+    exec_remote "./main.sh expv2_9peer_rr_setup"
+    expv2_case2_latency_9peer "1"
 }
 
 setup_data_for_load() {
