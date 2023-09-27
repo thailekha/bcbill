@@ -79,9 +79,9 @@ class APISentryContract extends Contract {
   }
 
   async GetOriginServerInfo(ctx, endpointAccessGrantId) {
-    _l('GetOriginServerInfo start');
+    // _l('GetOriginServerInfo start');
     const endpointAccessGrant = await EndpointAccessGrant.getById(ctx, endpointAccessGrantId);
-    _l('GetOriginServerInfo finish');
+    // _l('GetOriginServerInfo finish');
     return endpointAccessGrant.getOriginServerInfo();
   }
 

@@ -2,29 +2,53 @@ const http = require('k6/http');
 const { check } = require('k6');
 const preparedData = <NEED_WALLET> ? JSON.parse(open('/tmp/loadtest-data.json')) : {};
 
-export const options = {
-  discardResponseBodies: true,
-  scenarios: {
-    contacts: {
-      executor: 'ramping-vus',
-      startVUs: 0,
-      stages: [
-        { duration: '2s', target: parseInt(<VU_NUM_HERE> / 10) },
-        { duration: '2s', target: parseInt(<VU_NUM_HERE> / 9) },
-        { duration: '2s', target: parseInt(<VU_NUM_HERE> / 8) },
-        { duration: '2s', target: parseInt(<VU_NUM_HERE> / 7) },
-        { duration: '2s', target: parseInt(<VU_NUM_HERE> / 6) },
-        { duration: '2s', target: parseInt(<VU_NUM_HERE> / 5) },
-        { duration: '2s', target: parseInt(<VU_NUM_HERE> / 4) },
-        { duration: '2s', target: parseInt(<VU_NUM_HERE> / 3) },
-        { duration: '2s', target: parseInt(<VU_NUM_HERE> / 2) },
-        { duration: '60s', target: <VU_NUM_HERE> },
-      ],
-      gracefulRampDown: "120s",
-      exec: 'accessEndpoint',
+let opts;
+
+// if (<VU_NUM_HERE> <= 10) {
+if (true) {
+
+  opts = {
+    discardResponseBodies: true,
+    scenarios: {
+      contacts: {
+        executor: 'constant-vus',
+        vus: '<VU_NUM_HERE>',
+        duration: '<DURATION_HERE>',
+        gracefulStop: '120s',
+        exec: 'accessEndpoint',
+      },
     },
-  },
-};
+  };
+
+} else {
+
+  opts = {
+    discardResponseBodies: true,
+    scenarios: {
+      contacts: {
+        executor: 'ramping-vus',
+        startVUs: 0,
+        stages: [
+          { duration: '2s', target: parseInt(<VU_NUM_HERE> / 10) },
+          { duration: '2s', target: parseInt(<VU_NUM_HERE> / 9) },
+          { duration: '2s', target: parseInt(<VU_NUM_HERE> / 8) },
+          { duration: '2s', target: parseInt(<VU_NUM_HERE> / 7) },
+          { duration: '2s', target: parseInt(<VU_NUM_HERE> / 6) },
+          { duration: '2s', target: parseInt(<VU_NUM_HERE> / 5) },
+          { duration: '2s', target: parseInt(<VU_NUM_HERE> / 4) },
+          { duration: '2s', target: parseInt(<VU_NUM_HERE> / 3) },
+          { duration: '2s', target: parseInt(<VU_NUM_HERE> / 2) },
+          { duration: '60s', target: <VU_NUM_HERE> },
+        ],
+        gracefulRampDown: "120s",
+        exec: 'accessEndpoint',
+      },
+    },
+  };
+
+}
+
+export const options = opts;
 
 export function accessEndpoint(data) {
   try {
@@ -37,7 +61,7 @@ export function accessEndpoint(data) {
         auth: <NEED_WALLET> ? JSON.stringify({ entityID, wallet, endpointAccessGrantId }) : {},
 
         // target is for origin-server-no-fabric
-        target: "http://localhost:9998"
+        target: "http://172.29.2.33:9998"
       }
     });
     check(bc_res, {

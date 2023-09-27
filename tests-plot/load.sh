@@ -134,14 +134,14 @@ function run_steady_load() {
     sed -i "s|<URL_HERE>|$TARGET_URL|" k6_load.js
 
     echo "VU,iteration,latency" > graph/lines.csv
-    std_out=$(k6 run --quiet --no-summary --no-vu-connection-reuse k6_load.js 2>&1)
+    std_out=$(k6 run --quiet --no-summary k6_load.js 2>&1)
     echo $std_out | grep -Eo 'VU([0-9]+)_([0-9]+):([0-9.]+)' | awk -F '[_:]' '{ printf "%s,%s,%s\n", substr($1, 3), $2, $3 }' >> graph/lines.csv
     sleep 5
     plot
     commit_data_and_graph "vu_$num"
   done
 
-  rm -rf $CASE_NAME || true
+  # rm -rf $CASE_NAME || true
   mkdir -p $CASE_NAME
   mv vu_* $CASE_NAME/.
 }
